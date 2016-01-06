@@ -1,0 +1,62 @@
+[
+{
+    "pk": 1,
+    "model": "aggregator.resource",
+    "fields": {
+        "last_updated": "2016-01-06T19:13:30.049Z",
+        "title": "WCS server for WFP GeoNode",
+        "abstract": "",
+        "created": "2016-01-06T19:00:10.344Z",
+        "owner": 1,
+        "polymorphic_ctype": 16
+    }
+},
+{
+    "pk": 2,
+    "model": "aggregator.resource",
+    "fields": {
+        "last_updated": "2016-01-06T19:13:30.605Z",
+        "title": "NOAA/National Hurricane Center Tropical Cyclone Forecasts WMS",
+        "abstract": "",
+        "created": "2016-01-06T19:01:54.163Z",
+        "owner": 1,
+        "polymorphic_ctype": 16
+    }
+},
+{
+    "pk": 3,
+    "model": "aggregator.resource",
+    "fields": {
+        "last_updated": "2016-01-06T19:13:50.701Z",
+        "title": "",
+        "abstract": "",
+        "created": "2016-01-06T19:13:50.701Z",
+        "owner": 1,
+        "polymorphic_ctype": 16
+    }
+},
+{
+    "pk": 1,
+    "model": "aggregator.service",
+    "fields": {
+        "url": "http://geonode.wfp.org/geoserver/ows",
+        "type": "OGC:WMS"
+    }
+},
+{
+    "pk": 2,
+    "model": "aggregator.service",
+    "fields": {
+        "url": "http://services.ogc.noaa.gov/geoserver/nhc/wms",
+        "type": "OGC:WMS"
+    }
+},
+{
+    "pk": 3,
+    "model": "aggregator.service",
+    "fields": {
+        "url": "http://geonode.state.gov/geoserver/ows",
+        "type": "OGC:WMS"
+    }
+}
+]

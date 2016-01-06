@@ -7,3 +7,4 @@ def reset_db():
     """
     sh("python hypermap/manage.py sqlclear aggregator | python hypermap/manage.py dbshell")
     sh("python hypermap/manage.py syncdb")
+    sh("python hypermap/manage.py loaddata hypermap/aggregator/fixtures/aggregator.json")
