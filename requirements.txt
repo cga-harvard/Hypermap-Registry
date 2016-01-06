@@ -1,0 +1,5 @@
+celery==3.1.19
+Django==1.6.11
+django-celery==3.1.17
+django-polymorphic==0.8.1
+OWSLib==0.10.3
