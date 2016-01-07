@@ -9,18 +9,17 @@ def check_service(service):
     """
     Tests a service and provide run metrics.
     """
-    if service.type == 'OGC:WMS':
-        ows = WebMapService(service.url)
-        check_wms_layers(service)
-    if service.type == 'OGC:WMTS':
-        ows = WebMapTileService(service.url)
-    # TODO add more service types here
 
     success = True
     start_time = datetime.datetime.utcnow()
     message = ''
 
     try:
+        if service.type == 'OGC:WMS':
+            ows = WebMapService(service.url)
+        if service.type == 'OGC:WMTS':
+            ows = WebMapTileService(service.url)
+        # TODO add more service types here
         if service.type.startswith('OGC:'):
             title = ows.identification.title
         if title is None:
@@ -46,6 +45,12 @@ def check_service(service):
         message = message
     )
     check.save()
+
+    if service.type == 'OGC:WMS':
+        check_wms_layers(service)
+    if service.type == 'OGC:WMTS':
+        check_wmts_layers(service)
+    # TODO add more service types here
 
 
 def check_wms_layers(service):
@@ -86,7 +91,7 @@ def check_wms_layers(service):
                                 srs='EPSG:4326',
                                 bbox=(layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1),
                                 size=(50, 50),
-                                format='image/jpeg',
+                                format='image/jpeg', # TODO check available formats
                                 transparent=True
                             )
 
@@ -96,6 +101,69 @@ def check_wms_layers(service):
             layer.thumbnail.save(thumbnail_file_name, upfile, True)
 
             print 'GetMap done'
+
+        except Exception, err:
+            message = str(err)
+            success = False
+
+        end_time = datetime.datetime.utcnow()
+
+        delta = end_time - start_time
+        response_time = '%s.%s' % (delta.seconds, delta.microseconds)
+
+        check = Check(
+            resource = layer,
+            success = success,
+            response_time = response_time,
+            message = message
+        )
+        check.save()
+
+
+def check_wmts_layers(service):
+    """
+    Tests a WMTS service and provide run metrics.
+    """
+    wmts = WebMapTileService(service.url)
+    layer_names = list(wmts.contents)
+    for layer_name in layer_names:
+        ows_layer = wmts.contents[layer_name]
+        print ows_layer.name
+        # get or create layer
+        layer, created = Layer.objects.get_or_create(name=ows_layer.name, owner=service.owner, service=service)
+        # update fields
+        layer.title = ows_layer.title
+        layer.abstract = ows_layer.abstract
+        # bbox
+        bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+        layer.bbox_x0 = bbox[0]
+        layer.bbox_y0 = bbox[1]
+        layer.bbox_x1 = bbox[2]
+        layer.bbox_y1 = bbox[3]
+
+        # now the metrics
+        success = True
+        start_time = datetime.datetime.utcnow()
+        message = ''
+
+        try:
+            # get map here
+            #import ipdb;ipdb.set_trace()
+            img = wmts.gettile(
+                                layer=ows_layer.name,
+                                tilematrixset=ows_layer.tilematrixsets[0],
+                                tilematrix='0',
+                                row='0',
+                                column='0',
+                                format="image/png" # TODO check available formats
+                            )
+
+            from django.core.files.uploadedfile import SimpleUploadedFile
+            thumbnail_file_name = '%s.png' % layer.name
+            upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/png")
+            layer.thumbnail.save(thumbnail_file_name, upfile, True)
+
+            print 'GetTile done'
 
         except Exception, err:
             message = str(err)
