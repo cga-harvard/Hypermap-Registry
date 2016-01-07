@@ -1,5 +1,7 @@
 {% extends "aggregator/base.html" %}
 
+{% load pagination_tags %}
+
 {% block content %}
 
 <div class="page-header">
@@ -62,7 +64,10 @@
 
 <h2>Layers</h2>
 
-{% if service.layer_set.all %}
+{% with service.layer_set.all as layer_set %}
+{% if layer_set %}
+  {% autopaginate layer_set 10 %}
+  {% paginate %}
     <div class="row">
       <div class="col-md-12">
         <table class="table table-striped">
@@ -77,7 +82,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for layer in service.layer_set.all %}
+            {% for layer in layer_set %}
                 <tr>
                   <td><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" /></td>
                   <td>
@@ -121,8 +126,47 @@
       </div>
     </div>
 {% else %}
-    <p>No services are available.</p>
+    <p>No layers are available.</p>
 {% endif %}
+{% endwith %}
 
+<h2>Checks</h2>
+
+{% with service.status_set.all as status_set %}
+{% if status_set %}
+  {% autopaginate status_set 10 %}
+  {% paginate %}
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Response Times</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for status in status_set %}
+                <tr>
+                  <td>{{ status.checked_datetime }}</td>
+                  <td>{{ status.response_time }}</td>
+                  <td>
+                    {% if status.success %}
+                      <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% else %}
+                      <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% endif %}
+                  </td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+{% else %}
+    <p>No checks are available.</p>
+{% endif %}
+{% endwith %}
 
 {% endblock %}
