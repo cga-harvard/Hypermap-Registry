@@ -2,14 +2,62 @@
 
 {% block content %}
 
-<h1>HyperMap Home Page</h1>
+<div class="page-header">
+  <h1>HyperMap Home Page</h1>
+</div>
 
   {% if services %}
-      <ul>
-      {% for service in services %}
-          <li><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a></li>
-      {% endfor %}
-      </ul>
+      <div class="row">
+        <div class="col-md-12">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Last Check</th>
+                <th>Status</th>
+                <th>Response Times</th>
+                <th>Reliability</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for service in services %}
+                  <tr>
+                    <td>{{ service.get_type_display }}</td>
+                    <td><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a></td>
+                    <td>
+                      <ul>
+                        <li>{{ service.last_run }}</li>
+                        <li>{{ service.last_response_time|floatformat:2 }}s</li>
+                    </ul>
+                    </td>
+                    <td>
+                      {% if service.last_status %}
+                        <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                      {% else %}
+                        <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <ul>
+                        <li>Min: {{ service.min_response_time|floatformat:2 }}s</li>
+                        <li>Average: {{ service.average_response_time|floatformat:2 }}s</li>
+                        <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
+                      </ul>
+                    </td>
+                    <td
+                      {% if service.reliability > 90 %}
+                        <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability }}%</button>
+                      {% else %}
+                        <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability }}%</button>
+                      {% endif %}
+                    </td>
+                  </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
   {% else %}
       <p>No services are available.</p>
   {% endif %}

@@ -45,6 +45,10 @@ class Resource(PolymorphicModel):
         return self.status_set.order_by('-checked_datetime')[0].response_time
 
     @property
+    def last_status(self):
+        return self.status_set.order_by('-checked_datetime')[0].success
+
+    @property
     def reliability(self):
         total_runs = self.status_set.count()
         success_runs = self.status_set.filter(success=True).count()
