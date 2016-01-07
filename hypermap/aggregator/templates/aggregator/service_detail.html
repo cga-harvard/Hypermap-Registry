@@ -1,0 +1,39 @@
+{% extends "aggregator/base.html" %}
+
+{% block content %}
+
+<h2>Service detail page for {{ service.title }}</h2>
+  <ul>
+    <li>Reliability: {{ service.reliability }}</li>
+    <li>Last run: {{ service.last_run }}</li>
+    <li>First run: {{ service.first_run }}</li>
+    <li>Average response time: {{ service.average_response_time }}</li>
+    <li>Min response time: {{ service.min_response_time }}</li>
+    <li>Max response time: {{ service.max_response_time }}</li>
+    <li>Last response time: {{ service.last_response_time }}</li>
+  </ul>
+
+  <h3>Layers</h3>
+  {% if service.layer_set.all %}
+      <ul>
+      {% for layer in service.layer_set.all %}
+          <li>{{ layer.name }}</li>
+          <ul>
+            <li>{{ layer.title }}</li>
+            <li>{{ layer.abstract }}</li>
+            <li>{{ layer.last_updated }}</li>
+            <li><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" /></li>
+            <ul>
+              <li>Reliability: {{ layer.reliability }}</li>
+              <li>Average response time: {{ layer.average_response_time }}</li>
+              <li>Min response time: {{ layer.min_response_time }}</li>
+              <li>Max response time: {{ layer.max_response_time }}</li>
+            </ul>
+          </ul>
+      {% endfor %}
+      </ul>
+  {% else %}
+      <p>No layers are available.</p>
+  {% endif %}
+
+{% endblock %}

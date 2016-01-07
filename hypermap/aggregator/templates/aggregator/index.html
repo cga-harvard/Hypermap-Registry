@@ -1,0 +1,17 @@
+{% extends "aggregator/base.html" %}
+
+{% block content %}
+
+<h2>HyperMap Home Page</h2>
+
+  {% if services %}
+      <ul>
+      {% for service in services %}
+          <li><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a></li>
+      {% endfor %}
+      </ul>
+  {% else %}
+      <p>No services are available.</p>
+  {% endif %}
+
+{% endblock %}
