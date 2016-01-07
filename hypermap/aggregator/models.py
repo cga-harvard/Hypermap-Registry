@@ -15,6 +15,7 @@ class Resource(PolymorphicModel):
     abstract = models.CharField(max_length=255, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
     owner = models.ForeignKey(User)
 
     def __unicode__(self):
@@ -109,4 +110,4 @@ class Check(models.Model):
     message = models.CharField(max_length=255, default='OK')
 
     def __unicode__(self):
-        return self.id
+        return 'Check %s' % self.id

@@ -4,7 +4,7 @@ from models import Service, Layer, Check, SpatialReferenceSystem
 
 class ServiceAdmin(admin.ModelAdmin):
     model = Service
-    list_display = ('type', 'title', )
+    list_display = ('type', 'title', 'active', )
     list_display_links = ('title', )
 
 

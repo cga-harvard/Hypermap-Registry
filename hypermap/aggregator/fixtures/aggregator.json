@@ -3,11 +3,12 @@
     "pk": 1,
     "model": "aggregator.resource",
     "fields": {
-        "last_updated": "2016-01-06T19:13:30.049Z",
+        "last_updated": "2016-01-07T21:46:48.650Z",
         "title": "WCS server for WFP GeoNode",
         "abstract": "",
         "created": "2016-01-06T19:00:10.344Z",
         "owner": 1,
+        "active": true,
         "polymorphic_ctype": 16
     }
 },
@@ -15,11 +16,12 @@
     "pk": 2,
     "model": "aggregator.resource",
     "fields": {
-        "last_updated": "2016-01-06T19:13:30.605Z",
+        "last_updated": "2016-01-07T21:54:30.174Z",
         "title": "NOAA/National Hurricane Center Tropical Cyclone Forecasts WMS",
         "abstract": "",
         "created": "2016-01-06T19:01:54.163Z",
         "owner": 1,
+        "active": true,
         "polymorphic_ctype": 16
     }
 },
@@ -27,11 +29,25 @@
     "pk": 3,
     "model": "aggregator.resource",
     "fields": {
-        "last_updated": "2016-01-06T19:13:50.701Z",
-        "title": "",
+        "last_updated": "2016-01-07T22:03:34.124Z",
+        "title": "My GeoServer WMS",
         "abstract": "",
         "created": "2016-01-06T19:13:50.701Z",
         "owner": 1,
+        "active": true,
+        "polymorphic_ctype": 16
+    }
+},
+{
+    "pk": 26,
+    "model": "aggregator.resource",
+    "fields": {
+        "last_updated": "2016-01-07T22:02:04.192Z",
+        "title": "WMTS BGDI",
+        "abstract": "",
+        "created": "2016-01-07T21:54:04.907Z",
+        "owner": 1,
+        "active": true,
         "polymorphic_ctype": 16
     }
 },
@@ -57,6 +73,14 @@
     "fields": {
         "url": "http://geonode.state.gov/geoserver/ows",
         "type": "OGC:WMS"
+    }
+},
+{
+    "pk": 26,
+    "model": "aggregator.service",
+    "fields": {
+        "url": "http://wmts.geo.admin.ch/1.0.0/WMTSCapabilities.xml",
+        "type": "OGC:WMTS"
     }
 }
 ]

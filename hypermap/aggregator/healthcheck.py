@@ -64,60 +64,60 @@ def check_wms_layers(service):
         print ows_layer.name
         # get or create layer
         layer, created = Layer.objects.get_or_create(name=ows_layer.name, owner=service.owner, service=service)
-        # update fields
-        layer.title = ows_layer.title
-        layer.abstract = ows_layer.abstract
-        # bbox
-        bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
-        layer.bbox_x0 = bbox[0]
-        layer.bbox_y0 = bbox[1]
-        layer.bbox_x1 = bbox[2]
-        layer.bbox_y1 = bbox[3]
-        # crsOptions
-        # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
-        for crs_code in ows_layer.crsOptions:
-            srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
-        layer.srs.add(srs)
-        layer.save()
-        # now the metrics
-        success = True
-        start_time = datetime.datetime.utcnow()
-        message = ''
+        if layer.active:
+            # update fields
+            layer.title = ows_layer.title
+            layer.abstract = ows_layer.abstract
+            # bbox
+            bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+            layer.bbox_x0 = bbox[0]
+            layer.bbox_y0 = bbox[1]
+            layer.bbox_x1 = bbox[2]
+            layer.bbox_y1 = bbox[3]
+            # crsOptions
+            # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
+            for crs_code in ows_layer.crsOptions:
+                srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+            layer.srs.add(srs)
+            layer.save()
+            # now the metrics
+            success = True
+            start_time = datetime.datetime.utcnow()
+            message = ''
 
-        try:
-            # get map here
-            #import ipdb;ipdb.set_trace()
-            img = wms.getmap(layers=[layer.name],
-                                srs='EPSG:4326',
-                                bbox=(layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1),
-                                size=(50, 50),
-                                format='image/jpeg', # TODO check available formats
-                                transparent=True
-                            )
+            try:
+                # get map here
+                img = wms.getmap(layers=[layer.name],
+                                    srs='EPSG:4326',
+                                    bbox=(layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1),
+                                    size=(50, 50),
+                                    format='image/jpeg', # TODO check available formats
+                                    transparent=True
+                                )
 
-            from django.core.files.uploadedfile import SimpleUploadedFile
-            thumbnail_file_name = '%s.jpg' % layer.name
-            upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
-            layer.thumbnail.save(thumbnail_file_name, upfile, True)
+                from django.core.files.uploadedfile import SimpleUploadedFile
+                thumbnail_file_name = '%s.jpg' % layer.name
+                upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
+                layer.thumbnail.save(thumbnail_file_name, upfile, True)
 
-            print 'GetMap done'
+                print 'GetMap done'
 
-        except Exception, err:
-            message = str(err)
-            success = False
+            except Exception, err:
+                message = str(err)
+                success = False
 
-        end_time = datetime.datetime.utcnow()
+            end_time = datetime.datetime.utcnow()
 
-        delta = end_time - start_time
-        response_time = '%s.%s' % (delta.seconds, delta.microseconds)
+            delta = end_time - start_time
+            response_time = '%s.%s' % (delta.seconds, delta.microseconds)
 
-        check = Check(
-            resource = layer,
-            success = success,
-            response_time = response_time,
-            message = message
-        )
-        check.save()
+            check = Check(
+                resource = layer,
+                success = success,
+                response_time = response_time,
+                message = message
+            )
+            check.save()
 
 
 def check_wmts_layers(service):
@@ -131,53 +131,54 @@ def check_wmts_layers(service):
         print ows_layer.name
         # get or create layer
         layer, created = Layer.objects.get_or_create(name=ows_layer.name, owner=service.owner, service=service)
-        # update fields
-        layer.title = ows_layer.title
-        layer.abstract = ows_layer.abstract
-        # bbox
-        bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
-        layer.bbox_x0 = bbox[0]
-        layer.bbox_y0 = bbox[1]
-        layer.bbox_x1 = bbox[2]
-        layer.bbox_y1 = bbox[3]
+        if layer.active:
+            # update fields
+            layer.title = ows_layer.title
+            layer.abstract = ows_layer.abstract
+            # bbox
+            bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+            layer.bbox_x0 = bbox[0]
+            layer.bbox_y0 = bbox[1]
+            layer.bbox_x1 = bbox[2]
+            layer.bbox_y1 = bbox[3]
 
-        # now the metrics
-        success = True
-        start_time = datetime.datetime.utcnow()
-        message = ''
+            # now the metrics
+            success = True
+            start_time = datetime.datetime.utcnow()
+            message = ''
 
-        try:
-            # get map here
-            #import ipdb;ipdb.set_trace()
-            img = wmts.gettile(
-                                layer=ows_layer.name,
-                                tilematrixset=ows_layer.tilematrixsets[0],
-                                tilematrix='0',
-                                row='0',
-                                column='0',
-                                format="image/png" # TODO check available formats
-                            )
+            try:
+                # get map here
+                #import ipdb;ipdb.set_trace()
+                img = wmts.gettile(
+                                    layer=ows_layer.name,
+                                    tilematrixset=ows_layer.tilematrixsets[0],
+                                    tilematrix='0',
+                                    row='0',
+                                    column='0',
+                                    format="image/png" # TODO check available formats
+                                )
 
-            from django.core.files.uploadedfile import SimpleUploadedFile
-            thumbnail_file_name = '%s.png' % layer.name
-            upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/png")
-            layer.thumbnail.save(thumbnail_file_name, upfile, True)
+                from django.core.files.uploadedfile import SimpleUploadedFile
+                thumbnail_file_name = '%s.png' % layer.name
+                upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/png")
+                layer.thumbnail.save(thumbnail_file_name, upfile, True)
 
-            print 'GetTile done'
+                print 'GetTile done'
 
-        except Exception, err:
-            message = str(err)
-            success = False
+            except Exception, err:
+                message = str(err)
+                success = False
 
-        end_time = datetime.datetime.utcnow()
+            end_time = datetime.datetime.utcnow()
 
-        delta = end_time - start_time
-        response_time = '%s.%s' % (delta.seconds, delta.microseconds)
+            delta = end_time - start_time
+            response_time = '%s.%s' % (delta.seconds, delta.microseconds)
 
-        check = Check(
-            resource = layer,
-            success = success,
-            response_time = response_time,
-            message = message
-        )
-        check.save()
+            check = Check(
+                resource = layer,
+                success = success,
+                response_time = response_time,
+                message = message
+            )
+            check.save()

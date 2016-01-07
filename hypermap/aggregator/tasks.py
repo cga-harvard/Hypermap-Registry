@@ -6,5 +6,5 @@ from models import Service
 
 @task(name="test_a_service")
 def test_service_task():
-    for service in Service.objects.all():
+    for service in Service.objects.filter(active=True):
         check_service(service)
