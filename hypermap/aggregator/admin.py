@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from models import Service, Layer, Status, SpatialReferenceSystem
+from models import Service, Layer, Check, SpatialReferenceSystem
 
 class ServiceAdmin(admin.ModelAdmin):
     model = Service
@@ -18,14 +18,14 @@ class LayerAdmin(admin.ModelAdmin):
     list_display = ('name', 'title', 'service', )
 
 
-class StatusAdmin(admin.ModelAdmin):
-    model = Status
+class CheckAdmin(admin.ModelAdmin):
+    model = Check
     list_display = ('resource', 'checked_datetime', 'success', 'response_time', )
     list_display_links = ('resource', )
 
 
 admin.site.register(Service, ServiceAdmin)
-admin.site.register(Status, StatusAdmin)
+admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
 admin.site.register(Layer, LayerAdmin)
 

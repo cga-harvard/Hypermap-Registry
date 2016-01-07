@@ -32,8 +32,8 @@
           <td><strong>Monitoring Period</strong></td>
           <td>
             <ul>
-              <li>First Run: {{ service.first_run }}</li>
-              <li>Last Run: {{ service.last_run }}</li>
+              <li>First Check: {{ service.first_check }}</li>
+              <li>Last Check: {{ service.last_check }}</li>
             </ul>
           </td>
         </tr>
@@ -94,12 +94,12 @@
                   </td>
                   <td>
                     <ul>
-                      <li>{{ layer.last_run }}</li>
+                      <li>{{ layer.last_updated }}</li>
                       <li>{{ layer.last_response_time|floatformat:2 }}s</li>
                   </ul>
                   </td>
                   <td>
-                    {% if layer.last_status %}
+                    {% if layer.last_check %}
                       <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                     {% else %}
                       <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
@@ -132,9 +132,9 @@
 
 <h2>Checks</h2>
 
-{% with service.status_set.all as status_set %}
-{% if status_set %}
-  {% autopaginate status_set 10 %}
+{% with service.check_set.all as check_set %}
+{% if check_set %}
+  {% autopaginate check_set 10 %}
   {% paginate %}
     <div class="row">
       <div class="col-md-12">
@@ -147,12 +147,12 @@
             </tr>
           </thead>
           <tbody>
-            {% for status in status_set %}
+            {% for check in check_set %}
                 <tr>
-                  <td>{{ status.checked_datetime }}</td>
-                  <td>{{ status.response_time }}</td>
+                  <td>{{ check.checked_datetime }}</td>
+                  <td>{{ check.response_time }}</td>
                   <td>
-                    {% if status.success %}
+                    {% if check.success %}
                       <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                     {% else %}
                       <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>

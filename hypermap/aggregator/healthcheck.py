@@ -3,7 +3,7 @@ import datetime
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
 
-from models import Status, Layer, SpatialReferenceSystem
+from models import Check, Layer, SpatialReferenceSystem
 
 def check_service(service):
     """
@@ -39,13 +39,13 @@ def check_service(service):
     delta = end_time - start_time
     response_time = '%s.%s' % (delta.seconds, delta.microseconds)
 
-    status = Status(
+    check = Check(
         resource = service,
         success = success,
         response_time = response_time,
         message = message
     )
-    status.save()
+    check.save()
 
 
 def check_wms_layers(service):
@@ -106,11 +106,10 @@ def check_wms_layers(service):
         delta = end_time - start_time
         response_time = '%s.%s' % (delta.seconds, delta.microseconds)
 
-        status = Status(
+        check = Check(
             resource = layer,
             success = success,
             response_time = response_time,
             message = message
         )
-        status.save()
-    print 'Done'
+        check.save()

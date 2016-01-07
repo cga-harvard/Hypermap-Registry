@@ -21,38 +21,42 @@ class Resource(PolymorphicModel):
         return self.title
 
     @property
-    def first_run(self):
-        return self.status_set.order_by('checked_datetime')[0].checked_datetime
+    def first_check(self):
+        return self.check_set.order_by('checked_datetime')[0].checked_datetime
 
     @property
-    def last_run(self):
-        return self.status_set.order_by('-checked_datetime')[0].checked_datetime
+    def last_check(self):
+        return self.check_set.order_by('-checked_datetime')[0].checked_datetime
 
     @property
     def average_response_time(self):
-        return self.status_set.aggregate(Avg('response_time')).values()[0]
+        return self.check_set.aggregate(Avg('response_time')).values()[0]
 
     @property
     def min_response_time(self):
-        return self.status_set.aggregate(Min('response_time')).values()[0]
+        return self.check_set.aggregate(Min('response_time')).values()[0]
 
     @property
     def max_response_time(self):
-        return self.status_set.aggregate(Max('response_time')).values()[0]
+        return self.check_set.aggregate(Max('response_time')).values()[0]
 
     @property
     def last_response_time(self):
-        return self.status_set.order_by('-checked_datetime')[0].response_time
+        return self.check_set.order_by('-checked_datetime')[0].response_time
 
     @property
-    def last_status(self):
-        return self.status_set.order_by('-checked_datetime')[0].success
+    def last_check(self):
+        return self.check_set.order_by('-checked_datetime')[0].success
+
+    @property
+    def checks_count(self):
+        return self.check_set.all().count()
 
     @property
     def reliability(self):
-        total_runs = self.status_set.count()
-        success_runs = self.status_set.filter(success=True).count()
-        return (success_runs/total_runs) * 100
+        total_checks = self.check_set.count()
+        success_checks = self.check_set.filter(success=True).count()
+        return (success_checks/total_checks) * 100
 
 
 class Service(Resource):
@@ -94,9 +98,9 @@ class Layer(Resource):
         return self.name
 
 
-class Status(models.Model):
+class Check(models.Model):
     """
-    Status represents the measurement of resource (service/layer) state.
+    Check represents the measurement of resource (service/layer) state.
     """
     resource = models.ForeignKey(Resource)
     checked_datetime = models.DateTimeField(auto_now=True)

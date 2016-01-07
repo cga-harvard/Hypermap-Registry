@@ -22,17 +22,18 @@
             </thead>
             <tbody>
               {% for service in services %}
+                {% if service.checks_count > 0 %}
                   <tr>
                     <td>{{ service.get_type_display }}</td>
                     <td><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a></td>
                     <td>
                       <ul>
-                        <li>{{ service.last_run }}</li>
+                        <li>{{ service.last_updated }}</li>
                         <li>{{ service.last_response_time|floatformat:2 }}s</li>
                     </ul>
                     </td>
                     <td>
-                      {% if service.last_status %}
+                      {% if service.last_check %}
                         <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                       {% else %}
                         <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
@@ -53,6 +54,7 @@
                       {% endif %}
                     </td>
                   </tr>
+                {% endif %}
               {% endfor %}
             </tbody>
           </table>
