@@ -57,3 +57,6 @@ docs/_build/
 target/
 
 db.sqlite3
+
+# osx trash
+.DS_Store
