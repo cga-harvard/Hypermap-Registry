@@ -16,6 +16,7 @@ class SpatialReferenceSystemAdmin(admin.ModelAdmin):
 class LayerAdmin(admin.ModelAdmin):
     model = Layer
     list_display = ('name', 'title', 'service', )
+    search_fields = ['name', 'title', ]
 
 
 class CheckAdmin(admin.ModelAdmin):

@@ -84,7 +84,10 @@
           <tbody>
             {% for layer in layer_set %}
                 <tr>
-                  <td><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" /></td>
+                  <td>
+                    {% if layer.thumbnail %}
+                    <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="100" /></td>
+                    {% endif %}
                   <td>
                     <ul>
                       <li>Name: {{ layer.name }}</li>
@@ -114,9 +117,9 @@
                   </td>
                   <td>
                     {% if layer.reliability > 90 %}
-                      <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability }}%</button>
+                      <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability }}%</button>
                     {% else %}
-                      <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability }}%</button>
+                      <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability }}%</button>
                     {% endif %}
                   </td>
                 </tr>

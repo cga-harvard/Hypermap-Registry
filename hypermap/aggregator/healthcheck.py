@@ -156,12 +156,12 @@ def check_wmts_layers(service):
                                     tilematrix='0',
                                     row='0',
                                     column='0',
-                                    format="image/png" # TODO check available formats
+                                    format="image/jpeg" # TODO check available formats
                                 )
 
                 from django.core.files.uploadedfile import SimpleUploadedFile
-                thumbnail_file_name = '%s.png' % layer.name
-                upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/png")
+                thumbnail_file_name = '%s.jpeg' % layer.name
+                upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
                 layer.thumbnail.save(thumbnail_file_name, upfile, True)
 
                 print 'GetTile done'
