@@ -84,6 +84,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# media files
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+
 # celery stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERY_RESULT_BACKEND= 'djcelery.backends.database:DatabaseBackend'
