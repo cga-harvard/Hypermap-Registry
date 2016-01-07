@@ -45,7 +45,7 @@
                         <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
                       </ul>
                     </td>
-                    <td
+                    <td>
                       {% if service.reliability > 90 %}
                         <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability }}%</button>
                       {% else %}

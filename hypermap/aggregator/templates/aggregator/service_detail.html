@@ -2,38 +2,127 @@
 
 {% block content %}
 
-<h1>Service detail page for {{ service.title }}</h1>
-  <ul>
-    <li>Reliability: {{ service.reliability }}</li>
-    <li>Last run: {{ service.last_run }}</li>
-    <li>First run: {{ service.first_run }}</li>
-    <li>Average response time: {{ service.average_response_time }}</li>
-    <li>Min response time: {{ service.min_response_time }}</li>
-    <li>Max response time: {{ service.max_response_time }}</li>
-    <li>Last response time: {{ service.last_response_time }}</li>
-  </ul>
+<div class="page-header">
+  <h1>Service detail page for {{ service.title }}</h1>
+</div>
 
-  <h3>Layers</h3>
-  {% if service.layer_set.all %}
-      <ul>
-      {% for layer in service.layer_set.all %}
-          <li>{{ layer.name }}</li>
-          <ul>
-            <li>{{ layer.title }}</li>
-            <li>{{ layer.abstract }}</li>
-            <li>{{ layer.last_updated }}</li>
-            <li><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" /></li>
+<div class="row">
+  <div class="col-md-6">
+    <table class="table">
+      <tbody>
+        <tr>
+          <td><strong>Type</strong></td>
+          <td>{{ service.get_type_display }}</td>
+        </tr>
+        <tr>
+          <td><strong>Owner</strong></td>
+          <td>{{ service.owner }}</td>
+        </tr>
+        <tr>
+          <td><strong>Name</strong></td>
+          <td>{{ service.title }}</td>
+        </tr>
+        <tr>
+          <td><strong>URL</strong></td>
+          <td>{{ service.url }}</td>
+        </tr>
+        <tr>
+          <td><strong>Monitoring Period</strong></td>
+          <td>
             <ul>
-              <li>Reliability: {{ layer.reliability }}</li>
-              <li>Average response time: {{ layer.average_response_time }}</li>
-              <li>Min response time: {{ layer.min_response_time }}</li>
-              <li>Max response time: {{ layer.max_response_time }}</li>
+              <li>First Run: {{ service.first_run }}</li>
+              <li>Last Run: {{ service.last_run }}</li>
             </ul>
-          </ul>
-      {% endfor %}
-      </ul>
-  {% else %}
-      <p>No layers are available.</p>
-  {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Response Times</strong></td>
+          <td>
+            <ul>
+              <li>Min: {{ service.min_response_time|floatformat:2 }}s</li>
+              <li>Average: {{ service.average_response_time|floatformat:2 }}s</li>
+              <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Reliability</strong></td>
+          <td>
+            {% if service.reliability > 90 %}
+              <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability }}%</button>
+            {% else %}
+              <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability }}%</button>
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h2>Layers</h2>
+
+{% if service.layer_set.all %}
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Info</th>
+              <th>Last Check</th>
+              <th>Status</th>
+              <th>Response Times</th>
+              <th>Reliability</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for layer in service.layer_set.all %}
+                <tr>
+                  <td><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" /></td>
+                  <td>
+                    <ul>
+                      <li>Name: {{ layer.name }}</li>
+                      <li>Title: {{ layer.title }}</li>
+                      <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <li>{{ layer.last_run }}</li>
+                      <li>{{ layer.last_response_time|floatformat:2 }}s</li>
+                  </ul>
+                  </td>
+                  <td>
+                    {% if layer.last_status %}
+                      <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% else %}
+                      <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <ul>
+                      <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
+                      <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
+                      <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
+                    </ul>
+                  </td>
+                  <td>
+                    {% if layer.reliability > 90 %}
+                      <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability }}%</button>
+                    {% else %}
+                      <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability }}%</button>
+                    {% endif %}
+                  </td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+{% else %}
+    <p>No services are available.</p>
+{% endif %}
+
 
 {% endblock %}
