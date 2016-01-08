@@ -27,9 +27,9 @@
                   <tr>
                     <td>{{ service.get_type_display }}</td>
                     <td>
-                      <a href="{% url 'service_detail' service.id %}">{{ service.title }}</a>
-                      <br />
-                      {{ service.url }}
+                      {{ service.get_domain }}
+                      <br /><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a>
+                      <br />{{ service.url }}
                     </td>
                     <td>{{ service.layer_set.all.count }}</td>
                     <td>

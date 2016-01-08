@@ -1,3 +1,5 @@
+from urlparse import urlparse
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Avg, Min, Max
@@ -69,6 +71,12 @@ class Service(Resource):
 
     def __unicode__(self):
         return self.title
+
+    @property
+    def get_domain(self):
+        parsed_uri = urlparse(self.url)
+        domain = '{uri.netloc}'.format(uri=parsed_uri)
+        return domain
 
 
 class SpatialReferenceSystem(models.Model):
