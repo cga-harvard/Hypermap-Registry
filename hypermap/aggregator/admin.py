@@ -23,6 +23,7 @@ class CheckAdmin(admin.ModelAdmin):
     model = Check
     list_display = ('resource', 'checked_datetime', 'success', 'response_time', )
     list_display_links = ('resource', )
+    search_fields = ['resource__title', ]
 
 
 admin.site.register(Service, ServiceAdmin)

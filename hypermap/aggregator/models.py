@@ -57,7 +57,7 @@ class Resource(PolymorphicModel):
     def reliability(self):
         total_checks = self.check_set.count()
         success_checks = self.check_set.filter(success=True).count()
-        return (success_checks/total_checks) * 100
+        return (success_checks/float(total_checks)) * 100
 
 
 class Service(Resource):

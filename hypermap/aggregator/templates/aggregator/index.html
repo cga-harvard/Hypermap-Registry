@@ -14,6 +14,7 @@
               <tr>
                 <th>Type</th>
                 <th>Name</th>
+                <th>Layers</th>
                 <th>Last Check</th>
                 <th>Status</th>
                 <th>Response Times</th>
@@ -25,7 +26,12 @@
                 {% if service.checks_count > 0 %}
                   <tr>
                     <td>{{ service.get_type_display }}</td>
-                    <td><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a></td>
+                    <td>
+                      <a href="{% url 'service_detail' service.id %}">{{ service.title }}</a>
+                      <br />
+                      {{ service.url }}
+                    </td>
+                    <td>{{ service.layer_set.all.count }}</td>
                     <td>
                       <ul>
                         <li>{{ service.last_updated }}</li>
@@ -48,9 +54,9 @@
                     </td>
                     <td>
                       {% if service.reliability > 90 %}
-                        <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability }}%</button>
+                        <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
                       {% else %}
-                        <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability }}%</button>
+                        <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
                       {% endif %}
                     </td>
                   </tr>

@@ -34,6 +34,7 @@
             <ul>
               <li>First Check: {{ service.first_check }}</li>
               <li>Last Check: {{ service.last_check }}</li>
+              <li>Total Checks: {{ service.checks_count }}</li>
             </ul>
           </td>
         </tr>
@@ -51,9 +52,9 @@
           <td><strong>Reliability</strong></td>
           <td>
             {% if service.reliability > 90 %}
-              <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability }}%</button>
+              <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
             {% else %}
-              <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability }}%</button>
+              <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
             {% endif %}
           </td>
         </tr>
@@ -86,11 +87,12 @@
                 <tr>
                   <td>
                     {% if layer.thumbnail %}
-                    <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="100" /></td>
+                    <a href="{% url 'layer_detail' layer.id %}"><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" /></a>
                     {% endif %}
+                  </td>
                   <td>
                     <ul>
-                      <li>Name: {{ layer.name }}</li>
+                      <li>Name: <a href="{% url 'layer_detail' layer.id %}">{{ layer.name }}</a></li>
                       <li>Title: {{ layer.title }}</li>
                       <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
                     </ul>
@@ -102,11 +104,13 @@
                   </ul>
                   </td>
                   <td>
+                    <a href="{% url 'layer_detail' layer.id %}">
                     {% if layer.last_check %}
                       <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                     {% else %}
                       <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
                     {% endif %}
+                  </a>
                   </td>
                   <td>
                     <ul>
@@ -117,9 +121,9 @@
                   </td>
                   <td>
                     {% if layer.reliability > 90 %}
-                      <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability }}%</button>
+                      <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
                     {% else %}
-                      <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability }}%</button>
+                      <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
                     {% endif %}
                   </td>
                 </tr>
