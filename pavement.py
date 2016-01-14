@@ -15,5 +15,5 @@ def run_tests():
     """
     Executes the entire test suite.
     """
-    sh('python manage.py test aggregator')
-    sh('flake8 geonode')
+    sh('python hypermap/manage.py test aggregator')
+    sh('flake8 hypermap')
