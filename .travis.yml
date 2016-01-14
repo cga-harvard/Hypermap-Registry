@@ -1,0 +1,23 @@
+language: python
+
+python:
+  - "2.7"
+
+virtualenv:
+  system_site_packages: true
+
+branches:
+  only:
+    - master
+
+install:
+  - sudo apt-get -qq -y update
+  - sudo apt-get install -y python-virtualenv python-imaging
+  - pip install -r requirements
+
+script:
+  - paver run_tests
+
+notifications:
+  email:
+    - pcorti@gmail.com
