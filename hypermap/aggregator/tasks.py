@@ -1,10 +1,12 @@
-from celery.schedules import crontab
 from celery.decorators import task
 
-from healthcheck import check_service
 from models import Service
 
-@task(name="test_a_service")
-def test_service_task():
+
+@task(name="check_all_services")
+def check_all_services_task():
     for service in Service.objects.filter(active=True):
-        check_service(service)
+        service.update_layers()
+        service.check()
+        for layer in service.layer_set.all():
+            layer.check()

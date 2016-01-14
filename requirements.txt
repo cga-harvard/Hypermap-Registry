@@ -4,6 +4,7 @@ Django==1.6.11
 django-celery==3.1.17
 django-pagination==1.0.7
 django-polymorphic==0.8.1
+flake8==2.5.1
 OWSLib==0.10.3
 Paver==1.2.4
 Pillow==3.1.0.rc1

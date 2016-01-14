@@ -1,6 +1,9 @@
 from django.contrib import admin
 
+from djcelery.models import TaskMeta
+
 from models import Service, Layer, Check, SpatialReferenceSystem
+
 
 class ServiceAdmin(admin.ModelAdmin):
     model = Service
@@ -31,9 +34,8 @@ admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
 admin.site.register(Layer, LayerAdmin)
 
-# we like to see celery results using the admin
-from djcelery.models import TaskMeta
 
+# we like to see celery results using the admin
 class TaskMetaAdmin(admin.ModelAdmin):
     list_display = ('task_id', 'date_done', 'status', )
 

@@ -3,11 +3,10 @@
     "pk": 1,
     "model": "aggregator.resource",
     "fields": {
-        "last_updated": "2016-01-07T21:46:48.650Z",
+        "last_updated": "2016-01-13T21:59:55.758Z",
         "title": "WCS server for WFP GeoNode",
         "abstract": "",
         "created": "2016-01-06T19:00:10.344Z",
-        "owner": 1,
         "active": true,
         "polymorphic_ctype": 16
     }
@@ -16,11 +15,10 @@
     "pk": 2,
     "model": "aggregator.resource",
     "fields": {
-        "last_updated": "2016-01-07T21:54:30.174Z",
+        "last_updated": "2016-01-13T21:59:51.045Z",
         "title": "NOAA/National Hurricane Center Tropical Cyclone Forecasts WMS",
         "abstract": "",
         "created": "2016-01-06T19:01:54.163Z",
-        "owner": 1,
         "active": true,
         "polymorphic_ctype": 16
     }
@@ -29,11 +27,10 @@
     "pk": 3,
     "model": "aggregator.resource",
     "fields": {
-        "last_updated": "2016-01-07T22:03:34.124Z",
+        "last_updated": "2016-01-13T21:59:46.614Z",
         "title": "My GeoServer WMS",
         "abstract": "",
         "created": "2016-01-06T19:13:50.701Z",
-        "owner": 1,
         "active": true,
         "polymorphic_ctype": 16
     }
@@ -42,11 +39,34 @@
     "pk": 26,
     "model": "aggregator.resource",
     "fields": {
-        "last_updated": "2016-01-07T22:02:04.192Z",
+        "last_updated": "2016-01-13T21:59:41.443Z",
         "title": "WMTS BGDI",
         "abstract": "",
         "created": "2016-01-07T21:54:04.907Z",
-        "owner": 1,
+        "active": true,
+        "polymorphic_ctype": 16
+    }
+},
+{
+    "pk": 748,
+    "model": "aggregator.resource",
+    "fields": {
+        "last_updated": "2016-01-13T22:14:15.082Z",
+        "title": "NASA Global Imagery Browse Services for EOSDIS",
+        "abstract": "",
+        "created": "2016-01-13T21:59:27.035Z",
+        "active": true,
+        "polymorphic_ctype": 16
+    }
+},
+{
+    "pk": 913,
+    "model": "aggregator.resource",
+    "fields": {
+        "last_updated": "2016-01-13T22:28:37.472Z",
+        "title": "ESRI http://arcgis.cast.uark.edu/ArcGIS/rest/services/AGFC/All_Deer_50MCP_Oct11/MapServer",
+        "abstract": "",
+        "created": "2016-01-13T22:23:09.296Z",
         "active": true,
         "polymorphic_ctype": 16
     }
@@ -81,6 +101,22 @@
     "fields": {
         "url": "http://wmts.geo.admin.ch/1.0.0/WMTSCapabilities.xml",
         "type": "OGC:WMTS"
+    }
+},
+{
+    "pk": 748,
+    "model": "aggregator.service",
+    "fields": {
+        "url": "http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml",
+        "type": "OGC:WMTS"
+    }
+},
+{
+    "pk": 913,
+    "model": "aggregator.service",
+    "fields": {
+        "url": "http://arcgis.cast.uark.edu/ArcGIS/rest/services/AGFC/All_Deer_50MCP_Oct11/MapServer",
+        "type": "ESRI"
     }
 }
 ]

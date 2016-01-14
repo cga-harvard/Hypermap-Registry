@@ -31,11 +31,13 @@
         <tr>
           <td><strong>Monitoring Period</strong></td>
           <td>
+            {% if service.checks_count > 0 %}
             <ul>
               <li>First Check: {{ service.first_check }}</li>
               <li>Last Check: {{ service.last_check }}</li>
               <li>Total Checks: {{ service.checks_count }}</li>
             </ul>
+            {% endif %}
           </td>
         </tr>
         <tr>
@@ -98,19 +100,23 @@
                     </ul>
                   </td>
                   <td>
+                    {% if layer.checks_count > 0 %}
                     <ul>
                       <li>{{ layer.last_updated }}</li>
                       <li>{{ layer.last_response_time|floatformat:2 }}s</li>
-                  </ul>
+                    </ul>
+                    {% endif %}
                   </td>
                   <td>
-                    <a href="{% url 'layer_detail' layer.id %}">
-                    {% if layer.last_check %}
-                      <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
-                    {% else %}
-                      <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% if layer.checks_count > 0 %}
+                      <a href="{% url 'layer_detail' layer.id %}">
+                      {% if layer.last_check %}
+                        <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                      {% else %}
+                        <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                      {% endif %}
+                      </a>
                     {% endif %}
-                  </a>
                   </td>
                   <td>
                     <ul>
@@ -120,11 +126,13 @@
                     </ul>
                   </td>
                   <td>
-                    {% if layer.reliability > 90 %}
-                      <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
-                    {% else %}
-                      <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
-                    {% endif %}
+                    {% if layer.checks_count > 0 %}
+                      {% if layer.reliability > 97 %}
+                        <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
+                      {% else %}
+                        <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
+                      {% endif %}
+                     {% endif %}
                   </td>
                 </tr>
             {% endfor %}
@@ -150,6 +158,7 @@
             <tr>
               <th>Date</th>
               <th>Response Times</th>
+              <th>Message</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -158,6 +167,7 @@
                 <tr>
                   <td>{{ check.checked_datetime }}</td>
                   <td>{{ check.response_time }}</td>
+                  <td>{{ check.message }}</td>
                   <td>
                     {% if check.success %}
                       <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>

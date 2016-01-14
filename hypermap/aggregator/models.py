@@ -1,10 +1,14 @@
+import datetime
 from urlparse import urlparse
 
 from django.db import models
-from django.contrib.auth.models import User
 from django.db.models import Avg, Min, Max
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from polymorphic.models import PolymorphicModel
+from owslib.wms import WebMapService
+from owslib.wmts import WebMapTileService
+from arcrest import Folder as ArcFolder, MapService as ArcMapService
 
 from enums import SERVICE_TYPES
 
@@ -18,10 +22,9 @@ class Resource(PolymorphicModel):
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
-    owner = models.ForeignKey(User)
 
     def __unicode__(self):
-        return self.title
+        return '%s - %s' % (self.polymorphic_ctype.name, self.title)
 
     @property
     def first_check(self):
@@ -48,10 +51,6 @@ class Resource(PolymorphicModel):
         return self.check_set.order_by('-checked_datetime')[0].response_time
 
     @property
-    def last_check(self):
-        return self.check_set.order_by('-checked_datetime')[0].success
-
-    @property
     def checks_count(self):
         return self.check_set.all().count()
 
@@ -70,13 +69,64 @@ class Service(Resource):
     type = models.CharField(max_length=10, choices=SERVICE_TYPES)
 
     def __unicode__(self):
-        return self.title
+        return '%s - %s' % (self.id, self.title)
 
     @property
     def get_domain(self):
         parsed_uri = urlparse(self.url)
         domain = '{uri.netloc}'.format(uri=parsed_uri)
         return domain
+
+    def update_layers(self):
+        """
+        Update layers for a service.
+        """
+        if self.type == 'OGC:WMS':
+            update_layers_wms(self)
+        elif self.type == 'OGC:WMTS':
+            update_layers_wmts(self)
+        elif self.type == 'ESRI':
+            update_layers_esri(self)
+
+    def check(self):
+        """
+        Check for availability of a service and provide run metrics.
+        """
+        success = True
+        start_time = datetime.datetime.utcnow()
+        message = ''
+
+        try:
+            title = '%s %s' % (self.type, self.url)
+            if self.type == 'OGC:WMS':
+                ows = WebMapService(self.url)
+            if self.type == 'OGC:WMTS':
+                ows = WebMapTileService(self.url)
+            if self.type == 'ESRI':
+                esri = ArcFolder(self.url)
+                title = esri.url
+            # TODO add more service types here
+            if self.type.startswith('OGC:'):
+                title = ows.identification.title
+            # update title
+            self.title = title
+            self.save()
+        except Exception, err:
+            message = str(err)
+            success = False
+
+        end_time = datetime.datetime.utcnow()
+        delta = end_time - start_time
+        response_time = '%s.%s' % (delta.seconds, delta.microseconds)
+
+        check = Check(
+            resource=self,
+            success=success,
+            response_time=response_time,
+            message=message
+        )
+        check.save()
+        print 'Checked service %s' % self.title
 
 
 class SpatialReferenceSystem(models.Model):
@@ -105,6 +155,144 @@ class Layer(Resource):
 
     def __unicode__(self):
         return self.name
+
+    def update_thumbnail(self):
+        img = None
+        if self.service.type == 'OGC:WMS':
+            ows = WebMapService(self.service.url)
+            img = ows.getmap(
+                layers=[self.name],
+                srs='EPSG:4326',
+                bbox=(
+                    float(self.bbox_x0),
+                    float(self.bbox_y0),
+                    float(self.bbox_x1),
+                    float(self.bbox_y1)
+                ),
+                size=(50, 50),
+                format='image/jpeg',  # TODO check available formats
+                transparent=True
+            )
+        elif self.service.type == 'OGC:WMTS':
+            ows = WebMapTileService(self.service.url)
+            ows_layer = ows.contents[self.name]
+            img = ows.gettile(
+                                layer=self.name,
+                                tilematrixset=ows_layer.tilematrixsets[0],
+                                tilematrix='0',
+                                row='0',
+                                column='0',
+                                format="image/jpeg"  # TODO check available formats
+                            )
+        elif self.service.type == 'ESRI':
+            raise NotImplementedError
+
+        # update thumb in model
+        if img:
+            thumbnail_file_name = '%s.jpg' % self.name
+            upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
+            self.thumbnail.save(thumbnail_file_name, upfile, True)
+            print 'Thumbnail updated for layer %s' % self.name
+
+    def check(self):
+        """
+        Check for availability of a service and provide run metrics.
+        """
+        success = True
+        start_time = datetime.datetime.utcnow()
+        message = ''
+
+        try:
+            self.update_thumbnail()
+
+        except Exception, err:
+            message = str(err)
+            success = False
+
+        end_time = datetime.datetime.utcnow()
+
+        delta = end_time - start_time
+        response_time = '%s.%s' % (delta.seconds, delta.microseconds)
+
+        check = Check(
+            resource=self,
+            success=success,
+            response_time=response_time,
+            message=message
+        )
+        check.save()
+        print 'Checked layer %s' % self.name
+
+
+def update_layers_wms(service):
+    """
+    Update layers for an OGC:WMS service.
+    """
+    wms = WebMapService(service.url)
+    layer_names = list(wms.contents)
+    for layer_name in layer_names:
+        ows_layer = wms.contents[layer_name]
+        print ows_layer.name
+        # get or create layer
+        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
+        if layer.active:
+            # update fields
+            layer.title = ows_layer.title
+            layer.abstract = ows_layer.abstract
+            # bbox
+            bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+            layer.bbox_x0 = bbox[0]
+            layer.bbox_y0 = bbox[1]
+            layer.bbox_x1 = bbox[2]
+            layer.bbox_y1 = bbox[3]
+            # crsOptions
+            # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
+            for crs_code in ows_layer.crsOptions:
+                srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+            layer.srs.add(srs)
+            layer.save()
+
+
+def update_layers_wmts(service):
+    """
+    Update layers for an OGC:WMTS service.
+    """
+    wmts = WebMapTileService(service.url)
+    layer_names = list(wmts.contents)
+    for layer_name in layer_names:
+        ows_layer = wmts.contents[layer_name]
+        print 'Updating layer %s' % ows_layer.name
+        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
+        if layer.active:
+            layer.title = ows_layer.title
+            layer.abstract = ows_layer.abstract
+            bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+            layer.bbox_x0 = bbox[0]
+            layer.bbox_y0 = bbox[1]
+            layer.bbox_x1 = bbox[2]
+            layer.bbox_y1 = bbox[3]
+            layer.save()
+
+
+def update_layers_esri(service):
+    """
+    Update layers for an ESRI REST service.
+    """
+    esri_service = ArcMapService(service.url)
+    for esri_layer in esri_service.layers:
+        print 'Updating layer %s' % esri_layer.name
+        layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
+        if layer.active:
+            layer.title = esri_layer.name
+            layer.abstract = esri_service.serviceDescription
+            layer.bbox_x0 = esri_layer.extent.xmin
+            layer.bbox_y0 = esri_layer.extent.ymin
+            layer.bbox_x1 = esri_layer.extent.xmax
+            layer.bbox_y1 = esri_layer.extent.ymax
+            # crsOptions
+            srs = esri_layer.extent.spatialReference
+            layer.srs.add(srs.wkid)
+            layer.save()
 
 
 class Check(models.Model):

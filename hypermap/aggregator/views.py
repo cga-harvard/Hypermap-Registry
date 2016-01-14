@@ -1,8 +1,10 @@
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 
 from models import Service, Layer
+
 
 def index(request):
     services = Service.objects.all()
@@ -14,16 +16,10 @@ def index(request):
 
 
 def service_detail(request, service_id):
-    try:
-        service = Service.objects.get(pk=service_id)
-    except Service.DoesNotExist:
-        raise Http404
+    service = get_object_or_404(Service, pk=service_id)
     return render(request, 'aggregator/service_detail.html', {'service': service})
 
 
 def layer_detail(request, layer_id):
-    try:
-        layer = Layer.objects.get(pk=layer_id)
-    except Layer.DoesNotExist:
-        raise Http404
+    layer = get_object_or_404(Layer, pk=layer_id)
     return render(request, 'aggregator/layer_detail.html', {'layer': layer})

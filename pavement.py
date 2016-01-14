@@ -1,5 +1,6 @@
 from paver.easy import sh, task
 
+
 @task
 def reset_db():
     """

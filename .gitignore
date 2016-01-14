@@ -60,3 +60,5 @@ db.sqlite3
 
 # osx trash
 .DS_Store
+
+.csv

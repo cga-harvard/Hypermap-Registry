@@ -27,9 +27,9 @@
                   <tr>
                     <td>{{ service.get_type_display }}</td>
                     <td>
-                      {{ service.get_domain }}
-                      <br /><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a>
-                      <br />{{ service.url }}
+                      <strong>{{ service.get_domain }}</strong>
+                      <br /><a href="{% url 'service_detail' service.id %}">{{ service.title|truncatechars:40 }}</a>
+                      <br /><a href="{{ service.url }}">{{ service.url|truncatechars:40 }}</a>
                     </td>
                     <td>{{ service.layer_set.all.count }}</td>
                     <td>
@@ -53,7 +53,7 @@
                       </ul>
                     </td>
                     <td>
-                      {% if service.reliability > 90 %}
+                      {% if service.reliability > 97 %}
                         <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
                       {% else %}
                         <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
