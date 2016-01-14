@@ -1,5 +1,7 @@
 {% extends "aggregator/base.html" %}
 
+{% load pagination_tags %}
+
 {% block content %}
 
 <div class="page-header">
@@ -23,6 +25,8 @@
           </tr>
         </thead>
         <tbody>
+          {% autopaginate services 5 %}
+          {% paginate %}
           {% for service in services %}
             <tr>
               <td>
