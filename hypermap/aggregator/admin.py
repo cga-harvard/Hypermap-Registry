@@ -7,8 +7,10 @@ from models import Service, Layer, Check, SpatialReferenceSystem
 
 class ServiceAdmin(admin.ModelAdmin):
     model = Service
-    list_display = ('type', 'title', 'active', )
-    list_display_links = ('title', )
+    list_display = ('id', 'type', 'title', 'active', )
+    list_display_links = ('id', )
+    search_fields = ['title', 'url', ]
+    list_filter = ('type', )
 
 
 class SpatialReferenceSystemAdmin(admin.ModelAdmin):
