@@ -222,7 +222,8 @@ class Layer(Resource):
                     print e
             else:
                 raise NotImplementedError
-            thumbnail_file_name = '%s.jpg' % self.name
+            name = re.sub('[^\w\-_\. ]', '_', self.name)
+            thumbnail_file_name = '%s.jpg' % name
             image.save(thumbnail_file_name)
             img = open(thumbnail_file_name, 'r')
             os.remove(thumbnail_file_name)
