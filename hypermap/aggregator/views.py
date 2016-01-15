@@ -8,7 +8,6 @@ from models import Service, Layer
 
 
 def index(request):
-    #services = Service.objects.all()
     services = Service.objects.annotate(
         num_checks=Count('resource_ptr__check')).filter(num_checks__gt=0)
     layers_count = Layer.objects.annotate(

@@ -193,19 +193,30 @@ class Layer(Resource):
                 # This is a MapService
                 try:
                     arcserver = ArcMapService(self.service.url)
-                    bbox=(
+                    bbox = (
                         float(self.bbox_x0),
                         float(self.bbox_y0),
                         float(self.bbox_x1),
                         float(self.bbox_y1)
                     )
-                    image = arcserver.ExportMap(bbox=bbox,layers='show:'+self.name,transparent='true',dpi='96',format='jpg')
+                    image = arcserver.ExportMap(
+                        bbox=bbox,
+                        layers='show:' + self.name,
+                        transparent='true',
+                        dpi='96',
+                        format='jpg'
+                    )
                 except Exception, e:
                     print e
             elif re.search("\/ImageServer\/*(f=json)*", self.service.url):
                 try:
                     arcserver = ArcImageService(self.service.url)
-                    bbox=str(self.bbox_x0)+','+str(self.bbox_y0)+','+str(self.bbox_x1)+','+str(self.bbox_y1)
+                    bbox = (
+                        str(self.bbox_x0) + ',' +
+                        str(self.bbox_y0) + ',' +
+                        str(self.bbox_x1) + ',' +
+                        str(self.bbox_y1)
+                    )
                     image = arcserver.ExportImage(bbox=bbox)
                 except Exception, e:
                     print e
@@ -338,7 +349,6 @@ def update_layers_esri(service):
             srs = obj['spatialReference']['wkid']
             layer.srs.add(srs)
             layer.save()
-        
 
 
 class Check(models.Model):
