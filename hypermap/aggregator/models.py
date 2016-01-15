@@ -1,4 +1,7 @@
 import datetime
+import os
+import re
+import json
 from urlparse import urlparse
 
 from django.db import models
@@ -8,7 +11,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from polymorphic.models import PolymorphicModel
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
-from arcrest import Folder as ArcFolder, MapService as ArcMapService
+from arcrest import Folder as ArcFolder, MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import SERVICE_TYPES
 
@@ -185,7 +188,33 @@ class Layer(Resource):
                                 format="image/jpeg"  # TODO check available formats
                             )
         elif self.service.type == 'ESRI':
-            raise NotImplementedError
+            image = None
+            if re.search("\/MapServer\/*(f=json)*", self.service.url):
+                # This is a MapService
+                try:
+                    arcserver = ArcMapService(self.service.url)
+                    bbox=(
+                        float(self.bbox_x0),
+                        float(self.bbox_y0),
+                        float(self.bbox_x1),
+                        float(self.bbox_y1)
+                    )
+                    image = arcserver.ExportMap(bbox=bbox,layers='show:'+self.name,transparent='true',dpi='96',format='jpg')
+                except Exception, e:
+                    print e
+            elif re.search("\/ImageServer\/*(f=json)*", self.service.url):
+                try:
+                    arcserver = ArcImageService(self.service.url)
+                    bbox=str(self.bbox_x0)+','+str(self.bbox_y0)+','+str(self.bbox_x1)+','+str(self.bbox_y1)
+                    image = arcserver.ExportImage(bbox=bbox)
+                except Exception, e:
+                    print e
+            else:
+                raise NotImplementedError
+            thumbnail_file_name = '%s.jpg' % self.name
+            image.save(thumbnail_file_name)
+            img = open(thumbnail_file_name, 'r')
+            os.remove(thumbnail_file_name)
 
         # update thumb in model
         if img:
@@ -278,21 +307,38 @@ def update_layers_esri(service):
     """
     Update layers for an ESRI REST service.
     """
-    esri_service = ArcMapService(service.url)
-    for esri_layer in esri_service.layers:
-        print 'Updating layer %s' % esri_layer.name
-        layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
+    if re.search("\/MapServer\/*(f=json)*", service.url):
+        esri_service = ArcMapService(service.url)
+        for esri_layer in esri_service.layers:
+            print 'Updating layer %s' % esri_layer.name
+            layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
+            if layer.active:
+                layer.title = esri_layer.name
+                layer.abstract = esri_service.serviceDescription
+                layer.bbox_x0 = esri_layer.extent.xmin
+                layer.bbox_y0 = esri_layer.extent.ymin
+                layer.bbox_x1 = esri_layer.extent.xmax
+                layer.bbox_y1 = esri_layer.extent.ymax
+                # crsOptions
+                srs = esri_layer.extent.spatialReference
+                layer.srs.add(srs.wkid)
+                layer.save()
+    elif re.search("\/ImageServer\/*(f=json)*", service.url):
+        esri_service = ArcImageService(service.url)
+        obj = json.loads(esri_service._contents)
+        layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
         if layer.active:
-            layer.title = esri_layer.name
+            layer.title = obj['name']
             layer.abstract = esri_service.serviceDescription
-            layer.bbox_x0 = esri_layer.extent.xmin
-            layer.bbox_y0 = esri_layer.extent.ymin
-            layer.bbox_x1 = esri_layer.extent.xmax
-            layer.bbox_y1 = esri_layer.extent.ymax
+            layer.bbox_x0 = str(obj['extent']['xmin'])
+            layer.bbox_y0 = str(obj['extent']['ymin'])
+            layer.bbox_x1 = str(obj['extent']['xmax'])
+            layer.bbox_y1 = str(obj['extent']['ymax'])
             # crsOptions
-            srs = esri_layer.extent.spatialReference
-            layer.srs.add(srs.wkid)
+            srs = obj['spatialReference']['wkid']
+            layer.srs.add(srs)
             layer.save()
+        
 
 
 class Check(models.Model):
