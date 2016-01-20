@@ -20,6 +20,7 @@
 
     <!-- css for HyperMap -->
     <link href="{{ STATIC_URL }}css/site.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/morris.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -64,5 +65,9 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+    <!-- Raphael javascript core -->
+    <script src="{{ STATIC_URL }}js/raphael-min.js"></script>
+    <script src="{{ STATIC_URL }}js/morris.min.js"></script>
+    {% block extrafoot %}{% endblock %}
   </body>
 </html>

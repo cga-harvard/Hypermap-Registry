@@ -22,9 +22,19 @@ def index(request):
 
 def service_detail(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
-    return render(request, 'aggregator/service_detail.html', {'service': service})
+    check_set = []
+    for check in service.check_set.all():
+        check_set.append({'datetime': check.checked_datetime.isoformat(),
+                         'value': check.response_time,
+                          'success': 1 if check.success else 0})
+    return render(request, 'aggregator/service_detail.html', {'service': service, 'resource': check_set})
 
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer})
+    check_set = []
+    for check in layer.check_set.all():
+        check_set.append({'datetime': check.checked_datetime.isoformat(),
+                         'value': check.response_time,
+                          'success': 1 if check.success else 0})
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'resource': check_set})
