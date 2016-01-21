@@ -78,6 +78,9 @@
   </div>
 </div>
 
+<div class="clearfix"></div>
+<div id="run-chart" class="run-chart"></div>
+
 <h2>Checks</h2>
 
 {% with layer.check_set.all as check_set %}
@@ -119,4 +122,36 @@
 {% endif %}
 {% endwith %}
 
+{% endblock %}
+{% block extrafoot %}
+<script type="text/javascript">
+ var run_data = {{ resource|safe }};
+ Morris.Area({
+        element: 'run-chart',
+        lineWidth: 1,
+        data: run_data,
+        xkey: 'datetime',
+        ykeys: ['value'],
+        labels: ['{{ _('Response Time') }}'],
+        fillOpacity: 0.05,
+        hideHover: true,
+        resize: true,
+        pointStrokeColors: ['black'],
+        pointSize: 5,
+        postUnits: ' {{ _('seconds') }}',
+        dateFormat: function (x) { return new Date(x).toString(); },
+        xLabelAngle: 45,
+        xLabels: 'day',
+        lineColors: function(row, series, ttype) {
+            if (row !== null) {
+                if (row.src.success === 1) {
+                    return '#5CB85C';
+                } else {
+                    return '#D9534F';
+                }
+            }
+            return '#00f';
+        }
+    });
+</script>
 {% endblock %}
