@@ -7,6 +7,22 @@ from django.db.models import Count
 from models import Service, Layer
 
 
+def serialize_checks(check_set):
+    """
+    Serialize a check_set for raphael
+    """
+    check_set_list = []
+    for check in check_set.all()[:25]:
+        check_set_list.append(
+            {
+                'datetime': check.checked_datetime.isoformat(),
+                'value': check.response_time,
+                'success': 1 if check.success else 0
+            }
+        )
+    return check_set_list
+
+
 def index(request):
     services = Service.objects.annotate(
         num_checks=Count('resource_ptr__check')).filter(num_checks__gt=0)
@@ -22,19 +38,11 @@ def index(request):
 
 def service_detail(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
-    check_set = []
-    for check in service.check_set.all():
-        check_set.append({'datetime': check.checked_datetime.isoformat(),
-                         'value': check.response_time,
-                          'success': 1 if check.success else 0})
-    return render(request, 'aggregator/service_detail.html', {'service': service, 'resource': check_set})
+    resource = serialize_checks(service.check_set)
+    return render(request, 'aggregator/service_detail.html', {'service': service, 'resource': resource})
 
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
-    check_set = []
-    for check in layer.check_set.all():
-        check_set.append({'datetime': check.checked_datetime.isoformat(),
-                         'value': check.response_time,
-                          'success': 1 if check.success else 0})
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'resource': check_set})
+    resource = serialize_checks(layer.check_set)
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'resource': resource})
