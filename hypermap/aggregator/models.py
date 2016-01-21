@@ -7,6 +7,7 @@ from urlparse import urlparse
 from django.db import models
 from django.db.models import Avg, Min, Max
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.urlresolvers import reverse
 
 from polymorphic.models import PolymorphicModel
 from owslib.wms import WebMapService
@@ -263,6 +264,9 @@ class Layer(Resource):
         )
         check.save()
         print 'Checked layer %s' % self.name
+
+    def get_absolute_url(self):
+        return reverse('layer_detail', args=(self.id,))
 
 
 def update_layers_wms(service):
