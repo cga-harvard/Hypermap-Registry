@@ -48,7 +48,7 @@
     }
 },
 {
-    "pk": 748,
+    "pk": 4,
     "model": "aggregator.resource",
     "fields": {
         "last_updated": "2016-01-13T22:14:15.082Z",
@@ -60,7 +60,7 @@
     }
 },
 {
-    "pk": 913,
+    "pk": 5,
     "model": "aggregator.resource",
     "fields": {
         "last_updated": "2016-01-13T22:28:37.472Z",
@@ -104,7 +104,7 @@
     }
 },
 {
-    "pk": 748,
+    "pk": 4,
     "model": "aggregator.service",
     "fields": {
         "url": "http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml",
@@ -112,7 +112,7 @@
     }
 },
 {
-    "pk": 913,
+    "pk": 5,
     "model": "aggregator.service",
     "fields": {
         "url": "http://arcgis.cast.uark.edu/ArcGIS/rest/services/AGFC/All_Deer_50MCP_Oct11/MapServer",
