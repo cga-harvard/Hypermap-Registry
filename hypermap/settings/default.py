@@ -10,8 +10,9 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+from datetime import timedelta
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -104,9 +105,18 @@ STATICFILES_DIRS = (
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 
-# celery stuff
+# Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+
+CELERYBEAT_SCHEDULE = {
+    'Check All Services': {
+        'task': 'check_all_services',
+        'schedule': timedelta(seconds=60)
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'
 BROKER_URL = 'amqp://hypermap:hypermap@127.0.0.1//'
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://hypermap:hypermap@localhost/hypermap')
 
