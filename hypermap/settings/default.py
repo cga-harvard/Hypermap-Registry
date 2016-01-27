@@ -107,6 +107,7 @@ MEDIA_URL = "/media/"
 # celery stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+BROKER_URL = 'amqp://hypermap:hypermap@localhost:5672//'
 
 LOGGING = {
     'version': 1,
