@@ -112,7 +112,7 @@ CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERYBEAT_SCHEDULE = {
     'Check All Services': {
         'task': 'check_all_services',
-        'schedule': timedelta(seconds=60)
+        'schedule': timedelta(minutes=15)
     },
 }
 
