@@ -337,7 +337,8 @@ def update_layers_esri(service):
                 layer.bbox_y1 = esri_layer.extent.ymax
                 # crsOptions
                 srs = esri_layer.extent.spatialReference
-                layer.srs.add(srs.wkid)
+                srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs.wkid)
+                layer.srs.add(srs)
                 layer.save()
     elif re.search("\/ImageServer\/*(f=json)*", service.url):
         esri_service = ArcImageService(service.url)
