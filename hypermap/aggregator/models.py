@@ -365,7 +365,7 @@ class Check(models.Model):
     checked_datetime = models.DateTimeField(auto_now=True)
     success = models.BooleanField(default=False)
     response_time = models.FloatField()
-    message = models.CharField(max_length=255, default='OK')
+    message = models.TextField(default='OK')
 
     def __unicode__(self):
         return 'Check %s' % self.id
