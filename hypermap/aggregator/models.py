@@ -22,7 +22,7 @@ class Resource(PolymorphicModel):
     Resource represents basic information for a resource (service/layer).
     """
     title = models.CharField(max_length=255, null=True, blank=True)
-    abstract = models.CharField(max_length=255, null=True, blank=True)
+    abstract = models.TextField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
@@ -284,6 +284,8 @@ def update_layers_wms(service):
             # update fields
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
+            print layer.title
+            print layer.abstract
             # bbox
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
