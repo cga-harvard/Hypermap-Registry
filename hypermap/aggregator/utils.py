@@ -127,6 +127,7 @@ def create_services_from_endpoint(endpoint):
         print 'ERROR! Could not detect service type for endpoint %s' % endpoint
         return None
 
+
 def inverse_mercator(xy):
     """
         Given coordinates in spherical mercator, return a lon,lat tuple.
@@ -137,10 +138,12 @@ def inverse_mercator(xy):
         (2 * math.atan(math.exp(lat * math.pi / 180)) - math.pi / 2)
     return (lon, lat)
 
+
 def mercator_to_llbbox(bbox):
     minlonlat = inverse_mercator([bbox[0], bbox[1]])
     maxlonlat = inverse_mercator([bbox[2], bbox[3]])
     return [minlonlat[0], minlonlat[1], maxlonlat[0], maxlonlat[1]]
+
 
 def get_sanitized_endpoint(url):
     """
@@ -287,7 +290,7 @@ class OGP_utils(object):
                                     "Availability": "Online",
                                     "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
                                     "Abstract": "abstract",
-                                    "SrsProjectionCode": 'EPSG:4326' ,
+                                    "SrsProjectionCode": 'EPSG:4326',
                                     "MinY": minY,
                                     "MinX": minX,
                                     "MaxY": maxY,
