@@ -118,8 +118,7 @@ CELERYBEAT_SCHEDULE = {
 }
 
 CELERY_TIMEZONE = 'UTC'
-BROKER_URL = 'amqp://hypermap:hypermap@127.0.0.1//'
-BROKER_URL = os.getenv('BROKER_URL', 'amqp://hypermap:hypermap@localhost/hypermap')
+BROKER_URL = os.getenv('BROKER_URL', 'amqp://hypermap:hypermap@127.0.0.1:5672/hypermap')
 
 LOGGING = {
     'version': 1,
