@@ -1,0 +1,22 @@
+###
+# Install uwsgi from pypi and configure it with upstart in emperor mode.
+#
+---
+
+- name: add uwsgi from pypi
+  pip: name=uwsgi
+  sudo: yes
+
+- name: create /etc/uwsgi to place apps
+  file: path=/etc/uwsgi owner=www-data group=www-data state=directory mode=0755
+  sudo: yes
+
+- name: write default vassals configuration file
+  template: src=vassals-default.skel.j2 dest=/etc/uwsgi/{{ application_name }}.ini
+  sudo: yes
+
+- name: write uwsgi configuration for upstart in emperor mode
+  template: src=uwsgi.conf.j2 dest=/etc/init/uwsgi.conf
+  sudo: yes
+  notify:
+    - restart uwsgi

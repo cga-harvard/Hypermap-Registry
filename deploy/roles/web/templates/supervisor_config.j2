@@ -1,0 +1,5 @@
+[program:{{ application_name }}]
+command = uwsgi --ini /etc/uwsgi/{{ application_name }}.ini
+user = {{ uwsgi_user }}
+stdout_logfile = {{ application_log_file }}
+redirect_stderr = true

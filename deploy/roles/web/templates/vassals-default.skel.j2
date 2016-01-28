@@ -1,0 +1,27 @@
+[uwsgi]
+;unix socket (referenced in nginx configuration)
+socket = /tmp/%n.sock
+
+# set mode of created UNIX socket
+chmod-socket = 666
+
+# place timestamps into log
+log-date = true
+
+vacuum = true
+
+; project-level logging to the logs/ folder
+logto = {{ application_log_file }}
+
+chdir = {{ project_path }}/{{ application_name }}
+module = django.core.handlers.wsgi:WSGIHandler()
+
+enable-threads = true
+threads = 20
+
+virtualenv = {{ virtualenv_path }}
+vacuum = true
+env = DJANGO_SETTINGS_MODULE={{ django_settings_file }}
+pidfile = /tmp/%n.pid
+;harakiri = 20 # respawn processes taking more than 20 seconds
+max-requests = 5000 # respawn processes after serving 5000 requests
