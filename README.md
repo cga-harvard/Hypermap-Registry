@@ -1,8 +1,8 @@
-# HyperMap
+# HHyperMap
 
-## Aggregator
+## Supervisor
 
-Easiest way to have an Hypermap instance up and running is to use Vagrant.
+Easiest way to have an HHypermap instance up and running is to use Vagrant.
 
 ```
 git clone git@github.com:cga-harvard/hypermap.git
