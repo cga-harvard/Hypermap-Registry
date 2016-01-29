@@ -1,4 +1,4 @@
-# HHyperMap
+# HHypermap
 
 ## Supervisor
 
