@@ -128,6 +128,23 @@ def create_services_from_endpoint(endpoint):
         return None
 
 
+def inverse_mercator(xy):
+    """
+        Given coordinates in spherical mercator, return a lon,lat tuple.
+    """
+    lon = (xy[0] / 20037508.34) * 180
+    lat = (xy[1] / 20037508.34) * 180
+    lat = 180 / math.pi * \
+        (2 * math.atan(math.exp(lat * math.pi / 180)) - math.pi / 2)
+    return (lon, lat)
+
+
+def mercator_to_llbbox(bbox):
+    minlonlat = inverse_mercator([bbox[0], bbox[1]])
+    maxlonlat = inverse_mercator([bbox[2], bbox[3]])
+    return [minlonlat[0], minlonlat[1], maxlonlat[0], maxlonlat[1]]
+
+
 def get_sanitized_endpoint(url):
     """
     Sanitize an endpoint, as removing unneeded parameters
@@ -205,7 +222,10 @@ class OGP_utils(object):
     @staticmethod
     def layer_to_solr(layer, i=0):
         try:
-            bbox = [layer.bbox_x0, layer.bbox_x1, layer.bbox_y0, layer.bbox_y1]
+            bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+            for proj in layer.srs.values():
+                if '102113' == proj['code']:
+                    bbox = mercator_to_llbbox(bbox)
             storeType = "remoteStore"  # to do need to figure out it hypermap will only be dealing with remote servives
             date = layer.created
             if (OGP_utils.good_coords(bbox)) is False:
@@ -214,10 +234,10 @@ class OGP_utils(object):
             if (OGP_utils.good_coords(bbox)):
                 print 'in utils.layer_to_solr, bbox = ', bbox
                 username = ""
-                minX = float(bbox[0])
-                minY = float(bbox[1])
-                maxX = float(bbox[2])
-                maxY = float(bbox[3])
+                minX = bbox[0]
+                minY = bbox[1]
+                maxX = bbox[2]
+                maxY = bbox[3]
                 if (minY > maxY):
                     tmp = minY
                     minY = maxY
@@ -244,11 +264,10 @@ class OGP_utils(object):
                 # default for now as we do not have capabilitty to resolve vector/raster layers
                 dataType = "Polygon"
                 institution = "Harvard"
-                servicetype = None
+                servicetype = layer.service.type
                 owsUrl = layer.service.url
                 if storeType == "remoteStore":
                     institution = "Remote"
-                    servicetype = 'ESRI'
                     if servicetype == "ESRI":
                         dataType = "RESTServices"
                     else:
@@ -271,7 +290,7 @@ class OGP_utils(object):
                                     "Availability": "Online",
                                     "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
                                     "Abstract": "abstract",
-                                    "SrsProjectionCode": '102113',
+                                    "SrsProjectionCode": 'EPSG:4326',
                                     "MinY": minY,
                                     "MinX": minX,
                                     "MaxY": maxY,
@@ -299,7 +318,7 @@ class OGP_utils(object):
                                      "Availability": "Online",
                                      "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
                                      "Abstract": "abstract",
-                                     "SrsProjectionCode": '102113',
+                                     "SrsProjectionCode": 'EPSG:4326',
                                      "MinY": minY,
                                      "MinX": minX,
                                      "MaxY": maxY,
