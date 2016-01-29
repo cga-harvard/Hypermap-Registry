@@ -2,7 +2,7 @@
 
 ## Introduction
 
-HHypermap (Harvard Hypermap) Supervisor is an application that manages OWS, Esri REST, and other types of map service harvesting, and maintains uptime statistics for services and layers. WMS and WMTS layers will be cascaded by MapProxy when they do not support Web Mercator.   All layers where possible will be cached by MapProxy. It is anticipated that other types of service such as WFS, WCS, and WPS will eventually be included. The application will be used by WorldMap and GeoNode to collect and manage remote layers. HHypermap Supervisor will publish to HHypermap Search (based on Lucene) which provides a fast search and visualization environment for spatio-temporal materials.   
+HHypermap (Harvard Hypermap) Supervisor is an application that manages OWS, Esri REST, and other types of map service harvesting, and maintains uptime statistics for services and layers. When possible, layers will be cached by MapProxy. It is anticipated that other types of service such as WFS, WCS, and WPS will eventually be included. The application will be used by Harvard WorldMap to collect and manage remote layers. HHypermap Supervisor will publish to HHypermap Search (based on Lucene) which provides a fast search and visualization environment for spatio-temporal materials.   
 
 ## Setup
 
