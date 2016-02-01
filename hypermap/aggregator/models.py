@@ -3,6 +3,7 @@ import os
 import re
 import json
 from urlparse import urlparse
+import dateutil.parser
 
 from django.db import models
 from django.db.models import Avg, Min, Max
@@ -154,6 +155,7 @@ class Layer(Resource):
     bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
+    date_depicted = models.DateTimeField(blank=True, null=True)
     srs = models.ManyToManyField(SpatialReferenceSystem)
     service = models.ForeignKey(Service)
 
@@ -236,6 +238,20 @@ class Layer(Resource):
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             print 'Thumbnail updated for layer %s' % self.name
 
+    def update_date_depicted(self):
+        date = None
+        year = re.search('\d{4}', str(self.title))
+        if year is None and self.abstract:
+            year = re.search('\d{4}', self.abstract)
+        if year is not None and year > 1000 and year < 2020:
+            year = year.group(0)
+        if year:
+            date = dateutil.parser.parse(str(year))
+        else:
+            date = datetime.datetime.utcnow()
+        self.date_depicted = date
+        self.save()
+
     def check(self):
         """
         Check for availability of a service and provide run metrics.
@@ -246,6 +262,7 @@ class Layer(Resource):
 
         try:
             self.update_thumbnail()
+            self.update_date_depicted()
 
         except Exception, err:
             message = str(err)
