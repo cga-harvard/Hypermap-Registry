@@ -224,7 +224,7 @@ class OGP_utils(object):
         try:
             bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
             for proj in layer.srs.values():
-                if '102113' == proj['code']:
+                if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
             storeType = "remoteStore"  # to do need to figure out it hypermap will only be dealing with remote servives
             date = layer.created
