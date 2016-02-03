@@ -2,6 +2,7 @@ import datetime
 import os
 import re
 import json
+import requests
 from urlparse import urlparse
 
 from django.db import models
@@ -333,13 +334,25 @@ def update_layers_esri(service):
             if layer.active:
                 layer.title = esri_layer.name
                 layer.abstract = esri_service.serviceDescription
-                layer.bbox_x0 = esri_layer.extent.xmin
-                layer.bbox_y0 = esri_layer.extent.ymin
-                layer.bbox_x1 = esri_layer.extent.xmax
-                layer.bbox_y1 = esri_layer.extent.ymax
-                # crsOptions
-                srs = esri_layer.extent.spatialReference
-                srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs.wkid)
+                try:
+                    layer.bbox_x0 = esri_layer.extent.xmin
+                    layer.bbox_y0 = esri_layer.extent.ymin
+                    layer.bbox_x1 = esri_layer.extent.xmax
+                    layer.bbox_y1 = esri_layer.extent.ymax
+                    # crsOptions
+                    srs = esri_layer.extent.spatialReference.wkid
+                except KeyError:
+                    layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
+                    layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
+                    layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
+                    layer.bbox_y1 = esri_layer._json_struct['extent']['ymax']
+                    wkt_text = esri_layer._json_struct['extent']['spatialReference']['wkt']
+                    if wkt_text:
+                        params = {'exact': 'True', 'error': 'True', 'mode': 'wkt', 'terms': wkt_text}
+                        req = requests.get('http://prj2epsg.org/search.json', params=params)
+                        object = json.loads(req.content)
+                        srs = int(object['codes'][0]['code'])
+                srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
                 layer.srs.add(srs)
                 layer.save()
     elif re.search("\/ImageServer\/*(f=json)*", service.url):
