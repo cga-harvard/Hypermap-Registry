@@ -1,8 +1,12 @@
-# HyperMap
+# HHypermap Supervisor
+
+## Introduction
+
+HHypermap (Harvard Hypermap) Supervisor is an application that manages OWS, Esri REST, and other types of map service harvesting, and maintains uptime statistics for services and layers. When possible, layers will be cached by MapProxy. It is anticipated that other types of service such as WFS, WCS, and WPS will eventually be included. The application will be used by Harvard WorldMap to collect and manage remote layers. HHypermap Supervisor will publish to HHypermap Search (based on Lucene) which provides a fast search and visualization environment for spatio-temporal materials.   
 
 ## Hypermap on Vagrant
 
-Easiest way to have an Hypermap instance up and running is to use Vagrant.
+Easiest way to have an HHypermap instance up and running is to use Vagrant.
 
 ```
 git clone git@github.com:cga-harvard/hypermap.git
@@ -53,7 +57,7 @@ AKI...
 bash-3.2$ echo $AWS_SECRET_ACCESS_KEY
 djE...
 bash-3.2$ ssh-add -L
-ssh-rsa AAAAB3NzaC1yc2E... /Users/capooti/.ssh/cga.pem
+ssh-rsa AAA... /Users/capooti/.ssh/cga.pem
 ```
 
 Also, set the ssh-agent and make sure it is running correctly:
