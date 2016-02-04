@@ -64,3 +64,5 @@ db.sqlite3
 .csv
 
 .vagrant
+ec2.ini
+ec2.py

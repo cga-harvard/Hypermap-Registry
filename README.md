@@ -1,6 +1,6 @@
 # HyperMap
 
-## Aggregator
+## Hypermap on Vagrant
 
 Easiest way to have an Hypermap instance up and running is to use Vagrant.
 
@@ -38,3 +38,33 @@ To run Celery in development mode run the worker process like this:
 ```
   ./manage.py celery -A hypermap worker -B -l info
 ```
+
+## Hypermap on AWS
+
+Make sure to have the following variables correctly set:
+
+```
+bash-3.2$ echo $ANSIBLE_HOSTS
+/Users/capooti/ec2.py
+bash-3.2$ echo $EC2_INI_PATH
+/Users/capooti/ec2.ini
+bash-3.2$ echo $AWS_ACCESS_KEY_ID
+AKI...
+bash-3.2$ echo $AWS_SECRET_ACCESS_KEY
+djE...
+bash-3.2$ ssh-add -L
+ssh-rsa AAAAB3NzaC1yc2E... /Users/capooti/.ssh/cga.pem
+```
+
+Also, set the ssh-agent and make sure it is running correctly:
+
+```
+ssh-agent bash
+bash-3.2$ ssh-add ~/.ssh/cga.pem
+bash-3.2$ ssh-add -L
+ssh-rsa AAAAB3NzaC1yc2E... /Users/capooti/.ssh/cga.pem
+```
+
+Finally run the playbook:
+
+ansible-playbook aws.yml
