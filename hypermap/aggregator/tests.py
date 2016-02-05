@@ -1,9 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-import re
-import json
 from models import Service, Layer, Check
-from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 SERVICE_NUMBER = 10
 LAYER_PER_SERVICE_NUMBER = 20
@@ -70,43 +67,3 @@ class AggregatorTestCase(TestCase):
         response = self.client.get(
             reverse('layer_detail', args=(str(layer.id),)))
         self.assertEqual(200, response.status_code)
-
-    def test_update_layers_esri(self):
-        arcservice = ArcMapService("http://sampleserver1.arcgisonline.com/ArcGIS/rest/services"
-                                   "/WaterTemplate/WaterDistributionNetwork/MapServer/?f=json")
-        service = Service(title="Test",
-                          url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services"
-                              "/WaterTemplate/WaterDistributionNetwork/MapServer/?f=json",
-                          type='ESRI')
-        service.save()
-        # we check if the service exists
-        self.assertTrue(re.search("\/MapServer\/*(f=json)*", service.url))
-        for esri_layer in arcservice.layers:
-            layer = Layer(
-                    name=esri_layer.name,
-                    bbox_x0=esri_layer.extent.xmin,
-                    bbox_x1=esri_layer.extent.ymin,
-                    bbox_y0=esri_layer.extent.xmax,
-                    bbox_y1=esri_layer.extent.ymax,
-                    service=service
-                )
-            layer.save()
-            service.layer_set.add(layer)
-        imageservice = ArcImageService("http://sampleserver6.arcgisonline.com/arcgis/rest/services/"
-                                       "Toronto/ImageServer/?json")
-        service = Service(title="Test",
-                          url="http://sampleserver6.arcgisonline.com/ArcGIS/rest/services"
-                              "/Toronto/ImageServer/?f=json",
-                          type='ESRI')
-        service.save()
-        # we check if the service exists
-        self.assertTrue(re.search("\/ImageServer\/*(f=json)*", service.url))
-        obj = json.loads(imageservice._contents)
-        layer = Layer(name=obj['name'],
-                      bbox_x0=str(obj['extent']['xmin']),
-                      bbox_x1=str(obj['extent']['ymin']),
-                      bbox_y0=str(obj['extent']['xmax']),
-                      bbox_y1=str(obj['extent']['ymax']),
-                      service=service)
-        layer.save()
-        service.layer_set.add(layer)

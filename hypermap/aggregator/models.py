@@ -334,6 +334,8 @@ def update_layers_esri(service):
             if layer.active:
                 layer.title = esri_layer.name
                 layer.abstract = esri_service.serviceDescription
+                # set a default srs
+                srs = 4326
                 try:
                     layer.bbox_x0 = esri_layer.extent.xmin
                     layer.bbox_y0 = esri_layer.extent.ymin
@@ -342,6 +344,8 @@ def update_layers_esri(service):
                     # crsOptions
                     srs = esri_layer.extent.spatialReference.wkid
                 except KeyError:
+                    pass
+                try:
                     layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
                     layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
                     layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
@@ -352,6 +356,8 @@ def update_layers_esri(service):
                         req = requests.get('http://prj2epsg.org/search.json', params=params)
                         object = json.loads(req.content)
                         srs = int(object['codes'][0]['code'])
+                except Exception:
+                    pass
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
                 layer.srs.add(srs)
                 layer.save()
