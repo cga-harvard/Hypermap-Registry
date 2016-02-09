@@ -12,3 +12,16 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
+
+# setup for developer toolbar
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
+
+INSTALLED_APPS = INSTALLED_APPS + (
+    'debug_toolbar',
+)
+
+MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+)
+
+INTERNAL_IPS = ('192.168.33.1',)
