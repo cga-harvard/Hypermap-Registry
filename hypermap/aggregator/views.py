@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 
 from models import Service, Layer
+from tasks import check_service, check_layer
 
 
 def serialize_checks(check_set):
@@ -39,10 +40,14 @@ def index(request):
 def service_detail(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
     resource = serialize_checks(service.check_set)
+    if request.method == 'POST':
+        check_service.delay(service)
     return render(request, 'aggregator/service_detail.html', {'service': service, 'resource': resource})
 
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
     resource = serialize_checks(layer.check_set)
+    if request.method == 'POST':
+        check_layer.delay(layer)
     return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'resource': resource})

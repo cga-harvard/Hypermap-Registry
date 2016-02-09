@@ -13,6 +13,7 @@ def check_all_services():
 
 @task(name="check_specific_service")
 def check_service(service):
+    print 'Checking service %s' % service.title
     service.update_layers()
     service.check()
     for layer in service.layer_set.all():
@@ -21,6 +22,7 @@ def check_service(service):
 
 @task(name="check_specific_layer")
 def check_layer(layer):
+    print 'Checking layer %s' % layer.name
     layer.check()
 
 

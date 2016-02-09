@@ -122,6 +122,13 @@
 {% endif %}
 {% endwith %}
 
+{% if user.is_superuser %}
+<form action="." method="post">
+  {% csrf_token %}
+  <input type="submit" value="Check Now!">
+</form>
+{% endif %}
+
 {% endblock %}
 {% block extrafoot %}
 <script type="text/javascript">

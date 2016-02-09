@@ -430,7 +430,6 @@ def service_post_save(instance, *args, **kwargs):
     Used to do a service full check when saving it.
     """
     if not settings.SKIP_CELERY_TASK:
-        print 'Checking service %s' % instance.title
         check_service.delay(instance)
 
 
@@ -439,7 +438,6 @@ def layer_post_save(instance, *args, **kwargs):
     Used to do a layer full check when saving it.
     """
     if not settings.SKIP_CELERY_TASK:
-        print 'Checking layer %s' % instance.name
         check_layer.delay(instance)
 
 
