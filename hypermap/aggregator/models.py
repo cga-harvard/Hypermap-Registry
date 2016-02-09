@@ -39,7 +39,10 @@ class Resource(PolymorphicModel):
 
     @property
     def last_check(self):
-        return self.check_set.order_by('-checked_datetime')[0].checked_datetime
+        if self.check_set.all().count() > 0:
+            return self.check_set.order_by('-checked_datetime')[0].checked_datetime
+        else:
+            return None
 
     @property
     def average_response_time(self):
@@ -55,7 +58,10 @@ class Resource(PolymorphicModel):
 
     @property
     def last_response_time(self):
-        return self.check_set.order_by('-checked_datetime')[0].response_time
+        if self.checks_count > 0:
+            return self.check_set.order_by('-checked_datetime')[0].response_time
+        else:
+            return None
 
     @property
     def checks_count(self):
@@ -64,8 +70,11 @@ class Resource(PolymorphicModel):
     @property
     def reliability(self):
         total_checks = self.check_set.count()
-        success_checks = self.check_set.filter(success=True).count()
-        return (success_checks/float(total_checks)) * 100
+        if total_checks:
+            success_checks = self.check_set.filter(success=True).count()
+            return (success_checks/float(total_checks)) * 100
+        else:
+            return None
 
 
 class Service(Resource):
