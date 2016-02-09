@@ -109,7 +109,6 @@ MEDIA_URL = '/media/'
 
 # Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 
 CELERYBEAT_SCHEDULE = {
     'Check All Services': {
@@ -150,7 +149,12 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR', 'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
-        }
+        },
+        'celery': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
     },
     "loggers": {
         "django": {
@@ -159,5 +163,7 @@ LOGGING = {
             "handlers": ["console"], "level": "ERROR", },
         "owslib": {
             "handlers": ["console"], "level": "ERROR", },
-        },
+        "celery": {
+            "handlers": ["console"], "level": "DEBUG", },
+        }
     }

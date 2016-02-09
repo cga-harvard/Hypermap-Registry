@@ -6,6 +6,7 @@ from urlparse import urlparse
 
 from django.db import models
 from django.db.models import Avg, Min, Max
+from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 
@@ -15,6 +16,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder, MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import SERVICE_TYPES
+from tasks import update_endpoints, check_service, check_layer
 
 
 class Resource(PolymorphicModel):
@@ -85,12 +87,14 @@ class Service(Resource):
         """
         Update layers for a service.
         """
+        signals.post_save.disconnect(layer_post_save, sender=Layer)
         if self.type == 'OGC:WMS':
             update_layers_wms(self)
         elif self.type == 'OGC:WMTS':
             update_layers_wmts(self)
         elif self.type == 'ESRI':
             update_layers_esri(self)
+        signals.post_save.connect(layer_post_save, sender=Layer)
 
     def check(self):
         """
@@ -112,9 +116,8 @@ class Service(Resource):
             # TODO add more service types here
             if self.type.startswith('OGC:'):
                 title = ows.identification.title
-            # update title
-            self.title = title
-            self.save()
+            # update title without raising a signal and recursion
+            Service.objects.filter(id=self.id).update(title=title)
         except Exception, err:
             message = str(err)
             success = False
@@ -245,7 +248,9 @@ class Layer(Resource):
         message = ''
 
         try:
+            signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
+            signals.post_save.connect(layer_post_save, sender=Layer)
 
         except Exception, err:
             message = str(err)
@@ -341,7 +346,6 @@ def update_layers_esri(service):
                 srs = esri_layer.extent.spatialReference
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs.wkid)
                 layer.srs.add(srs)
-                layer.save()
     elif re.search("\/ImageServer\/*(f=json)*", service.url):
         esri_service = ArcImageService(service.url)
         obj = json.loads(esri_service._contents)
@@ -371,3 +375,61 @@ class Check(models.Model):
 
     def __unicode__(self):
         return 'Check %s' % self.id
+
+
+class EndpointList(models.Model):
+    """
+    EndpointList represents a file containing an EndPoint list.
+    """
+    upload = models.FileField(upload_to='endpoint_lists')
+
+    def __unicode__(self):
+        return self.upload.name
+
+
+class Endpoint(models.Model):
+    """
+    Endpoint represents a url containing an end point and its status.
+    """
+    processed = models.BooleanField(default=False)
+    processed_datetime = models.DateTimeField(auto_now=True)
+    imported = models.BooleanField(default=False)
+    message = models.TextField(blank=True, null=True)
+    url = models.URLField(unique=True)
+    endpoint_list = models.ForeignKey(EndpointList)
+
+
+def endpointlist_post_save(instance, *args, **kwargs):
+    """
+    Used to process the lines of the endpoint list.
+    """
+    f = instance.upload
+    f.open(mode='rb')
+    lines = f.readlines()
+    for url in lines:
+        if Endpoint.objects.filter(url=url).count() == 0:
+            endpoint = Endpoint(url=url, endpoint_list=instance)
+            endpoint.save()
+    f.close()
+    update_endpoints.delay(instance)
+
+
+def service_post_save(instance, *args, **kwargs):
+    """
+    Used to do a service full check when saving it.
+    """
+    print 'Checking service %s' % instance.title
+    check_service.delay(instance)
+
+
+def layer_post_save(instance, *args, **kwargs):
+    """
+    Used to do a layer full check when saving it.
+    """
+    print 'Checking layer %s' % instance.name
+    check_layer.delay(instance)
+
+
+signals.post_save.connect(endpointlist_post_save, sender=EndpointList)
+signals.post_save.connect(service_post_save, sender=Service)
+signals.post_save.connect(layer_post_save, sender=Layer)

@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from djcelery.models import TaskMeta
 
-from models import Service, Layer, Check, SpatialReferenceSystem
+from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
+                    Endpoint)
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -31,10 +32,23 @@ class CheckAdmin(admin.ModelAdmin):
     search_fields = ['resource__title', ]
 
 
+class EndpointListAdmin(admin.ModelAdmin):
+    model = EndpointList
+
+
+class EndpointAdmin(admin.ModelAdmin):
+    model = Endpoint
+    list_display = ('url', 'processed_datetime', 'processed', 'imported', 'message', 'endpoint_list')
+    list_filter = ('processed', 'imported')
+    search_fields = ['url', ]
+
+
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
 admin.site.register(Layer, LayerAdmin)
+admin.site.register(EndpointList, EndpointListAdmin)
+admin.site.register(Endpoint, EndpointAdmin)
 
 
 # we like to see celery results using the admin

@@ -29,20 +29,28 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
              type=service_type, url=endpoint, title=title, abstract=abstract
         )
         return service
+    else:
+        return None
 
 
-def create_services_from_endpoint(endpoint):
+def create_services_from_endpoint(url):
     """
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
     ESRI, CWS endpoints corrispond to many services.
     """
+    num_created = 0
+    endpoint = get_sanitized_endpoint(url)
     try:
-        urllib2.urlopen(endpoint, timeout=5)
+        urllib2.urlopen(endpoint, timeout=10)
     except urllib2.URLError, e:
         print 'ERROR! Cannot open this endpoint: %s' % endpoint
-        print str(e)
-        return None
+        message = str(e.reason)
+        try:
+            message.decode('utf-8')
+        except UnicodeDecodeError:
+            message = 'Not an unicode error message'
+        return False, message
 
     detected = False
 
@@ -52,12 +60,14 @@ def create_services_from_endpoint(endpoint):
         service = WebMapService(endpoint, timeout=10)
         service_type = 'OGC:WMS'
         detected = True
-        create_service_from_endpoint(
+        service = create_service_from_endpoint(
             endpoint,
             service_type,
             title=service.identification.title,
             abstract=service.identification.abstract
         )
+        if service is not None:
+            num_created = num_created + 1
     except Exception as e:
         print str(e)
 
@@ -73,6 +83,8 @@ def create_services_from_endpoint(endpoint):
                 title=service.identification.title,
                 abstract=service.identification.abstract
             )
+            if service is not None:
+                num_created = num_created + 1
         except Exception as e:
             print str(e)
 
@@ -88,6 +100,8 @@ def create_services_from_endpoint(endpoint):
                 title=service.identification.title,
                 abstract=service.identification.abstract
             )
+            if service is not None:
+                num_created = num_created + 1
         except Exception as e:
             print str(e)
 
@@ -108,6 +122,8 @@ def create_services_from_endpoint(endpoint):
                         esri_service.mapName,
                         esri_service.description
                     )
+                    if service is not None:
+                        num_created = num_created + 1
             # folders
             for folder in esri.folders:
                 for esri_service in folder.services:
@@ -117,15 +133,16 @@ def create_services_from_endpoint(endpoint):
                             service_type,
                             esri_service.mapName,
                             esri_service.description)
+                        if service is not None:
+                            num_created = num_created + 1
 
         except Exception as e:
             print str(e)
 
     if detected:
-        print 'OK! Created service/services for %s' % endpoint
+        return True, '%s service/s created' % num_created
     else:
-        print 'ERROR! Could not detect service type for endpoint %s' % endpoint
-        return None
+        return False, 'ERROR! Could not detect service type for endpoint %s or already existing' % endpoint
 
 
 def inverse_mercator(xy):
