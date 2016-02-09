@@ -9,7 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.default')
 
 from django.conf import settings  # noqa
 
-app = Celery('hypermap', broker=settings.BROKER_URL)
+app = Celery('hypermap')
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.

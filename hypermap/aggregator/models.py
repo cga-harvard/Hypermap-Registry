@@ -4,6 +4,7 @@ import re
 import json
 from urlparse import urlparse
 
+from django.conf import settings
 from django.db import models
 from django.db.models import Avg, Min, Max
 from django.db.models import signals
@@ -411,23 +412,26 @@ def endpointlist_post_save(instance, *args, **kwargs):
             endpoint = Endpoint(url=url, endpoint_list=instance)
             endpoint.save()
     f.close()
-    update_endpoints.delay(instance)
+    if not settings.SKIP_CELERY_TASK:
+        update_endpoints.delay(instance)
 
 
 def service_post_save(instance, *args, **kwargs):
     """
     Used to do a service full check when saving it.
     """
-    print 'Checking service %s' % instance.title
-    check_service.delay(instance)
+    if not settings.SKIP_CELERY_TASK:
+        print 'Checking service %s' % instance.title
+        check_service.delay(instance)
 
 
 def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
-    print 'Checking layer %s' % instance.name
-    check_layer.delay(instance)
+    if not settings.SKIP_CELERY_TASK:
+        print 'Checking layer %s' % instance.name
+        check_layer.delay(instance)
 
 
 signals.post_save.connect(endpointlist_post_save, sender=EndpointList)

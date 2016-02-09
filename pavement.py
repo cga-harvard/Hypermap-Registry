@@ -15,5 +15,5 @@ def run_tests():
     """
     Executes the entire test suite.
     """
-    sh('python hypermap/manage.py test aggregator --settings=settings.default')
+    sh('python hypermap/manage.py test aggregator --settings=settings.test --failfast')
     sh('flake8 hypermap')

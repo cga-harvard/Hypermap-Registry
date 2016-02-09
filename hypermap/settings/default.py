@@ -167,3 +167,6 @@ LOGGING = {
             "handlers": ["console"], "level": "DEBUG", },
         }
     }
+
+# we need to get rid of this once we figure out how to bypass the broker in tests
+SKIP_CELERY_TASK = False
