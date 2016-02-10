@@ -34,6 +34,7 @@ class CheckAdmin(admin.ModelAdmin):
 
 class EndpointListAdmin(admin.ModelAdmin):
     model = EndpointList
+    list_display = ('upload', 'endpoints_admin_url')
 
 
 class EndpointAdmin(admin.ModelAdmin):

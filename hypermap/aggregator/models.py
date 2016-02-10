@@ -396,6 +396,11 @@ class EndpointList(models.Model):
     def __unicode__(self):
         return self.upload.name
 
+    def endpoints_admin_url(self):
+        url = '<a href="/admin/aggregator/endpoint/?endpoint_list=%s">Endpoints for this list</a>' % self.id
+        return url
+    endpoints_admin_url.allow_tags = True
+
 
 class Endpoint(models.Model):
     """
