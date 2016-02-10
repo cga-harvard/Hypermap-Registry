@@ -2,9 +2,11 @@ from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.db.models import Count
 
 from models import Service, Layer
 from tasks import check_service, check_layer
+from enums import SERVICE_TYPES
 
 
 def serialize_checks(check_set):
@@ -27,12 +29,34 @@ def index(request):
     # services = Service.objects.annotate(
     #    num_checks=Count('resource_ptr__check')).filter(num_checks__gt=0)
     # services = Service.objects.filter(check__isnull=False)
-    services = Service.objects.all()
+    order_by = request.GET.get('order_by', '-last_updated')
+    filter_by = request.GET.get('filter_by', None)
+    # order_by
+    if 'total_checks' in order_by:
+        services = Service.objects.annotate(total_checks=Count('resource_ptr__check')).order_by(order_by)
+    elif 'layers_count' in order_by:
+        services = Service.objects.annotate(layers_count=Count('layer')).order_by(order_by)
+    else:
+        services = Service.objects.all().order_by(order_by)
+    # filter_by
+    if filter_by:
+        services = services.filter(type__exact=filter_by)
+    # types filter
+    type_dict = {}
+    for service_type in SERVICE_TYPES:
+        service_type_code = service_type[0]
+        service_type_count = Service.objects.filter(type__exact=service_type_code).count()
+        type_dict[service_type_code] = service_type_count
+    # stats
     layers_count = Layer.objects.all().count()
+    services_count = Service.objects.all().count()
+
     template = loader.get_template('aggregator/index.html')
     context = RequestContext(request, {
         'services': services,
+        'type_dict': type_dict,
         'layers_count': layers_count,
+        'services_count': services_count,
     })
     return HttpResponse(template.render(context))
 

@@ -9,16 +9,40 @@
 </div>
 
   {% if services %}
-  <p>We track health of {{ services.all.count }} remote map services, containing a total of {{ layers_count }} layers.</p>
+  <p>We track health of {{ services_count }} remote map services, containing a total of {{ layers_count }} layers.</p>
+  <div class="row">
+    <div class="col-md-6">
+      Filter by:
+      {% for key, value in type_dict.items %}
+        &nbsp;<a href="?filter_by={{ key }}">{{ key }} ({{ value }})</a>
+      {% endfor %}
+    </div>
+  </div>
   <div class="row">
     <div class="col-md-12">
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Layers</th>
-            <th>Last Check</th>
-            <th>Total Checks</th>
+            <th>
+              <a href="?order_by=title"><i class="fa fa-fw fa-sort-asc"></i></a>
+              Title
+              <a href="?order_by=-title"><i class="fa fa-fw fa-sort-desc"></i></a>
+            </th>
+            <th>
+              <a href="?order_by=layers_count"><i class="fa fa-fw fa-sort-asc"></i></a>
+              Layers
+              <a href="?order_by=-layers_count"><i class="fa fa-fw fa-sort-desc"></i></a>
+            </th>
+            <th>
+              <a href="?order_by=last_updated"><i class="fa fa-fw fa-sort-asc"></i></a>
+              Last Check
+              <a href="?order_by=-last_updated"><i class="fa fa-fw fa-sort-desc"></i></a>
+            </th>
+            <th>
+              <a href="?order_by=total_checks"><i class="fa fa-fw fa-sort-asc"></i></a>
+              Total Checks
+              <a href="?order_by=-total_checks"><i class="fa fa-fw fa-sort-desc"></i></a>
+            </th>
             <th>Status</th>
             <th>Response Times</th>
             <th>Reliability</th>
@@ -26,7 +50,6 @@
         </thead>
         <tbody>
           {% autopaginate services 5 %}
-          {% paginate %}
           {% for service in services %}
             <tr>
               <td>
@@ -37,10 +60,7 @@
               </td>
               <td>{{ service.layer_set.all.count }}</td>
               <td>
-                <ul>
-                  <li>{{ service.last_updated }}</li>
-                  <li>{{ service.last_response_time|floatformat:2 }}s</li>
-              </ul>
+                  {{ service.last_updated }}
               </td>
               <td>{{ service.checks_count }}</td>
               <td>
@@ -66,6 +86,7 @@
               </td>
             </tr>
           {% endfor %}
+          {% paginate %}
         </tbody>
       </table>
     </div>
