@@ -109,6 +109,7 @@ MEDIA_URL = '/media/'
 
 # Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+CELERY_RESULT_BACKEND = 'cache+memcached://127.0.0.1:11211/'
 
 CELERYBEAT_SCHEDULE = {
     'Check All Services': {
