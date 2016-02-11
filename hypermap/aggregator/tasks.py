@@ -12,8 +12,10 @@ def check_all_services(self):
     for service in service_to_processes:
         # update state
         if not self.request.called_directly:
-            self.update_state(state='PROGRESS',
-                meta={'current': count, 'total': total})
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': count, 'total': total}
+            )
         service.update_layers()
         service.check()
         for layer in service.layer_set.all():
@@ -25,10 +27,13 @@ def check_all_services(self):
 def check_service(self, service):
     layer_to_process = service.layer_set.all()
     total = layer_to_process.count()
+
     def status_update(count):
         if not self.request.called_directly:
-            self.update_state(state='PROGRESS',
-                meta={'current': count, 'total': total})
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': count, 'total': total}
+            )
 
     print 'Checking service %s' % service.title
     status_update(0)
@@ -36,7 +41,7 @@ def check_service(self, service):
     status_update(1)
     service.check()
     status_update(2)
-    count = 3 # we count 1 for update_layers and 1 for service check for simplicity
+    count = 3  # we count 1 for update_layers and 1 for service check for simplicity
     for layer in layer_to_process:
         # update state
         status_update(count)
