@@ -3,6 +3,7 @@ from django.template import RequestContext, loader
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
 from tasks import check_service, check_layer
@@ -75,3 +76,48 @@ def layer_detail(request, layer_id):
     if request.method == 'POST':
         check_layer.delay(layer)
     return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'resource': resource})
+
+
+@login_required
+def celery_monitor(request):
+    """
+    A raw celery monitor to figure out which processes are active and reserved.
+    """
+    from hypermap import celery_app
+    inspect = celery_app.control.inspect()
+    active_json = inspect.active()
+    reserved_json = inspect.reserved()
+
+    active_tasks = []
+    if active_json:
+        for task in active_json['celery@vagrant-ubuntu-trusty-64']:
+            id = task['id']
+            # not sure why these 2 fields are not already in AsyncResult
+            name = task['name']
+            time_start = task['time_start']
+            active_task = celery_app.AsyncResult(id)
+            active_task.name = name
+            active_task.time_start = time_start
+            active_tasks.append(active_task)
+
+    reserved_tasks = []
+    if reserved_json:
+        for task in reserved_json['celery@vagrant-ubuntu-trusty-64']:
+            id = task['id']
+            name = task['name']
+            args = task['args']
+            reserved_task = celery_app.AsyncResult(id)
+            reserved_task.name = name
+            reserved_task.args = args
+            reserved_tasks.append(reserved_task)
+
+    # import ipdb; ipdb.set_trace()
+
+    return render(
+        request,
+        'aggregator/celery_monitor.html',
+        {
+            'active_tasks': active_tasks,
+            'reserved_tasks': reserved_tasks
+        }
+    )

@@ -1,0 +1,71 @@
+{% extends "aggregator/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>Celery quick monitor</h1>
+</div>
+
+<h2>Active Tasks</h2>
+
+{% if active_tasks %}
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Task ID</th>
+            <th>Name</th>
+            <th>Time Start</th>
+            <th>State</th>
+            <th>Info</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in active_tasks %}
+            <tr>
+              <td>{{ task.task_id }}</td>
+              <td>{{ task.name }}</td>
+              <td>{{ task.time_start }}</td>
+              <td>{{ task.state }}</td>
+              <td>{{ task.info }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <p>No active tasks at this time.</p>
+{% endif %}
+
+<h2>Reserved Tasks</h2>
+
+{% if active_tasks %}
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Task ID</th>
+            <th>Name</th>
+            <th>Args</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in reserved_tasks %}
+            <tr>
+              <td>{{ task.task_id }}</td>
+              <td>{{ task.name }}</td>
+              <td>{{ task.args }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <p>No reserved tasks at this time.</p>
+{% endif %}
+
+{% endblock %}
