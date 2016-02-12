@@ -95,8 +95,10 @@ def celery_monitor(request):
             # not sure why these 2 fields are not already in AsyncResult
             name = task['name']
             time_start = task['time_start']
+            args = task['args']
             active_task = celery_app.AsyncResult(id)
             active_task.name = name
+            active_task.args = args
             active_task.time_start = time_start
             active_tasks.append(active_task)
 
