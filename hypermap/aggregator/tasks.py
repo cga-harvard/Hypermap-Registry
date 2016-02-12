@@ -57,7 +57,7 @@ def check_layer(layer):
 
 @shared_task(bind=True)
 def update_endpoints(self, endpoint_list):
-    from aggregator.utils import create_services_from_endpoint, get_sanitized_endpoint
+    from aggregator.utils import create_services_from_endpoint
     # for now we process the enpoint even if they were already processed
     endpoint_to_process = endpoint_list.endpoint_set.all()
     total = endpoint_to_process.count()
@@ -66,8 +66,7 @@ def update_endpoints(self, endpoint_list):
         # for now we process the enpoint even if they were already processed
         # if not endpoint.processed:
         print endpoint.url
-        sanitized_url = get_sanitized_endpoint(endpoint.url)
-        imported, message = create_services_from_endpoint(sanitized_url)
+        imported, message = create_services_from_endpoint(endpoint.url)
         endpoint.imported = imported
         endpoint.message = message
         endpoint.processed = True

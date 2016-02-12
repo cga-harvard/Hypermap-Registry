@@ -24,12 +24,14 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
     Create a service from an endpoint if it does not already exists.
     """
     if Service.objects.filter(url=endpoint).count() == 0:
-        print 'Creating a %s for endpoint %s' % (service_type, endpoint)
-        service, created = Service.objects.get_or_create(
+        print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
+        service = Service(
              type=service_type, url=endpoint, title=title, abstract=abstract
         )
+        service.save()
         return service
     else:
+        print 'A service for this endpoint %s already exists' % endpoint
         return None
 
 
@@ -171,7 +173,7 @@ def get_sanitized_endpoint(url):
     esri_string = '/rest/services'
     if esri_string in url:
         match = re.search(esri_string, sanitized_url)
-        sanitized_url = url[0:(match.start(0)+len(esri_string)-1)]
+        sanitized_url = url[0:(match.start(0)+len(esri_string))]
     return sanitized_url
 
 
