@@ -21,15 +21,6 @@
   environment: "{{ django_environment }}"
   tags: django
 
-- name: Load initial demo services
-  django_manage:
-    command: "loaddata aggregator/fixtures/aggregator.json"
-    app_path: "{{ project_path }}/{{ project_name }}"
-    virtualenv: "{{ virtualenv_path }}"
-    settings: "{{ django_settings_file }}"
-  environment: "{{ django_environment }}"
-  tags: django
-
 - name: Run Django collectstatic
   django_manage:
     command: collectstatic
