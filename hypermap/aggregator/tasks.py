@@ -55,18 +55,28 @@ def check_layer(layer):
     layer.check()
 
 
-@shared_task(name="update_endpoints")
-def update_endpoints(endpoint_list):
+@shared_task(bind=True)
+def update_endpoints(self, endpoint_list):
     from aggregator.utils import create_services_from_endpoint, get_sanitized_endpoint
-    for endpoint in endpoint_list.endpoint_set.all():
-        if not endpoint.processed:
-            print endpoint.url
-            sanitized_url = get_sanitized_endpoint(endpoint.url)
-            imported, message = create_services_from_endpoint(sanitized_url)
-            endpoint.imported = imported
-            endpoint.message = message
-            endpoint.processed = True
-            endpoint.save()
-        else:
-            print 'This enpoint was already processed'
+    # for now we process the enpoint even if they were already processed
+    endpoint_to_process = endpoint_list.endpoint_set.all()
+    total = endpoint_to_process.count()
+    count = 0
+    for endpoint in endpoint_to_process:
+        # for now we process the enpoint even if they were already processed
+        # if not endpoint.processed:
+        print endpoint.url
+        sanitized_url = get_sanitized_endpoint(endpoint.url)
+        imported, message = create_services_from_endpoint(sanitized_url)
+        endpoint.imported = imported
+        endpoint.message = message
+        endpoint.processed = True
+        endpoint.save()
+        # update state
+        if not self.request.called_directly:
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': count, 'total': total}
+            )
+        count = count + 1
     return True
