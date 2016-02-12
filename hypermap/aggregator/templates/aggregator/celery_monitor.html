@@ -20,6 +20,7 @@
             <th>Time Start</th>
             <th>State</th>
             <th>Info</th>
+            <th>Worker</th>
           </tr>
         </thead>
         <tbody>
@@ -31,6 +32,7 @@
               <td>{{ task.time_start }}</td>
               <td>{{ task.state }}</td>
               <td>{{ task.info }}</td>
+              <td>{{ task.worker }}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -52,6 +54,7 @@
             <th>Task ID</th>
             <th>Name</th>
             <th>Args</th>
+            <th>Worker</th>
           </tr>
         </thead>
         <tbody>
@@ -60,6 +63,7 @@
               <td>{{ task.task_id }}</td>
               <td>{{ task.name }}</td>
               <td>{{ task.args }}</td>
+              <td>{{ task.worker }}</td>
             </tr>
           {% endfor %}
         </tbody>

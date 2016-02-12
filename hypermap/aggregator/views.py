@@ -90,28 +90,32 @@ def celery_monitor(request):
 
     active_tasks = []
     if active_json:
-        for task in active_json['celery@vagrant-ubuntu-trusty-64']:
-            id = task['id']
-            # not sure why these 2 fields are not already in AsyncResult
-            name = task['name']
-            time_start = task['time_start']
-            args = task['args']
-            active_task = celery_app.AsyncResult(id)
-            active_task.name = name
-            active_task.args = args
-            active_task.time_start = time_start
-            active_tasks.append(active_task)
+        for worker in active_json.keys():
+            for task in active_json[worker]:
+                id = task['id']
+                # not sure why these 2 fields are not already in AsyncResult
+                name = task['name']
+                time_start = task['time_start']
+                args = task['args']
+                active_task = celery_app.AsyncResult(id)
+                active_task.name = name
+                active_task.args = args
+                active_task.worker = worker
+                active_task.time_start = time_start
+                active_tasks.append(active_task)
 
     reserved_tasks = []
     if reserved_json:
-        for task in reserved_json['celery@vagrant-ubuntu-trusty-64']:
-            id = task['id']
-            name = task['name']
-            args = task['args']
-            reserved_task = celery_app.AsyncResult(id)
-            reserved_task.name = name
-            reserved_task.args = args
-            reserved_tasks.append(reserved_task)
+        for worker in active_json.keys():
+            for task in reserved_json[worker]:
+                id = task['id']
+                name = task['name']
+                args = task['args']
+                reserved_task = celery_app.AsyncResult(id)
+                reserved_task.name = name
+                reserved_task.args = args
+                reserved_task.worker = worker
+                reserved_tasks.append(reserved_task)
 
     # import ipdb; ipdb.set_trace()
 
