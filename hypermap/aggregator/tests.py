@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-
 from models import Service, Layer, Check
 
 SERVICE_NUMBER = 10
