@@ -6,6 +6,8 @@ import logging
 import time
 import math
 import json
+import sys
+import traceback
 from datetime import datetime
 
 from django.conf import settings
@@ -45,13 +47,9 @@ def create_services_from_endpoint(url):
     endpoint = get_sanitized_endpoint(url)
     try:
         urllib2.urlopen(endpoint, timeout=10)
-    except urllib2.URLError, e:
+    except Exception as e:
         print 'ERROR! Cannot open this endpoint: %s' % endpoint
-        message = str(e.reason)
-        try:
-            message.decode('utf-8')
-        except UnicodeDecodeError:
-            message = 'Not an unicode error message'
+        message = traceback.format_exception(*sys.exc_info())
         return False, message
 
     detected = False
