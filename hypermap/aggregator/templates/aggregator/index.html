@@ -64,7 +64,7 @@
               </td>
               <td>{{ service.checks_count }}</td>
               <td>
-                {% if service.last_check %}
+                {% if service.last_status %}
                   <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                 {% else %}
                   <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>

@@ -117,8 +117,6 @@ def celery_monitor(request):
                 reserved_task.worker = worker
                 reserved_tasks.append(reserved_task)
 
-    # import ipdb; ipdb.set_trace()
-
     return render(
         request,
         'aggregator/celery_monitor.html',

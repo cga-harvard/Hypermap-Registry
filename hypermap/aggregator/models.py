@@ -64,6 +64,13 @@ class Resource(PolymorphicModel):
             return None
 
     @property
+    def last_status(self):
+        if self.checks_count > 0:
+            return self.check_set.order_by('-checked_datetime')[0].success
+        else:
+            return None
+
+    @property
     def checks_count(self):
         return self.check_set.all().count()
 
@@ -174,9 +181,17 @@ class Layer(Resource):
         return self.name
 
     def update_thumbnail(self):
+        format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
         img = None
         if self.service.type == 'OGC:WMS':
             ows = WebMapService(self.service.url)
+            op_getmap = ows.getOperationByName('GetMap')
+            image_format = 'image/png'
+            if image_format not in op_getmap.formatOptions:
+                if 'image/jpeg' in op_getmap.formatOptions:
+                    image_format = 'image/jpeg'
+                else:
+                    raise NotImplementedError(format_error_message)
             img = ows.getmap(
                 layers=[self.name],
                 srs='EPSG:4326',
@@ -187,19 +202,29 @@ class Layer(Resource):
                     float(self.bbox_y1)
                 ),
                 size=(50, 50),
-                format='image/jpeg',  # TODO check available formats
+                format=image_format,
                 transparent=True
             )
+            if 'ogc.se_xml' in img.info()['Content-Type']:
+                raise ValueError(img.read())
+                img = None
         elif self.service.type == 'OGC:WMTS':
+
             ows = WebMapTileService(self.service.url)
             ows_layer = ows.contents[self.name]
+            image_format = 'image/png'
+            if image_format not in ows_layer.formats:
+                if 'image/jpeg' in ows_layer.formats:
+                    image_format = 'image/jpeg'
+                else:
+                    raise NotImplementedError(format_error_message)
             img = ows.gettile(
                                 layer=self.name,
                                 tilematrixset=ows_layer.tilematrixsets[0],
                                 tilematrix='0',
                                 row='0',
                                 column='0',
-                                format="image/jpeg"  # TODO check available formats
+                                format=image_format
                             )
         elif self.service.type == 'ESRI':
             image = None
@@ -251,7 +276,7 @@ class Layer(Resource):
 
     def check(self):
         """
-        Check for availability of a service and provide run metrics.
+        Check for availability of a layer and provide run metrics.
         """
         success = True
         start_time = datetime.datetime.utcnow()
@@ -352,6 +377,7 @@ def update_layers_esri(service):
                 layer.bbox_y0 = esri_layer.extent.ymin
                 layer.bbox_x1 = esri_layer.extent.xmax
                 layer.bbox_y1 = esri_layer.extent.ymax
+                layer.save()
                 # crsOptions
                 srs = esri_layer.extent.spatialReference
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs.wkid)
@@ -367,6 +393,7 @@ def update_layers_esri(service):
             layer.bbox_y0 = str(obj['extent']['ymin'])
             layer.bbox_x1 = str(obj['extent']['xmax'])
             layer.bbox_y1 = str(obj['extent']['ymax'])
+            layer.save()
             # crsOptions
             srs = obj['spatialReference']['wkid']
             layer.srs.add(srs)

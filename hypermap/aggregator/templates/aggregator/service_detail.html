@@ -112,7 +112,7 @@
                   <td>
                     {% if layer.checks_count > 0 %}
                       <a href="{% url 'layer_detail' layer.id %}">
-                      {% if layer.last_check %}
+                      {% if layer.last_status %}
                         <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                       {% else %}
                         <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
