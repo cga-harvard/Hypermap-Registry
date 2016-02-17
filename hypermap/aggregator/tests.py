@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+import re
 
 from models import Service, Layer, Check
 
@@ -68,3 +69,15 @@ class AggregatorTestCase(TestCase):
         response = self.client.get(
             reverse('layer_detail', args=(str(layer.id),)))
         self.assertEqual(200, response.status_code)
+
+    def test_layer_unicode(self):
+        layer = Layer.objects.all()[0]
+        self.assertEqual(layer.__unicode__(), layer.name)
+
+    def test_update_date_depicted(self):
+        layer = Layer.objects.all()[0]
+        self.assertEquals(layer.date_depicted, layer.update_date_depicted())
+
+    def test_regex_search(self):
+        self.assertTrue(re.search('\d{4}', "test2012"))
+        self.assertEqual('2012', re.search('\d{4}', "test2012").group(0))
