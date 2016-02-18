@@ -232,12 +232,13 @@ class Layer(Resource):
                 # This is a MapService
                 try:
                     arcserver = ArcMapService(self.service.url)
-                    bbox = (
+                    bbox = '%s, %s, %s, %s' % (
                         float(self.bbox_x0),
                         float(self.bbox_y0),
                         float(self.bbox_x1),
                         float(self.bbox_y1)
                     )
+
                     image = arcserver.ExportMap(
                         bbox=bbox,
                         layers='show:' + self.name,
