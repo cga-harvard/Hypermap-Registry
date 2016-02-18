@@ -35,7 +35,6 @@ def check_service(self, service):
                 meta={'current': count, 'total': total}
             )
 
-    print 'Checking service %s' % service.title
     status_update(0)
     service.update_layers()
     status_update(1)
@@ -65,7 +64,7 @@ def update_endpoints(self, endpoint_list):
     for endpoint in endpoint_to_process:
         # for now we process the enpoint even if they were already processed
         # if not endpoint.processed:
-        print endpoint.url
+        print 'Processing endpoint %s' % endpoint.url
         imported, message = create_services_from_endpoint(endpoint.url)
         endpoint.imported = imported
         endpoint.message = message

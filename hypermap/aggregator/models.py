@@ -105,6 +105,7 @@ class Service(Resource):
         Update layers for a service.
         """
         signals.post_save.disconnect(layer_post_save, sender=Layer)
+        print 'Updating layers for service id %s' % self.id
         if self.type == 'OGC:WMS':
             update_layers_wms(self)
         elif self.type == 'OGC:WMTS':
@@ -120,6 +121,7 @@ class Service(Resource):
         success = True
         start_time = datetime.datetime.utcnow()
         message = ''
+        print 'Checking service id %s' % self.id
 
         try:
             title = '%s %s' % (self.type, self.url)
@@ -150,7 +152,7 @@ class Service(Resource):
             message=message
         )
         check.save()
-        print 'Checked service %s' % self.title
+        print 'Service checked in %s seconds, status is %s' % (response_time, success)
 
 
 class SpatialReferenceSystem(models.Model):
@@ -181,6 +183,7 @@ class Layer(Resource):
         return self.name
 
     def update_thumbnail(self):
+        print 'Genereting thumbnail for layer id %s' % self.id
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
         img = None
         if self.service.type == 'OGC:WMS':
@@ -282,6 +285,7 @@ class Layer(Resource):
         success = True
         start_time = datetime.datetime.utcnow()
         message = ''
+        print 'Checking layer id %s' % self.id
 
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
@@ -304,7 +308,7 @@ class Layer(Resource):
             message=message
         )
         check.save()
-        print 'Checked layer %s' % self.name
+        print 'Service checked in %s seconds, status is %s' % (response_time, success)
 
     def get_absolute_url(self):
         return reverse('layer_detail', args=(self.id,))
@@ -318,7 +322,7 @@ def update_layers_wms(service):
     layer_names = list(wms.contents)
     for layer_name in layer_names:
         ows_layer = wms.contents[layer_name]
-        print ows_layer.name
+        print 'Updating layer %s' % ows_layer.name
         # get or create layer
         layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
         if layer.active:
