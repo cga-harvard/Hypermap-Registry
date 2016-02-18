@@ -329,8 +329,6 @@ def update_layers_wms(service):
             # update fields
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
-            print layer.title
-            print layer.abstract
             # bbox
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
