@@ -17,6 +17,12 @@
         &nbsp;<a href="?filter_by={{ key }}">{{ key }} ({{ value }})</a>
       {% endfor %}
     </div>
+    <div class="col-md-6">
+      <form id='search' action="." method="get">
+        <input type="text" name="q">
+        <input type="submit" value="Search">
+      </form>
+    </div>
   </div>
   <div class="row">
     <div class="col-md-12">

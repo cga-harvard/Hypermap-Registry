@@ -32,6 +32,7 @@ def index(request):
     # services = Service.objects.filter(check__isnull=False)
     order_by = request.GET.get('order_by', '-last_updated')
     filter_by = request.GET.get('filter_by', None)
+    query = request.GET.get('q', None)
     # order_by
     if 'total_checks' in order_by:
         services = Service.objects.annotate(total_checks=Count('resource_ptr__check')).order_by(order_by)
@@ -42,6 +43,9 @@ def index(request):
     # filter_by
     if filter_by:
         services = services.filter(type__exact=filter_by)
+    # query
+    if query:
+        services = services.filter(url__icontains=query)
     # types filter
     type_dict = {}
     for service_type in SERVICE_TYPES:
