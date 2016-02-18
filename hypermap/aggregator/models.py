@@ -285,10 +285,8 @@ class Layer(Resource):
         year = re.search('\d{4}', str(self.title))
         if year is None and self.abstract:
             year = re.search('\d{4}', self.abstract)
-        if year is not None and year > 1000 and year < 2020:
-            year = year.group(0)
         if year:
-            date = dateutil.parser.parse(str(year))
+            date = dateutil.parser.parse(str(year.group(0)))
         else:
             date = datetime.datetime.utcnow()
         self.date_depicted = date
