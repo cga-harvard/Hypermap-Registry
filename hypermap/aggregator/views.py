@@ -6,7 +6,7 @@ from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
-from tasks import check_service, check_layer
+from tasks import check_all_services, check_service, check_layer
 from enums import SERVICE_TYPES
 
 
@@ -87,7 +87,6 @@ def celery_monitor(request):
     inspect = celery_app.control.inspect()
     active_json = inspect.active()
     reserved_json = inspect.reserved()
-
     active_tasks = []
     if active_json:
         for worker in active_json.keys():
@@ -103,7 +102,6 @@ def celery_monitor(request):
                 active_task.worker = worker
                 active_task.time_start = time_start
                 active_tasks.append(active_task)
-
     reserved_tasks = []
     if reserved_json:
         for worker in active_json.keys():
@@ -117,6 +115,8 @@ def celery_monitor(request):
                 reserved_task.worker = worker
                 reserved_tasks.append(reserved_task)
 
+    if request.method == 'POST':
+        check_all_services.delay()
     return render(
         request,
         'aggregator/celery_monitor.html',

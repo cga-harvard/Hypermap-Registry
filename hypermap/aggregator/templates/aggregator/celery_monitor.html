@@ -74,4 +74,14 @@
   <p>No reserved tasks at this time.</p>
 {% endif %}
 
+{% if user.is_superuser %}
+
+<h2>Admin Commands</h2>
+
+<form action="." method="post">
+  {% csrf_token %}
+  <input type="submit" value="Check All Services (Memory Intensive!)">
+</form>
+{% endif %}
+
 {% endblock %}
