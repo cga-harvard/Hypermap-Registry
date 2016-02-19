@@ -25,8 +25,9 @@ def check_all_services(self):
 
 @shared_task(bind=True)
 def check_service(self, service):
+    # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
-    total = layer_to_process.count()
+    total = layer_to_process.count() + 2
 
     def status_update(count):
         if not self.request.called_directly:
@@ -40,7 +41,7 @@ def check_service(self, service):
     status_update(1)
     service.check()
     status_update(2)
-    count = 3  # we count 1 for update_layers and 1 for service check for simplicity
+    count = 3
     for layer in layer_to_process:
         # update state
         status_update(count)
