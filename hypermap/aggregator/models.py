@@ -372,39 +372,45 @@ def update_layers_esri(service):
     if re.search("\/MapServer\/*(f=json)*", service.url):
         esri_service = ArcMapService(service.url)
         for esri_layer in esri_service.layers:
-            print 'Updating layer %s' % esri_layer.name
-            layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
-            if layer.active:
-                layer.title = esri_layer.name
-                layer.abstract = esri_service.serviceDescription
-                # set a default srs
-                srs = 4326
-                try:
-                    layer.bbox_x0 = esri_layer.extent.xmin
-                    layer.bbox_y0 = esri_layer.extent.ymin
-                    layer.bbox_x1 = esri_layer.extent.xmax
-                    layer.bbox_y1 = esri_layer.extent.ymax
-                    # crsOptions
-                    srs = esri_layer.extent.spatialReference.wkid
-                    # this is needed as esri_layer.extent can fail because of custom wkid in json
-                except KeyError:
-                    pass
-                try:
-                    layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
-                    layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
-                    layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
-                    layer.bbox_y1 = esri_layer._json_struct['extent']['ymax']
-                    wkt_text = esri_layer._json_struct['extent']['spatialReference']['wkt']
-                    if wkt_text:
-                        params = {'exact': 'True', 'error': 'True', 'mode': 'wkt', 'terms': wkt_text}
-                        req = requests.get('http://prj2epsg.org/search.json', params=params)
-                        object = json.loads(req.content)
-                        srs = int(object['codes'][0]['code'])
-                except Exception:
-                    pass
-                layer.save()
-                srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
-                layer.srs.add(srs)
+            # in some case the json is invalid
+            # esri_layer._json_struct
+            # {u'currentVersion': 10.01,
+            # u'error':
+            # {u'message': u'An unexpected error occurred processing the request.', u'code': 500, u'details': []}}
+            if 'error' not in esri_layer._json_struct:
+                print 'Updating layer %s' % esri_layer.name
+                layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
+                if layer.active:
+                    layer.title = esri_layer.name
+                    layer.abstract = esri_service.serviceDescription
+                    # set a default srs
+                    srs = 4326
+                    try:
+                        layer.bbox_x0 = esri_layer.extent.xmin
+                        layer.bbox_y0 = esri_layer.extent.ymin
+                        layer.bbox_x1 = esri_layer.extent.xmax
+                        layer.bbox_y1 = esri_layer.extent.ymax
+                        # crsOptions
+                        srs = esri_layer.extent.spatialReference.wkid
+                        # this is needed as esri_layer.extent can fail because of custom wkid in json
+                    except KeyError:
+                        pass
+                    try:
+                        layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
+                        layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
+                        layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
+                        layer.bbox_y1 = esri_layer._json_struct['extent']['ymax']
+                        wkt_text = esri_layer._json_struct['extent']['spatialReference']['wkt']
+                        if wkt_text:
+                            params = {'exact': 'True', 'error': 'True', 'mode': 'wkt', 'terms': wkt_text}
+                            req = requests.get('http://prj2epsg.org/search.json', params=params)
+                            object = json.loads(req.content)
+                            srs = int(object['codes'][0]['code'])
+                    except Exception:
+                        pass
+                    layer.save()
+                    srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
+                    layer.srs.add(srs)
     elif re.search("\/ImageServer\/*(f=json)*", service.url):
         esri_service = ArcImageService(service.url)
         obj = json.loads(esri_service._contents)
