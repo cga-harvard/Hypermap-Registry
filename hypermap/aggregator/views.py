@@ -1,3 +1,5 @@
+import json
+
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.shortcuts import render
@@ -8,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 from models import Service, Layer
 from tasks import check_all_services, check_service, check_layer
 from enums import SERVICE_TYPES
+
+from hypermap import celery_app
 
 
 def serialize_checks(check_set):
@@ -87,7 +91,6 @@ def celery_monitor(request):
     """
     A raw celery monitor to figure out which processes are active and reserved.
     """
-    from hypermap import celery_app
     inspect = celery_app.control.inspect()
     active_json = inspect.active()
     reserved_json = inspect.reserved()
@@ -105,6 +108,8 @@ def celery_monitor(request):
                 active_task.args = args
                 active_task.worker = worker
                 active_task.time_start = time_start
+                task_id_sanitized = id.replace('-', '_')
+                active_task.task_id_sanitized = task_id_sanitized
                 active_tasks.append(active_task)
     reserved_tasks = []
     if reserved_json:
@@ -129,3 +134,23 @@ def celery_monitor(request):
             'reserved_tasks': reserved_tasks
         }
     )
+
+
+@login_required
+def update_progressbar(request, task_id):
+    response_data = {}
+    active_task = celery_app.AsyncResult(task_id)
+    progressbar = 100
+    status = '100%'
+    state = 'COMPLETED'
+    if not active_task.ready():
+        current = active_task.info['current']
+        total = active_task.info['total']
+        progressbar = (current / float(total) * 100)
+        status = "%s/%s (%.2f %%)" % (current, total, progressbar)
+        state = active_task.state
+    response_data['progressbar'] = progressbar
+    response_data['status'] = status
+    response_data['state'] = state
+    json_data = json.dumps(response_data)
+    return HttpResponse(json_data, content_type="application/json")

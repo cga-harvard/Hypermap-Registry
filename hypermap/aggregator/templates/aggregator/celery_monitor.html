@@ -1,5 +1,10 @@
 {% extends "aggregator/base.html" %}
 
+{% block head %}
+
+
+{% endblock %}
+
 {% block content %}
 
 <div class="page-header">
@@ -15,24 +20,44 @@
         <thead>
           <tr>
             <th>Task ID</th>
-            <th>Name</th>
-            <th>Args</th>
-            <th>Time Start</th>
+            <th>Name, Args</th>
             <th>State</th>
-            <th>Info</th>
             <th>Worker</th>
+            <th>Progress</th>
+            <th>%</th>
           </tr>
         </thead>
         <tbody>
           {% for task in active_tasks %}
+
+          <script>
+          function update_progressbar_{{ task.task_id_sanitized }}() {
+              $.ajax({ dataType:"json",
+                  url: "/update_progressbar/{{ task.task_id }}",
+                      success: function(data){
+                          $("#status_{{ task.task_id_sanitized }}").html(data.status);
+                          $("#state_{{ task.task_id_sanitized }}").html(data.state);
+                          $("#progressbar_{{ task.task_id_sanitized }}").progressbar({
+                              value: data.progressbar
+                          });
+                      }
+              });
+          };
+
+          update_progressbar_{{ task.task_id_sanitized }}();
+
+          setInterval(function(){
+              update_progressbar_{{ task.task_id_sanitized }}()
+          }, 3000);
+          </script>
+
             <tr>
               <td>{{ task.task_id }}</td>
-              <td>{{ task.name }}</td>
-              <td>{{ task.args }}</td>
-              <td>{{ task.time_start }}</td>
-              <td>{{ task.state }}</td>
-              <td>{{ task.info }}</td>
+              <td>{{ task.name }}, {{ task.args }}</td>
+              <td><div id="state_{{ task.task_id_sanitized }}"></div></td>
               <td>{{ task.worker }}</td>
+              <td><div id="progressbar_{{ task.task_id_sanitized }}"></div></td>
+              <td><div id="status_{{ task.task_id_sanitized }}"></div></td>
             </tr>
           {% endfor %}
         </tbody>
