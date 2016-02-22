@@ -19,7 +19,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder, MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import SERVICE_TYPES
-from tasks import update_endpoints, check_service, check_layer
+from tasks import update_endpoints, check_service, check_layer, layer_to_solr
 
 
 class Resource(PolymorphicModel):
@@ -302,6 +302,7 @@ class Layer(Resource):
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
             self.mine_date()
+            layer_to_solr(self)
             signals.post_save.connect(layer_post_save, sender=Layer)
 
         except Exception, err:

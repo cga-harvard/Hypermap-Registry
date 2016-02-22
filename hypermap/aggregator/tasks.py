@@ -55,6 +55,22 @@ def check_layer(layer):
     layer.check()
 
 
+@shared_task(name="layer_to_solr")
+def layer_to_solr(layer):
+    from aggregator.utils import OGP_utils
+    print 'Pushing layer %s to solr' % layer.name
+    solrobject = OGP_utils()
+    solrobject.layer_to_solr(layer)
+
+
+@shared_task(name="clear_solr")
+def clear_solr():
+    print 'Clearing the solr core and indexes'
+    from aggregator.utils import OGP_utils
+    solrobject = OGP_utils()
+    solrobject.clear_solr()
+
+
 @shared_task(bind=True)
 def update_endpoints(self, endpoint_list):
     from aggregator.utils import create_services_from_endpoint

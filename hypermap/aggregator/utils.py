@@ -8,7 +8,6 @@ import math
 import json
 import sys
 import traceback
-from datetime import datetime
 
 from django.conf import settings
 from urlparse import urlparse
@@ -18,7 +17,7 @@ from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder
 
-from models import Service, Layer
+from models import Service
 
 
 def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None):
@@ -206,21 +205,6 @@ class OGP_utils(object):
         return hostname
 
     @staticmethod
-    def extract_date(layer):
-        year = re.search('\d{4}', layer.title)
-        if year is None:
-            year = re.search('\d{4}', layer.abstract)
-        if year is not None:
-            year = year.group(0).strip()
-            year = year.strip()
-            year = int(year)
-            if (year < 1000 or year > datetime.now().year):
-                year = None
-            else:
-                year = datetime(year=year, month=1, day=1)
-        return year
-
-    @staticmethod
     def is_solr_up():
         solr_url = getattr(settings, 'SOLR_URL', 'http://localhost:8983/solr/geonode24')
         solr_url_parts = solr_url.split('/')
@@ -243,7 +227,9 @@ class OGP_utils(object):
             for proj in layer.srs.values():
                 if '102113' == proj['code']:
                     bbox = mercator_to_llbbox(bbox)
-            storeType = "remoteStore"  # to do need to figure out it hypermap will only be dealing with remote servives
+            # to do need to figure out it hypermap will only be dealing with remote servives
+            storeType = "remoteStore"
+            # We will need to get the layer date lists if they exist here and use this instead as a date range
             date = layer.created
             if (OGP_utils.good_coords(bbox)) is False:
                 print 'no coords in layer ', layer.title
@@ -306,7 +292,7 @@ class OGP_utils(object):
                                     "DataType": dataType,
                                     "Availability": "Online",
                                     "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                    "Abstract": "abstract",
+                                    "Abstract": layer.abstract,
                                     "SrsProjectionCode": 'EPSG:4326',
                                     "MinY": minY,
                                     "MinX": minX,
@@ -334,7 +320,7 @@ class OGP_utils(object):
                                      "DataType": dataType,
                                      "Availability": "Online",
                                      "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                     "Abstract": "abstract",
+                                     "Abstract": layer.abstract,
                                      "SrsProjectionCode": 'EPSG:4326',
                                      "MinY": minY,
                                      "MinX": minX,
@@ -351,19 +337,10 @@ class OGP_utils(object):
                 OGP_utils.logger.error("error in layer_to_solr processing layer: " + e.message)
 
     @staticmethod
-    def geonode_to_solr():
-        """create Solr records of layer objects in sql database"""
-        layers = Layer.objects.all()
-        print "original number of layers = ", len(layers)
-        # layers = [layers[0]]  # just the first
-        i = 1
-        for layer in layers:
-            OGP_utils.layer_to_solr(layer, i)
-            i = i+1
-            time.sleep(.1)
-
-        OGP_utils.solr.optimize()
-        print 'hypermap layers processed ', i-1
+    def clear_solr():
+        """Clear all indexes in the solr core"""
+        OGP_utils.solr.delete(q='*:*')
+        print 'Solr core cleared'
 
     @staticmethod
     def solr_to_solr():
