@@ -3,6 +3,7 @@ import os
 import re
 import json
 from urlparse import urlparse
+import dateutil.parser
 import requests
 
 from django.conf import settings
@@ -279,6 +280,15 @@ class Layer(Resource):
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             print 'Thumbnail updated for layer %s' % self.name
 
+    def mine_date(self):
+        date = None
+        year = re.search('\d{4}', str(self.title))
+        if year is None and self.abstract:
+            year = re.search('\d{4}', self.abstract)
+        if year:
+            date = dateutil.parser.parse(str(year.group(0)+'-01'+'-01'))
+            self.layerdate_set.get_or_create(depict_date=date)
+
     def check(self):
         """
         Check for availability of a layer and provide run metrics.
@@ -291,6 +301,7 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
+            self.mine_date()
             signals.post_save.connect(layer_post_save, sender=Layer)
 
         except Exception, err:
@@ -427,6 +438,17 @@ def update_layers_esri(service):
             srs = obj['spatialReference']['wkid']
             layer.srs.add(srs)
             layer.save()
+
+
+class LayerDate(models.Model):
+    """
+    LayerDate represents list of dates that can be used to depict a layer.
+    """
+    depict_date = models.CharField(max_length=255, null=True, blank=True)
+    layer = models.ForeignKey(Layer)
+
+    def __unicode__(self):
+        return self.depict_date
 
 
 class Check(models.Model):
