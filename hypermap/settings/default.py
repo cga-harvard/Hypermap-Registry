@@ -30,6 +30,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SOLR_ENABLED = True
 SOLR_URL = "http://127.0.0.1:8983/solr/search"
 
 # Application definition

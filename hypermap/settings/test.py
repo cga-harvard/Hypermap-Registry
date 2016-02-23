@@ -1,5 +1,6 @@
 from settings.default import *  # noqa
 
+SOLR_ENABLED = False
 SKIP_CELERY_TASK = True
 
 # BROKER_BACKEND = 'memory'

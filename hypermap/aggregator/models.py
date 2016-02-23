@@ -302,7 +302,8 @@ class Layer(Resource):
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
             self.mine_date()
-            layer_to_solr(self)
+            if settings.SOLR_ENABLED:
+                layer_to_solr(self)
             signals.post_save.connect(layer_post_save, sender=Layer)
 
         except Exception, err:
