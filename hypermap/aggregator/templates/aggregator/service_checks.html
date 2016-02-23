@@ -1,0 +1,150 @@
+{% extends "aggregator/base.html" %}
+
+{% load pagination_tags %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>Service checks for: {{ service.title|truncatechars:40 }}</h1>
+</div>
+
+<a href="{% url 'service_detail' service.id %}">Go to service details page</a>
+
+<div class="row">
+  <div class="col-md-6">
+    <table class="table">
+      <tbody>
+        <tr>
+          <td><strong>Type</strong></td>
+          <td>{{ service.get_type_display }}</td>
+        </tr>
+        <tr>
+          <td><strong>Name</strong></td>
+          <td>{{ service.title }}</td>
+        </tr>
+        <tr>
+          <td><strong>URL</strong></td>
+          <td><a href="{{ service.url }}">{{ service.url }}</a></td>
+        </tr>
+        <tr>
+          <td><strong>Monitoring Period</strong></td>
+          <td>
+            {% if service.checks_count > 0 %}
+            <ul>
+              <li>First Check: {{ service.first_check }}</li>
+              <li>Last Check: {{ service.last_check }}</li>
+              <li>Total Checks: {{ service.checks_count }}</li>
+              <li>Reliability: {{ service.reliability }}</li>
+            </ul>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Response Times</strong></td>
+          <td>
+            <ul>
+              <li>Min: {{ service.min_response_time|floatformat:2 }}s</li>
+              <li>Average: {{ service.average_response_time|floatformat:2 }}s</li>
+              <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Reliability</strong></td>
+          <td>
+            {% if service.reliability > 90 %}
+              <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
+            {% else %}
+              <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="clearfix"></div>
+<div id="run-chart" class="run-chart"></div>
+
+
+<h2>Checks</h2>
+
+{% with service.check_set.all as check_set %}
+{% if check_set %}
+  {% autopaginate check_set 10 %}
+  {% paginate %}
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Response Times</th>
+              <th>Message</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for check in check_set %}
+                <tr>
+                  <td>{{ check.checked_datetime }}</td>
+                  <td>{{ check.response_time }}</td>
+                  <td>{{ check.message }}</td>
+                  <td>
+                    {% if check.success %}
+                      <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% else %}
+                      <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% endif %}
+                  </td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+{% else %}
+    <p>No checks are available.</p>
+{% endif %}
+{% endwith %}
+
+{% if user.is_superuser %}
+<form action="{% url 'service_checks' service.id %}" method="post">
+  {% csrf_token %}
+  <input type="submit" value="Check Now!">
+</form>
+{% endif %}
+
+{% endblock %}
+{% block extrafoot %}
+<script type="text/javascript">
+ var run_data = {{ resource|safe }};
+ Morris.Area({
+        element: 'run-chart',
+        lineWidth: 1,
+        data: run_data,
+        xkey: 'datetime',
+        ykeys: ['value'],
+        labels: ['{{ _('Response Time') }}'],
+        fillOpacity: 0.05,
+        hideHover: true,
+        resize: true,
+        pointStrokeColors: ['black'],
+        pointSize: 5,
+        postUnits: ' {{ _('seconds') }}',
+        dateFormat: function (x) { return new Date(x).toString(); },
+        xLabelAngle: 45,
+        xLabels: 'day',
+        lineColors: function(row, series, ttype) {
+            if (row !== null) {
+                if (row.src.success === 1) {
+                    return '#5CB85C';
+                } else {
+                    return '#D9534F';
+                }
+            }
+            return '#00f';
+        }
+    });
+</script>
+{% endblock %}

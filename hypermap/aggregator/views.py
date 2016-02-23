@@ -72,18 +72,28 @@ def index(request):
 
 def service_detail(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
+    return render(request, 'aggregator/service_detail.html', {'service': service})
+
+
+def service_checks(request, service_id):
+    service = get_object_or_404(Service, pk=service_id)
     resource = serialize_checks(service.check_set)
     if request.method == 'POST':
         check_service.delay(service)
-    return render(request, 'aggregator/service_detail.html', {'service': service, 'resource': resource})
+    return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer})
+
+
+def layer_checks(request, layer_id):
+    layer = get_object_or_404(Layer, pk=layer_id)
     resource = serialize_checks(layer.check_set)
     if request.method == 'POST':
         check_layer.delay(layer)
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'resource': resource})
+    return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
 
 
 @login_required
