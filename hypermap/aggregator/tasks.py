@@ -26,7 +26,7 @@ def check_all_services(self):
 @shared_task(bind=True)
 def check_service(self, service):
 
-    total = 100 # it is determined exactly after service.update_layers as there can be more/less layers from previous run
+    total = 100  # it is determined exactly after service.update_layers as there can be more/less layers from previous run
 
     def status_update(count):
         if not self.request.called_directly:
