@@ -8,6 +8,8 @@
   <h1>Service details for: {{ service.title|truncatechars:40 }}</h1>
 </div>
 
+<p><a href="{% url 'service_checks' service.id %}">See full check stats</a></p>
+
 <div class="row">
   <div class="col-md-6">
     <table class="table">
@@ -37,7 +39,6 @@
               <li>Last Check: {{ service.last_check }}</li>
               <li>Total Checks: {{ service.checks_count }}</li>
               <li>Reliability: {{ service.reliability }}</li>
-              <li><a href="{% url 'service_checks' service.id %}">See full check stats</a></li>
             </ul>
             {% endif %}
           </td>
