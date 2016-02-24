@@ -1,6 +1,7 @@
 import datetime
 import os
 import re
+import urllib2
 import json
 from urlparse import urlparse
 import dateutil.parser
@@ -114,6 +115,8 @@ class Service(Resource):
             update_layers_wmts(self)
         elif self.type == 'ESRI':
             update_layers_esri(self)
+        elif self.type == 'WM':
+            update_layers_wm(self)
         signals.post_save.connect(layer_post_save, sender=Layer)
 
     def check(self):
@@ -134,6 +137,8 @@ class Service(Resource):
             if self.type == 'ESRI':
                 esri = ArcFolder(self.url)
                 title = esri.url
+            if self.type == 'WM':
+                urllib2.urlopen(self.url)
             # TODO add more service types here
             if self.type.startswith('OGC:'):
                 title = ows.identification.title
@@ -185,7 +190,7 @@ class Layer(Resource):
         return self.name
 
     def update_thumbnail(self):
-        print 'Genereting thumbnail for layer id %s' % self.id
+        print 'Generating thumbnail for layer id %s' % self.id
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
         img = None
         if self.service.type == 'OGC:WMS':
@@ -231,6 +236,33 @@ class Layer(Resource):
                                 column='0',
                                 format=image_format
                             )
+        elif self.service.type == 'WM':
+            # we use the geoserver virtual layer getcapabilities for this purpose
+            url = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % self.name
+            ows = WebMapService(url)
+            op_getmap = ows.getOperationByName('GetMap')
+            image_format = 'image/png'
+            if image_format not in op_getmap.formatOptions:
+                if 'image/jpeg' in op_getmap.formatOptions:
+                    image_format = 'image/jpeg'
+                else:
+                    raise NotImplementedError(format_error_message)
+            img = ows.getmap(
+                layers=[self.name],
+                srs='EPSG:4326',
+                bbox=(
+                    float(self.bbox_x0),
+                    float(self.bbox_y0),
+                    float(self.bbox_x1),
+                    float(self.bbox_y1)
+                ),
+                size=(50, 50),
+                format=image_format,
+                transparent=True
+            )
+            if 'ogc.se_xml' in img.info()['Content-Type']:
+                raise ValueError(img.read())
+                img = None
         elif self.service.type == 'ESRI':
             image = None
             if re.search("\/MapServer\/*(f=json)*", self.service.url):
@@ -353,7 +385,7 @@ def update_layers_wms(service):
             # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
             for crs_code in ows_layer.crsOptions:
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
-            layer.srs.add(srs)
+                layer.srs.add(srs)
             layer.save()
 
 
@@ -376,6 +408,57 @@ def update_layers_wmts(service):
             layer.bbox_x1 = bbox[2]
             layer.bbox_y1 = bbox[3]
             layer.save()
+
+
+def update_layers_wm(service):
+    """
+    Update layers for an WorldMap.
+    """
+    response = urllib2.urlopen('http://worldmap.harvard.edu/data/search/api?start=10&limit=10')
+    data = json.load(response)
+    total = data['total']
+
+    for i in range(0, total, 10):
+        url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
+        print url
+        response = urllib2.urlopen(url)
+        data = json.load(response)
+        for row in data['rows']:
+            name = row['name']
+            title = row['title']
+            abstract = row['abstract']
+            bbox = row['bbox']
+            print name
+            layer, created = Layer.objects.get_or_create(name=name, service=service)
+            if layer.active:
+                # update fields
+                layer.title = title
+                layer.abstract = abstract
+                # bbox
+                # bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+                print 'Original is %s' % bbox['minx']
+                layer.bbox_x0 = format_float(bbox['minx'])
+                layer.bbox_y0 = format_float(bbox['miny'])
+                layer.bbox_x1 = format_float(bbox['maxx'])
+                layer.bbox_y1 = format_float(bbox['maxy'])
+                print layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1
+                # crsOptions
+                for crs_code in [3857, 4326, 900913]:
+                    srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+                    layer.srs.add(srs)
+                layer.save()
+
+
+def format_float(value):
+    if value is None:
+        return None
+    try:
+        value = float(value)
+        if value > 999999999:
+            return None
+        return value
+    except ValueError:
+        return None
 
 
 def update_layers_esri(service):
