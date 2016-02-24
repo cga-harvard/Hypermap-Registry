@@ -1,0 +1,3 @@
+sources:
+  __all__:
+    supported_srs: ['EPSG:4326', 'EPSG:900913']

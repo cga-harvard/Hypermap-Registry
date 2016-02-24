@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'pagination',
     'aggregator',
+    'proxymap',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -107,6 +108,8 @@ STATICFILES_DIRS = (
 # media files
 MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
 MEDIA_URL = '/media/'
+
+MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 
 # Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'

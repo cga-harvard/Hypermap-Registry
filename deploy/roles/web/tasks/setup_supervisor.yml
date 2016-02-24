@@ -5,6 +5,11 @@
             dest=/etc/supervisor/conf.d/{{ application_name }}.conf
             backup=yes
 
+- name: Create the mapproxy Supervisor config file
+  template: src=supervisor_mapproxy_config.j2
+            dest=/etc/supervisor/conf.d/mapproxy.conf
+            backup=yes
+
 - name: Re-read the Supervisor config files
   supervisorctl: name={{ application_name }} state=present
 

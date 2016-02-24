@@ -23,6 +23,11 @@ server {
         alias   {{ nginx_media_dir }};
     }
 
+    location /mapproxy/ {
+        uwsgi_pass  unix:///tmp/mapproxy.sock;
+        include     /etc/nginx/uwsgi_params;
+    }
+
     location / {
         if (-f {{ virtualenv_path }}/maintenance_on.html) {
             return 503;
