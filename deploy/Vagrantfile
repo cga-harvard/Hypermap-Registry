@@ -11,7 +11,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :private_network, ip: "192.168.33.15"
 
   config.vm.provider :virtualbox do |vb|
-    vb.customize ["modifyvm", :id, "--name", "Hypermap", "--memory", "1024"]
+    vb.customize ["modifyvm", :id, "--name", "Hypermap", "--memory", "4096"]
   end
 
   config.vm.synced_folder "../", "/webapps/hypermap/hypermap"
