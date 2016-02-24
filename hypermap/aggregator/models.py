@@ -14,6 +14,7 @@ from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 
+from taggit.managers import TaggableManager
 from polymorphic.models import PolymorphicModel
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
@@ -93,6 +94,8 @@ class Service(Resource):
     """
     url = models.URLField(unique=True, db_index=True)
     type = models.CharField(max_length=10, choices=SERVICE_TYPES)
+
+    keywords = TaggableManager()
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.title)
@@ -185,6 +188,8 @@ class Layer(Resource):
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
     srs = models.ManyToManyField(SpatialReferenceSystem)
     service = models.ForeignKey(Service)
+
+    keywords = TaggableManager()
 
     def __unicode__(self):
         return self.name
@@ -435,13 +440,13 @@ def update_layers_wm(service):
                 layer.title = title
                 layer.abstract = abstract
                 # bbox
-                # bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
-                print 'Original is %s' % bbox['minx']
                 layer.bbox_x0 = format_float(bbox['minx'])
                 layer.bbox_y0 = format_float(bbox['miny'])
                 layer.bbox_x1 = format_float(bbox['maxx'])
                 layer.bbox_y1 = format_float(bbox['maxy'])
-                print layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1
+                # keywords
+                for keyword in row['keywords']:
+                    layer.keywords.add(keyword)
                 # crsOptions
                 for crs_code in [3857, 4326, 900913]:
                     srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)

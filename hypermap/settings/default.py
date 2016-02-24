@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'djcelery',
     'polymorphic',
     'pagination',
+    'taggit',
     'aggregator',
 )
 
@@ -172,3 +173,6 @@ LOGGING = {
 
 # we need to get rid of this once we figure out how to bypass the broker in tests
 SKIP_CELERY_TASK = False
+
+# taggit
+TAGGIT_CASE_INSENSITIVE = True

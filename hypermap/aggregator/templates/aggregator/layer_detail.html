@@ -28,8 +28,18 @@
           </td>
         </tr>
         <tr>
-          <td><strong>Name</strong></td>
-          <td>{{ layer.name }}</td>
+          <td><strong>Abstract</strong></td>
+          <td>{{ layer.abstract }}</td>
+        </tr>
+        <tr>
+          <td><strong>Keywords</strong></td>
+          <td>
+            <ul>
+              {% for keyword in layer.keywords.all %}
+              <li>{{ keyword.name }}</li>
+              {% endfor %}
+          </ul>
+          </td>
         </tr>
         <tr>
           <td><strong>Monitoring Period</strong></td>
