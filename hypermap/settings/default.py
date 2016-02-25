@@ -31,7 +31,7 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
 SOLR_ENABLED = True
-SOLR_URL = "http://127.0.0.1:8983/solr/search"
+SOLR_URL = os.getenv('SOLR_URL', 'http://127.0.0.1:8983/solr/search')
 
 # Application definition
 
@@ -72,14 +72,14 @@ ROOT_URLCONF = 'hypermap.urls'
 
 WSGI_APPLICATION = 'hypermap.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DATABASE_NAME', 'hypermap'),
+        'USER': os.getenv('DATABASE_USER', 'hypermap_user'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'secret'),
+        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
