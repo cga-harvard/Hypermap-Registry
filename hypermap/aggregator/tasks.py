@@ -60,17 +60,17 @@ def check_layer(layer):
 
 @shared_task(name="layer_to_solr")
 def layer_to_solr(layer):
-    from aggregator.utils import OGP_utils
+    from aggregator.solr import SolrHypermap
     print 'Pushing layer %s to solr' % layer.name
-    solrobject = OGP_utils()
+    solrobject = SolrHypermap()
     solrobject.layer_to_solr(layer)
 
 
 @shared_task(name="clear_solr")
 def clear_solr():
     print 'Clearing the solr core and indexes'
-    from aggregator.utils import OGP_utils
-    solrobject = OGP_utils()
+    from aggregator.solr import SolrHypermap
+    solrobject = SolrHypermap()
     solrobject.clear_solr()
 
 
