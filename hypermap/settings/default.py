@@ -176,3 +176,13 @@ SKIP_CELERY_TASK = False
 
 # taggit
 TAGGIT_CASE_INSENSITIVE = True
+
+# WorldMap Service credentials (override this in local_settings or _ubuntu in production)
+WM_USERNAME = 'wmuser'
+WM_USERNAME_PASSWORD = 'secret'
+
+# Load more settings from a file called local_settings.py if it exists
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    pass
