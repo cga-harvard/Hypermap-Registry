@@ -1,0 +1,24 @@
+---
+
+# - name: Set application file permissions to ubuntu user
+#   file: path={{ virtualenv_path }}
+#         recurse=yes
+#         owner={{ uwsgi_user }}
+#         group={{ uwsgi_user }}
+#         state=directory
+#   notify: restart application
+
+- name: Setup the Git repo
+  git: repo={{ git_repo }}
+       version="{{ git_branch }}"
+         dest={{ project_path }}
+  when: setup_git_repo is defined and setup_git_repo
+  tags: git
+
+# - name: Ensure that the application file permissions are set properly
+#   file: path={{ virtualenv_path }}
+#         recurse=yes
+#         owner={{ uwsgi_user }}
+#         group={{ uwsgi_user }}
+#         state=directory
+#   notify: restart application
