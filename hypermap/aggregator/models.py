@@ -33,6 +33,8 @@ class Resource(PolymorphicModel):
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
+    url = models.URLField()
+    is_public = models.BooleanField(default=True)
 
     def __unicode__(self):
         return '%s - %s' % (self.polymorphic_ctype.name, self.title)
@@ -92,7 +94,6 @@ class Service(Resource):
     """
     Service represents a remote geowebservice.
     """
-    url = models.URLField(unique=True, db_index=True)
     type = models.CharField(max_length=10, choices=SERVICE_TYPES)
 
     keywords = TaggableManager()
@@ -242,9 +243,7 @@ class Layer(Resource):
                                 format=image_format
                             )
         elif self.service.type == 'WM':
-            # we use the geoserver virtual layer getcapabilities for this purpose
-            url = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % self.name
-            ows = WebMapService(url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
+            ows = WebMapService(self.url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
             if image_format not in op_getmap.formatOptions:
@@ -380,6 +379,7 @@ def update_layers_wms(service):
             # update fields
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
+            layer.url = service.url
             # bbox
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
@@ -407,6 +407,7 @@ def update_layers_wmts(service):
         if layer.active:
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
+            layer.url = service.url
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
             layer.bbox_y0 = bbox[1]
@@ -442,12 +443,19 @@ def update_layers_wm(service):
             title = row['title']
             abstract = row['abstract']
             bbox = row['bbox']
+            is_public = True
+            # we use the geoserver virtual layer getcapabilities for wm endpoint
+            endpoint = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % name
+            if not row['_permissions']['view']:
+                is_public = False
             print name
             layer, created = Layer.objects.get_or_create(name=name, service=service)
             if layer.active:
                 # update fields
                 layer.title = title
                 layer.abstract = abstract
+                layer.is_public = is_public
+                layer.url = endpoint
                 # bbox
                 x0 = format_float(bbox['minx'])
                 y0 = format_float(bbox['miny'])
@@ -500,6 +508,7 @@ def update_layers_esri(service):
                 if layer.active:
                     layer.title = esri_layer.name
                     layer.abstract = esri_service.serviceDescription
+                    layer.url = service.url
                     # set a default srs
                     srs = 4326
                     try:
@@ -535,6 +544,7 @@ def update_layers_esri(service):
         if layer.active:
             layer.title = obj['name']
             layer.abstract = esri_service.serviceDescription
+            layer.url = service.url
             layer.bbox_x0 = str(obj['extent']['xmin'])
             layer.bbox_y0 = str(obj['extent']['ymin'])
             layer.bbox_x1 = str(obj['extent']['xmax'])

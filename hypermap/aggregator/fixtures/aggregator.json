@@ -8,6 +8,7 @@
         "abstract": "",
         "created": "2016-01-06T19:00:10.344Z",
         "active": true,
+        "url": "http://geonode.wfp.org/geoserver/ows",
         "polymorphic_ctype": 16
     }
 },
@@ -20,6 +21,7 @@
         "abstract": "",
         "created": "2016-01-06T19:01:54.163Z",
         "active": true,
+        "url": "http://services.ogc.noaa.gov/geoserver/nhc/wms",
         "polymorphic_ctype": 16
     }
 },
@@ -44,6 +46,7 @@
         "abstract": "",
         "created": "2016-01-07T21:54:04.907Z",
         "active": true,
+        "url": "http://wmts.geo.admin.ch/1.0.0/WMTSCapabilities.xml",
         "polymorphic_ctype": 16
     }
 },
@@ -56,6 +59,7 @@
         "abstract": "",
         "created": "2016-01-13T21:59:27.035Z",
         "active": true,
+        "url": "http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml",
         "polymorphic_ctype": 16
     }
 },
@@ -68,6 +72,7 @@
         "abstract": "",
         "created": "2016-01-13T22:23:09.296Z",
         "active": true,
+        "url": "http://arcgis.cast.uark.edu/ArcGIS/rest/services/AGFC/All_Deer_50MCP_Oct11/MapServer",
         "polymorphic_ctype": 16
     }
 },
@@ -75,7 +80,6 @@
     "pk": 1,
     "model": "aggregator.service",
     "fields": {
-        "url": "http://geonode.wfp.org/geoserver/ows",
         "type": "OGC:WMS"
     }
 },
@@ -83,7 +87,6 @@
     "pk": 2,
     "model": "aggregator.service",
     "fields": {
-        "url": "http://services.ogc.noaa.gov/geoserver/nhc/wms",
         "type": "OGC:WMS"
     }
 },
@@ -99,7 +102,6 @@
     "pk": 26,
     "model": "aggregator.service",
     "fields": {
-        "url": "http://wmts.geo.admin.ch/1.0.0/WMTSCapabilities.xml",
         "type": "OGC:WMTS"
     }
 },
@@ -107,7 +109,6 @@
     "pk": 4,
     "model": "aggregator.service",
     "fields": {
-        "url": "http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml",
         "type": "OGC:WMTS"
     }
 },
@@ -115,7 +116,6 @@
     "pk": 5,
     "model": "aggregator.service",
     "fields": {
-        "url": "http://arcgis.cast.uark.edu/ArcGIS/rest/services/AGFC/All_Deer_50MCP_Oct11/MapServer",
         "type": "ESRI"
     }
 }

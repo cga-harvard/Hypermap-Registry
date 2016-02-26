@@ -31,6 +31,7 @@ class LayerAdmin(admin.ModelAdmin):
     model = Layer
     list_display = ('name', 'title', 'service', )
     search_fields = ['name', 'title', ]
+    list_filter = ('is_public', )
 
 
 class CheckAdmin(admin.ModelAdmin):
