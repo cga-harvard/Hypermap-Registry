@@ -244,7 +244,7 @@ class Layer(Resource):
         elif self.service.type == 'WM':
             # we use the geoserver virtual layer getcapabilities for this purpose
             url = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % self.name
-            ows = WebMapService(url, username=settings.WM_USERNAME, password=settings.WM_USERNAME_PASSWORD)
+            ows = WebMapService(url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
             if image_format not in op_getmap.formatOptions:
