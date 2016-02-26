@@ -71,6 +71,10 @@ Finally run the playbook:
 
 ansible-playbook aws.yml
 
+If you want to run only a part of the provisioning process:
+
+ansible-playbook aws.yml --tags "uwsgi"
+
 To make a new deployment, after committing to Git, run:
 
 ansible-playbook deploy.yml
