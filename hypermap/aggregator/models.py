@@ -415,6 +415,15 @@ def update_layers_wmts(service):
             layer.save()
 
 
+def flip_coordinates(c1, c2):
+    if c1 > c2:
+        print 'Flipping coordinates %s, %s' % (c1, c2)
+        temp = c1
+        c1 = c2
+        c2 = temp
+    return c1, c2
+
+
 def update_layers_wm(service):
     """
     Update layers for an WorldMap.
@@ -440,10 +449,17 @@ def update_layers_wm(service):
                 layer.title = title
                 layer.abstract = abstract
                 # bbox
-                layer.bbox_x0 = format_float(bbox['minx'])
-                layer.bbox_y0 = format_float(bbox['miny'])
-                layer.bbox_x1 = format_float(bbox['maxx'])
-                layer.bbox_y1 = format_float(bbox['maxy'])
+                x0 = format_float(bbox['minx'])
+                y0 = format_float(bbox['miny'])
+                x1 = format_float(bbox['maxx'])
+                y1 = format_float(bbox['maxy'])
+                # In many cases for some reason to be fixed GeoServer has x coordinates flipped in WM.
+                x0, x1 = flip_coordinates(x0, x1)
+                y0, y1 = flip_coordinates(y0, y1)
+                layer.bbox_x0 = x0
+                layer.bbox_y0 = y0
+                layer.bbox_x1 = x1
+                layer.bbox_y1 = y1
                 # keywords
                 for keyword in row['keywords']:
                     layer.keywords.add(keyword)
