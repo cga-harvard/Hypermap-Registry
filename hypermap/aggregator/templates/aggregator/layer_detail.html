@@ -49,7 +49,17 @@
           <td><strong>Is Public?</strong></td>
           <td>{{ layer.is_public }}</td>
         </tr>
-        <tr>
+        {% if layer.service.type = 'WM' %}
+          <tr>
+            <td><strong>Username</strong></td>
+            <td>{{ layer.layerwm.username }}</td>
+          </tr>
+          <tr>
+            <td><strong>Category</strong></td>
+            <td>{{ layer.layerwm.category }}</td>
+          </tr>
+        {% endif %}
+          <tr>
           <td><strong>Monitoring Period</strong></td>
           <td>
             <ul>

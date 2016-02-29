@@ -429,7 +429,7 @@ def update_layers_wm(service):
     """
     Update layers for an WorldMap.
     """
-    response = urllib2.urlopen('http://worldmap.harvard.edu/data/search/api?start=10&limit=10')
+    response = urllib2.urlopen('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
     data = json.load(response)
     total = data['total']
 
@@ -443,12 +443,18 @@ def update_layers_wm(service):
             title = row['title']
             abstract = row['abstract']
             bbox = row['bbox']
-            is_public = True
+            category = ''
+            if 'topic_category' in row:
+                category = row['topic_category']
+            username = ''
+            if 'owner_username' in row:
+                username = row['owner_username']
             # we use the geoserver virtual layer getcapabilities for wm endpoint
             endpoint = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % name
-            if not row['_permissions']['view']:
-                is_public = False
-            print name
+            is_public = True
+            if '_permissions' in row:
+                if not row['_permissions']['view']:
+                    is_public = False
             layer, created = Layer.objects.get_or_create(name=name, service=service)
             if layer.active:
                 # update fields
@@ -456,6 +462,8 @@ def update_layers_wm(service):
                 layer.abstract = abstract
                 layer.is_public = is_public
                 layer.url = endpoint
+                # category and owner username
+                layer_wm, created = LayerWM.objects.get_or_create(layer=layer, category=category, username=username)
                 # bbox
                 x0 = format_float(bbox['minx'])
                 y0 = format_float(bbox['miny'])
@@ -565,6 +573,22 @@ class LayerDate(models.Model):
 
     def __unicode__(self):
         return self.depict_date
+
+
+class LayerWM(models.Model):
+    """
+    LayerWM represents the extended attributes that are found in a WorldMap layer.
+    """
+    category = models.CharField(max_length=255, null=True, blank=True)
+    username = models.CharField(max_length=255, null=True, blank=True)
+    layer = models.OneToOneField(Layer)
+
+    def __unicode__(self):
+        return self.layer.name
+
+    class Meta:
+        verbose_name = 'WorldMap Layer Attributes'
+        verbose_name_plural = 'WorldMap Layers Attributes'
 
 
 class Check(models.Model):

@@ -3,7 +3,7 @@ from django.contrib import admin
 from djcelery.models import TaskMeta
 
 from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
-                    Endpoint, LayerDate)
+                    Endpoint, LayerDate, LayerWM)
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -34,6 +34,10 @@ class LayerAdmin(admin.ModelAdmin):
     list_filter = ('is_public', )
 
 
+class LayerWMAdmin(admin.ModelAdmin):
+    model = LayerWM
+
+
 class CheckAdmin(admin.ModelAdmin):
     model = Check
     list_display = ('resource', 'checked_datetime', 'success', 'response_time', )
@@ -57,6 +61,7 @@ admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
 admin.site.register(Layer, LayerAdmin)
+admin.site.register(LayerWM, LayerWMAdmin)
 admin.site.register(LayerDate, LayerDateAdmin)
 admin.site.register(EndpointList, EndpointListAdmin)
 admin.site.register(Endpoint, EndpointAdmin)
