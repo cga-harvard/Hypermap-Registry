@@ -316,6 +316,13 @@ class Layer(Resource):
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             print 'Thumbnail updated for layer %s' % self.name
 
+    def worldmap_date_miner(self):
+        year = re.search('\d{2,4} ?B?CE', str(self.title)).group(0)
+        if year is None and self.abstract:
+            year = re.search('\d{2,4} ?B?CE', str(self.abstract)).group(0)
+        if year:
+            self.layerdate_set.get_or_create(depict_date=year)
+
     def mine_date(self):
         date = None
         year = re.search('\d{4}', str(self.title))
@@ -337,6 +344,8 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
+            if self.service.type == "WM":
+                self.worldmap_date_miner()
             self.mine_date()
             if settings.SOLR_ENABLED:
                 layer_to_solr(self)
