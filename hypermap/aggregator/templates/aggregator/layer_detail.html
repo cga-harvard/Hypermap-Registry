@@ -84,7 +84,7 @@
           {% if layer.layerdate_set.count > 0 %}
           <ul>
             {% for date in layer.layerdate_set.all %}
-              <li>{{ date.depict_date }}</li>
+              <li>{{ date.date }}</li>
             {% endfor %}
           </ul>
           {% else %}

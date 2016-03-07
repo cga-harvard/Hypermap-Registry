@@ -65,7 +65,7 @@ class SolrHypermap(object):
         # We check if the any date has been mined and retrieve the
         # first on the index,will enhance this later when we have dateranges to solr
         if layer.layerdate_set.values_list():
-            date = layer.layerdate_set.values_list('depict_date', flat=True)[0]
+            date = layer.layerdate_set.values_list('date', flat=True)[0]
         else:
             date = layer.created
         if (SolrHypermap.good_coords(bbox)) is False:
