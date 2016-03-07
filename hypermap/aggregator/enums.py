@@ -6,3 +6,8 @@ SERVICE_TYPES = (
     ('ESRI', 'ArcGIS REST Service'),
     ('WARPER', 'Mapwarper'),
 )
+
+DATE_TYPES = (
+    (0, 'Detected'),
+    (1, 'From Metadata'),
+)

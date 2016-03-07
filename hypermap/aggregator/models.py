@@ -4,7 +4,7 @@ import re
 import urllib2
 import json
 from urlparse import urlparse
-from dateutil import parser
+from dateutil.parser import parse
 import requests
 
 from django.conf import settings
@@ -20,7 +20,7 @@ from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder, MapService as ArcMapService, ImageService as ArcImageService
 
-from enums import SERVICE_TYPES
+from enums import SERVICE_TYPES, DATE_TYPES
 from tasks import update_endpoints, check_service, check_layer, layer_to_solr
 
 
@@ -348,16 +348,19 @@ class Layer(Resource):
         if year is None and self.abstract:
             year = re.search('\d{2,4} ?B?CE', str(self.abstract)).group(0)
         if year:
-            self.layerdate_set.get_or_create(depict_date=year)
+            self.layerdate_set.get_or_create(date=year, type=0)
 
     def mine_date(self):
-        date = None
-        year = re.search('\d{4}', str(self.title))
-        if year is None and self.abstract:
-            year = re.search('\d{4}', self.abstract)
-        if year:
-            date = parser.parse(str(year.group(0)+'-01'+'-01'))
-            self.layerdate_set.get_or_create(depict_date=date)
+        if self.service.type == "WM":
+            self.worldmap_date_miner()
+        else:
+            date = None
+            year = re.search('\d{4}', str(self.title))
+            if year is None and self.abstract:
+                year = re.search('\d{4}', self.abstract)
+            if year:
+                date = parse(str(year.group(0)+'-01'+'-01'))
+                self.layerdate_set.get_or_create(date=date, type=0)
 
     def check(self):
         """
@@ -371,8 +374,6 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            if self.service.type == "WM":
-                self.worldmap_date_miner()
             self.mine_date()
             if settings.SOLR_ENABLED:
                 layer_to_solr(self)
@@ -539,10 +540,10 @@ def add_dates_to_layer(dates, layer):
     for date in dates:
         if date:
             if date != '':
-                dt = parser.parse(date, default=default)
+                dt = parse(date, default=default)
                 iso_date = dt.isoformat()
                 print 'Adding date %s to layer %s' % (iso_date, layer.id)
-                layerdate, created = LayerDate.objects.get_or_create(layer=layer, depict_date=iso_date)
+                layerdate, created = LayerDate.objects.get_or_create(layer=layer, date=iso_date, type=1)
 
 
 def update_layers_warper(service):
@@ -559,7 +560,6 @@ def update_layers_warper(service):
         params = {'field': 'title', 'query': '', 'show_warped': '1', 'format': 'json', 'page': i}
         request = requests.get(service.url, headers=headers, params=params)
         records = json.loads(request.content)
-        current_page = records['current_page']
         print 'Fetched %s' + request.url
         layers = records['items']
         for layer in layers:
@@ -685,11 +685,12 @@ class LayerDate(models.Model):
     """
     LayerDate represents list of dates that can be used to depict a layer.
     """
-    depict_date = models.CharField(max_length=255, null=True, blank=True)
+    date = models.CharField(max_length=25)
+    type = models.IntegerField(choices=DATE_TYPES)
     layer = models.ForeignKey(Layer)
 
     def __unicode__(self):
-        return self.depict_date
+        return self.date
 
 
 class LayerWM(models.Model):

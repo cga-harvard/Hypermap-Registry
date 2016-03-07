@@ -21,7 +21,8 @@ class SpatialReferenceSystemAdmin(admin.ModelAdmin):
 
 class LayerDateAdmin(admin.ModelAdmin):
     model = LayerDate
-    list_display = ('depict_date', 'layer', 'layer_abstract')
+    list_display = ('date', 'type', 'layer', 'layer_abstract')
+    list_filter = ('type', )
 
     def layer_abstract(self, instance):
         return instance.layer.abstract
