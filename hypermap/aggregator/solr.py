@@ -101,14 +101,24 @@ class SolrHypermap(object):
             # ENVELOPE(minX, maxX, maxY, minY) per https://github.com/spatial4j/spatial4j/issues/36
             wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
             domain = SolrHypermap.get_domain(layer.service.url)
+            try:
+                category = layer.layerwm.category
+                username = layer.layerwm.username
+            except Exception:
+                category = None
+                username = None
             SolrHypermap.solr.add([{
                                 "LayerId": "HyperMapLayer_" + str(layer.id),
-                                "Name": layer.title,
-                                "LayerDisplayName": layer.title,
+                                "LayerName": layer.name,
+                                "LayerTitle": layer.title,
                                 "Originator": domain,
                                 "ServiceType": layer.service.type,
-                                "ContentDate": date,
-                                "Access": "Public",
+                                "LayerCategory": category,
+                                "LayerUsername": username,
+                                "LayerUrl": layer.url,
+                                "LayerReliability": layer.reliability,
+                                "LayerDate": date,
+                                "Is_Public": layer.is_public,
                                 "Availability": "Online",
                                 "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
                                 "Abstract": layer.abstract,
@@ -122,7 +132,7 @@ class SolrHypermap(object):
                                 "HalfWidth": halfWidth,
                                 "HalfHeight": halfHeight,
                                 "Area": area,
-                                "bbox_rpt": wkt}])
+                                "bbox": wkt}])
             SolrHypermap.logger.error("solr record saved: " + layer.title)
 
     @staticmethod
