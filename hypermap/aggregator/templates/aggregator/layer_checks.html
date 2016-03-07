@@ -34,11 +34,15 @@
         <tr>
           <td><strong>Monitoring Period</strong></td>
           <td>
+            {% if layer.checks_count > 0 %}
             <ul>
               <li>First Check: {{ layer.first_check }}</li>
               <li>Last Check: {{ layer.last_check }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
             </ul>
+            {% else %}
+              No checks performed so far
+            {% endif %}
           </td>
         </tr>
         <tr>
@@ -123,7 +127,8 @@
 {% if user.is_superuser %}
 <form action="{% url 'layer_checks' layer.id %}" method="post">
   {% csrf_token %}
-  <input type="submit" value="Check Now!">
+  <input type="submit" name="check" value="Check now">
+  <input type="submit" name="remove" value="Remove checks">
 </form>
 {% endif %}
 

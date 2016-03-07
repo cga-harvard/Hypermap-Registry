@@ -79,7 +79,10 @@ def service_checks(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
     resource = serialize_checks(service.check_set)
     if request.method == 'POST':
-        check_service.delay(service)
+        if 'check' in request.POST:
+            check_service.delay(service)
+        if 'remove' in request.POST:
+            service.check_set.all().delete()
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
@@ -92,7 +95,11 @@ def layer_checks(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
     resource = serialize_checks(layer.check_set)
     if request.method == 'POST':
-        check_layer.delay(layer)
+        if 'check' in request.POST:
+            check_layer.delay(layer)
+        if 'remove' in request.POST:
+            layer.check_set.all().delete()
+
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
 
 
