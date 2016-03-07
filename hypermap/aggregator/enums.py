@@ -4,4 +4,5 @@ SERVICE_TYPES = (
     ('OGC:WMTS', 'Web Map Tile Service (WMTS)'),
     ('OGC:TMS', 'Tile Map Service (TMS)'),
     ('ESRI', 'ArcGIS REST Service'),
+    ('WARPER', 'Mapwarper'),
 )

@@ -4,7 +4,7 @@ import re
 import urllib2
 import json
 from urlparse import urlparse
-import dateutil.parser
+from dateutil import parser
 import requests
 
 from django.conf import settings
@@ -121,6 +121,8 @@ class Service(Resource):
             update_layers_esri(self)
         elif self.type == 'WM':
             update_layers_wm(self)
+        elif self.type == 'WARPER':
+            update_layers_warper(self)
         signals.post_save.connect(layer_post_save, sender=Layer)
 
     def check(self):
@@ -267,6 +269,31 @@ class Layer(Resource):
             if 'ogc.se_xml' in img.info()['Content-Type']:
                 raise ValueError(img.read())
                 img = None
+        elif self.service.type == 'WARPER':
+            ows = WebMapService(self.url)
+            op_getmap = ows.getOperationByName('GetMap')
+            image_format = 'image/png'
+            if image_format not in op_getmap.formatOptions:
+                if 'image/jpeg' in op_getmap.formatOptions:
+                    image_format = 'image/jpeg'
+                else:
+                    raise NotImplementedError(format_error_message)
+            img = ows.getmap(
+                layers=[self.name],
+                srs='EPSG:4326',
+                bbox=(
+                    float(self.bbox_x0),
+                    float(self.bbox_y0),
+                    float(self.bbox_x1),
+                    float(self.bbox_y1)
+                ),
+                size=(50, 50),
+                format=image_format,
+                transparent=True
+            )
+            if 'ogc.se_xml' in img.info()['Content-Type']:
+                raise ValueError(img.read())
+                img = None
         elif self.service.type == 'ESRI':
             image = None
             if re.search("\/MapServer\/*(f=json)*", self.service.url):
@@ -329,7 +356,7 @@ class Layer(Resource):
         if year is None and self.abstract:
             year = re.search('\d{4}', self.abstract)
         if year:
-            date = dateutil.parser.parse(str(year.group(0)+'-01'+'-01'))
+            date = parser.parse(str(year.group(0)+'-01'+'-01'))
             self.layerdate_set.get_or_create(depict_date=date)
 
     def check(self):
@@ -505,6 +532,75 @@ def format_float(value):
         return value
     except ValueError:
         return None
+
+
+def add_dates_to_layer(dates, layer):
+    default = datetime.datetime(2016, 1, 1)
+    for date in dates:
+        if date:
+            if date != '':
+                dt = parser.parse(date, default=default)
+                iso_date = dt.isoformat()
+                print 'Adding date %s to layer %s' % (iso_date, layer.id)
+                layerdate, created = LayerDate.objects.get_or_create(layer=layer, depict_date=iso_date)
+
+
+def update_layers_warper(service):
+    """
+    Update layers for a Warper service.
+    """
+    params = {'field': 'title', 'query': '', 'show_warped': '1', 'format': 'json'}
+    headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+    request = requests.get(service.url, headers=headers, params=params)
+    records = json.loads(request.content)
+    total_pages = int(records['total_pages'])
+
+    for i in range(1, total_pages + 1):
+        params = {'field': 'title', 'query': '', 'show_warped': '1', 'format': 'json', 'page': i}
+        request = requests.get(service.url, headers=headers, params=params)
+        records = json.loads(request.content)
+        current_page = records['current_page']
+        print 'Fetched %s' + request.url
+        layers = records['items']
+        for layer in layers:
+            name = layer['id']
+            title = layer['title']
+            abstract = layer['description']
+            bbox = layer['bbox']
+            # dates
+            dates = []
+            if 'published_date' in layer:
+                dates.append(layer['published_date'])
+            if 'date_depicted' in layer:
+                dates.append(layer['date_depicted'])
+            if 'depicts_year' in layer:
+                dates.append(layer['depicts_year'])
+            if 'issue_year' in layer:
+                dates.append(layer['issue_year'])
+            layer, created = Layer.objects.get_or_create(name=name, service=service)
+            if layer.active:
+                # update fields
+                layer.title = title
+                layer.abstract = abstract
+                layer.is_public = True
+                layer.url = '%s/wms/%s?' % (service.url, name)
+                # bbox
+                if bbox:
+                    bbox_list = bbox.split(',')
+                    x0 = format_float(bbox_list[0])
+                    y0 = format_float(bbox_list[1])
+                    x1 = format_float(bbox_list[2])
+                    y1 = format_float(bbox_list[3])
+                    layer.bbox_x0 = x0
+                    layer.bbox_y0 = y0
+                    layer.bbox_x1 = x1
+                    layer.bbox_y1 = y1
+                # crsOptions
+                for crs_code in [3857, 4326, 900913]:
+                    srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+                    layer.srs.add(srs)
+                layer.save()
+                add_dates_to_layer(dates, layer)
 
 
 def update_layers_esri(service):
