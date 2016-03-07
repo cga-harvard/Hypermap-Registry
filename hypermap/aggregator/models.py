@@ -344,23 +344,42 @@ class Layer(Resource):
             print 'Thumbnail updated for layer %s' % self.name
 
     def worldmap_date_miner(self):
-        year = re.search('\d{2,4} ?B?CE', str(self.title)).group(0)
+        year = re.search('\d{2,4} ?B?CE', str(self.title))
         if year is None and self.abstract:
-            year = re.search('\d{2,4} ?B?CE', str(self.abstract)).group(0)
+            year = re.search('\d{2,4} ?B?CE', str(self.abstract))
         if year:
-            self.layerdate_set.get_or_create(date=year, type=0)
+            # we get the year numeric as a string object
+            year_str = str(int(filter(str.isdigit, year.group(0))))
+            if "CE" in year.group(0):
+                date = str(year_str.zfill(4))+'-01'+'-01'
+            if "BCE" in year.group(0):
+                date = str('-'+year_str.zfill(4))+'-01'+'-01'
+            self.layerdate_set.get_or_create(date=date, type=0)
+        else:
+            dynasties = Dynasty.objects.values_list('dynasty', flat=True)
+            word_set = set(dynasties)
+            abstract_set = set(self.abstract.split())
+            title_set = set(self.title.split())
+            common_set = None
+            if word_set.intersection(title_set):
+                common_set = word_set.intersection(title_set)
+            if not common_set and word_set.intersection(abstract_set):
+                common_set = word_set.intersection(abstract_set)
+            if common_set:
+                for item in common_set:
+                    date_range = Dynasty.objects.get(dynasty=item).date_range
+                    self.layerdate_set.get_or_create(date=date_range)
 
     def mine_date(self):
         if self.service.type == "WM":
             self.worldmap_date_miner()
-        else:
-            date = None
-            year = re.search('\d{4}', str(self.title))
-            if year is None and self.abstract:
-                year = re.search('\d{4}', self.abstract)
-            if year:
-                date = parse(str(year.group(0)+'-01'+'-01'))
-                self.layerdate_set.get_or_create(date=date, type=0)
+        date = None
+        year = re.search('\d{4}', str(self.title))
+        if year is None and self.abstract:
+            year = re.search('\d{4}', self.abstract)
+        if year:
+            date = parse(str(year.group(0)+'-01'+'-01'))
+            self.layerdate_set.get_or_create(date=date, type=0)
 
     def check(self):
         """
@@ -692,6 +711,17 @@ class LayerDate(models.Model):
 
     def __unicode__(self):
         return self.date
+
+
+class Dynasty(models.Model):
+    """
+    Dynasty represents different date periods and dynasties to check when mining
+    """
+    date_range = models.CharField(max_length=255, null=True, blank=True)
+    dynasty = models.CharField(max_length=255, null=True, blank=True)
+
+    def __unicode__(self):
+        return self.dynasty
 
 
 class LayerWM(models.Model):

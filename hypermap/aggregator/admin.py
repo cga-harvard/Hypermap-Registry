@@ -3,7 +3,7 @@ from django.contrib import admin
 from djcelery.models import TaskMeta
 
 from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
-                    Endpoint, LayerDate, LayerWM)
+                    Endpoint, LayerDate, Dynasty, LayerWM)
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -26,6 +26,11 @@ class LayerDateAdmin(admin.ModelAdmin):
 
     def layer_abstract(self, instance):
         return instance.layer.abstract
+
+
+class DynastyAdmin(admin.ModelAdmin):
+    model = Dynasty
+    list_display = ('date_range', 'dynasty')
 
 
 class LayerAdmin(admin.ModelAdmin):
@@ -64,6 +69,7 @@ admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
 admin.site.register(Layer, LayerAdmin)
 admin.site.register(LayerWM, LayerWMAdmin)
 admin.site.register(LayerDate, LayerDateAdmin)
+admin.site.register(Dynasty, DynastyAdmin)
 admin.site.register(EndpointList, EndpointListAdmin)
 admin.site.register(Endpoint, EndpointAdmin)
 
