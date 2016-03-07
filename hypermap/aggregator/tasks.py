@@ -75,6 +75,28 @@ def clear_solr():
 
 
 @shared_task(bind=True)
+def remove_service_checks(self, service):
+
+    service.check_set.all().delete()
+
+    def status_update(count, total):
+        if not self.request.called_directly:
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': count, 'total': total}
+            )
+
+    layer_to_process = service.layer_set.all()
+    count = 0
+    total = layer_to_process.count()
+    for layer in layer_to_process:
+        # update state
+        status_update(count, total)
+        layer.check_set.all().delete()
+        count = count + 1
+
+
+@shared_task(bind=True)
 def update_endpoints(self, endpoint_list):
     from aggregator.utils import create_services_from_endpoint
     # for now we process the enpoint even if they were already processed

@@ -8,7 +8,7 @@ from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
-from tasks import check_all_services, check_service, check_layer
+from tasks import check_all_services, check_service, check_layer, remove_service_checks
 from enums import SERVICE_TYPES
 
 from hypermap import celery_app
@@ -82,7 +82,7 @@ def service_checks(request, service_id):
         if 'check' in request.POST:
             check_service.delay(service)
         if 'remove' in request.POST:
-            service.check_set.all().delete()
+            remove_service_checks.delay(service)
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
