@@ -539,6 +539,7 @@ def add_dates_to_layer(dates, layer):
     default = datetime.datetime(2016, 1, 1)
     for date in dates:
         if date:
+            date = '%s' % date
             if date != '':
                 dt = parse(date, default=default)
                 iso_date = dt.isoformat()
