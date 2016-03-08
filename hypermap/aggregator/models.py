@@ -368,7 +368,7 @@ class Layer(Resource):
             if common_set:
                 for item in common_set:
                     date_range = Dynasty.objects.get(dynasty=item).date_range
-                    self.layerdate_set.get_or_create(date=date_range,type=0)
+                    self.layerdate_set.get_or_create(date=date_range, type=0)
 
     def mine_date(self):
         if self.service.type == "WM":
