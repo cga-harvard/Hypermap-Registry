@@ -15,6 +15,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 
 from taggit.managers import TaggableManager
+from dynasty.models import Dynasty
 from polymorphic.models import PolymorphicModel
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
@@ -356,7 +357,7 @@ class Layer(Resource):
                 date = str('-'+year_str.zfill(4))+'-01'+'-01'
             self.layerdate_set.get_or_create(date=date, type=0)
         else:
-            dynasties = Dynasty.objects.values_list('dynasty', flat=True)
+            dynasties = Dynasty.objects.values_list('name', flat=True)
             word_set = set(dynasties)
             abstract_set = set(self.abstract.split())
             title_set = set(self.title.split())
@@ -367,7 +368,7 @@ class Layer(Resource):
                 common_set = word_set.intersection(abstract_set)
             if common_set:
                 for item in common_set:
-                    date_range = Dynasty.objects.get(dynasty=item).date_range
+                    date_range = Dynasty.objects.get(name=item).date_range
                     self.layerdate_set.get_or_create(date=date_range, type=0)
 
     def mine_date(self):
@@ -711,17 +712,6 @@ class LayerDate(models.Model):
 
     def __unicode__(self):
         return self.date
-
-
-class Dynasty(models.Model):
-    """
-    Dynasty represents different date periods and dynasties to check when mining
-    """
-    date_range = models.CharField(max_length=255, null=True, blank=True)
-    dynasty = models.CharField(max_length=255, null=True, blank=True)
-
-    def __unicode__(self):
-        return self.dynasty
 
 
 class LayerWM(models.Model):
