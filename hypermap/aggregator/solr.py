@@ -6,6 +6,7 @@ import json
 
 from urlparse import urlparse
 from django.conf import settings
+from django.utils.html import strip_tags
 
 from aggregator.utils import mercator_to_llbbox
 
@@ -121,7 +122,7 @@ class SolrHypermap(object):
                                 "Is_Public": layer.is_public,
                                 "Availability": "Online",
                                 "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                "Abstract": layer.abstract,
+                                "Abstract": strip_tags(layer.abstract),
                                 "SrsProjectionCode": layer.srs.values_list('code', flat=True),
                                 "MinY": minY,
                                 "MinX": minX,
