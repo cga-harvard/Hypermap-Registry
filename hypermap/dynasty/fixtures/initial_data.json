@@ -1,0 +1,90 @@
+[
+{
+    "pk": 1, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "-2100 TO -1600", 
+        "name": "Xia"
+    }
+},
+{
+    "pk": 2, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "-1600 TO -1050", 
+        "name": "Shang"
+    }
+},
+{
+    "pk": 3, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "-1046 TO -256", 
+        "name": "Zhou"
+    }
+},
+{
+    "pk": 4, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "-221 TO -206", 
+        "name": "Qin"
+    }
+},
+{
+    "pk": 5, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "-206 TO 220", 
+        "name": "Han"
+    }
+},
+{
+    "pk": 6, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "581 TO 618", 
+        "name": "Sui"
+    }
+},
+{
+    "pk": 7, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "618 TO 906", 
+        "name": "Tang"
+    }
+},
+{
+    "pk": 8, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "960 TO 1279", 
+        "name": "Song or Sung"
+    }
+},
+{
+    "pk": 9, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "1279 TO 1368", 
+        "name": "Yuan"
+    }
+},
+{
+    "pk": 10, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "1368 TO 1644", 
+        "name": "Ming"
+    }
+},
+{
+    "pk": 11, 
+    "model": "dynasty.dynasty", 
+    "fields": {
+        "date_range": "1644 TO 1912", 
+        "name": "Qing"
+    }
+}
+]
