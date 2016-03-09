@@ -300,6 +300,7 @@ class Layer(Resource):
                 img = None
         elif self.service.type == 'ESRI_MapServer':
             try:
+                image = None
                 arcserver = ArcMapService(self.service.url)
                 bbox = '%s, %s, %s, %s' % (
                     float(self.bbox_x0),
@@ -308,7 +309,7 @@ class Layer(Resource):
                     float(self.bbox_y1)
                 )
 
-                img = arcserver.ExportMap(
+                image = arcserver.ExportMap(
                     bbox=bbox,
                     layers='show:' + self.name,
                     transparent='true',
@@ -317,6 +318,11 @@ class Layer(Resource):
                 )
             except Exception, e:
                 print e
+            name = re.sub('[^\w\-_\. ]', '_', self.name)
+            thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
+            image.save(thumbnail_file_name)
+            img = open(thumbnail_file_name, 'r')
+            os.remove(thumbnail_file_name)
         elif self.service.type == 'ESRI_ImageServer':
             image = None
             try:
@@ -490,6 +496,7 @@ def update_layers_wm(service):
     response = urllib2.urlopen('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
     data = json.load(response)
     total = data['total']
+    total = 20
 
     for i in range(0, total, 10):
         url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
