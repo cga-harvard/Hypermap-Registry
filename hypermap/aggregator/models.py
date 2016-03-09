@@ -536,7 +536,12 @@ def update_layers_wm(service):
                 layer.url = endpoint
                 layer.page_url = page_url
                 # category and owner username
-                layer_wm, created = LayerWM.objects.get_or_create(layer=layer, category=category, username=username, temporal_extent_start=temporal_extent_start, temporal_extent_end=temporal_extent_end)
+                layer_wm, created = LayerWM.objects.get_or_create(
+                    layer=layer,
+                    category=category,
+                    username=username,
+                    temporal_extent_start=temporal_extent_start,
+                    temporal_extent_end=temporal_extent_end)
                 # bbox
                 x0 = format_float(bbox['minx'])
                 y0 = format_float(bbox['miny'])
