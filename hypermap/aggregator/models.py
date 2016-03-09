@@ -138,21 +138,27 @@ class Service(Resource):
         print 'Checking service id %s' % self.id
 
         try:
-            title = '%s %s' % (self.type, self.url)
+            title = None
             if self.type == 'OGC_WMS':
                 ows = WebMapService(self.url)
+                title = ows.identification.title
             if self.type == 'OGC_WMTS':
                 ows = WebMapTileService(self.url)
-            if self.type == 'ESRI':
+                title = ows.identification.title
+            if self.type == 'ESRI_MapServer':
+                esri = ArcFolder(self.url)
+                title = esri.url
+            if self.type == 'ESRI_ImageServer':
                 esri = ArcFolder(self.url)
                 title = esri.url
             if self.type == 'WM':
                 urllib2.urlopen(self.url)
-            # TODO add more service types here
-            if self.type.startswith('OGC_'):
-                title = ows.identification.title
+                title = 'Harvard WorldMap'
+            if self.type == 'WARPER':
+                urllib2.urlopen(self.url)
             # update title without raising a signal and recursion
-            Service.objects.filter(id=self.id).update(title=title)
+            if title:
+                Service.objects.filter(id=self.id).update(title=title)
         except Exception, err:
             message = str(err)
             success = False
@@ -496,7 +502,6 @@ def update_layers_wm(service):
     response = urllib2.urlopen('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
     data = json.load(response)
     total = data['total']
-    total = 20
 
     for i in range(0, total, 10):
         url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
