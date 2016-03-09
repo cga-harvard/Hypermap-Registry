@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'pagination',
     'taggit',
     'aggregator',
+    'dynasty',
 )
 
 MIDDLEWARE_CLASSES = (
