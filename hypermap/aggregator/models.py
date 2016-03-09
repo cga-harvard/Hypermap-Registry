@@ -520,6 +520,12 @@ def update_layers_wm(service):
             username = ''
             if 'owner_username' in row:
                 username = row['owner_username']
+            temporal_extent_start = ''
+            if 'temporal_extent_start' in row:
+                temporal_extent_start = row['temporal_extent_start']
+            temporal_extent_end = ''
+            if 'temporal_extent_end' in row:
+                temporal_extent_end = row['temporal_extent_end']
             # we use the geoserver virtual layer getcapabilities for wm endpoint
             endpoint = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % name
             is_public = True
@@ -535,7 +541,12 @@ def update_layers_wm(service):
                 layer.url = endpoint
                 layer.page_url = page_url
                 # category and owner username
-                layer_wm, created = LayerWM.objects.get_or_create(layer=layer, category=category, username=username)
+                layer_wm, created = LayerWM.objects.get_or_create(
+                    layer=layer,
+                    category=category,
+                    username=username,
+                    temporal_extent_start=temporal_extent_start,
+                    temporal_extent_end=temporal_extent_end)
                 # bbox
                 x0 = format_float(bbox['minx'])
                 y0 = format_float(bbox['miny'])
@@ -742,6 +753,8 @@ class LayerWM(models.Model):
     """
     category = models.CharField(max_length=255, null=True, blank=True)
     username = models.CharField(max_length=255, null=True, blank=True)
+    temporal_extent_start = models.CharField(max_length=255, null=True, blank=True)
+    temporal_extent_end = models.CharField(max_length=255, null=True, blank=True)
     layer = models.OneToOneField(Layer)
 
     def __unicode__(self):
