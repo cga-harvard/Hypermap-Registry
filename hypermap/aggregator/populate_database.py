@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from models import Service
 from utils import create_services_from_endpoint
 
@@ -59,4 +61,5 @@ def populate_initial_services():
         )
         service.save()
 
+settings.SKIP_CELERY_TASK = True
 populate_initial_services()
