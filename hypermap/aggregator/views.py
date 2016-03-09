@@ -52,11 +52,14 @@ def index(request):
     if query:
         services = services.filter(url__icontains=query)
     # types filter
-    type_dict = {}
+    types_list = []
     for service_type in SERVICE_TYPES:
+        type_item = []
         service_type_code = service_type[0]
-        service_type_count = Service.objects.filter(type__exact=service_type_code).count()
-        type_dict[service_type_code] = service_type_count
+        type_item.append(service_type_code)
+        type_item.append(service_type[1])
+        type_item.append(Service.objects.filter(type__exact=service_type_code).count())
+        types_list.append(type_item)
     # stats
     layers_count = Layer.objects.all().count()
     services_count = Service.objects.all().count()
@@ -64,7 +67,7 @@ def index(request):
     template = loader.get_template('aggregator/index.html')
     context = RequestContext(request, {
         'services': services,
-        'type_dict': type_dict,
+        'types_list': types_list,
         'layers_count': layers_count,
         'services_count': services_count,
     })
