@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import os.path
+import sys
 from datetime import timedelta
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DJANGO_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir))

@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.shortcuts import render
@@ -80,9 +81,15 @@ def service_checks(request, service_id):
     resource = serialize_checks(service.check_set)
     if request.method == 'POST':
         if 'check' in request.POST:
-            check_service.delay(service)
+            if not settings.SKIP_CELERY_TASK:
+                check_service.delay(service)
+            else:
+                check_service(service)
         if 'remove' in request.POST:
-            remove_service_checks.delay(service)
+            if not settings.SKIP_CELERY_TASK:
+                remove_service_checks.delay(service)
+            else:
+                remove_service_checks(service)
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
@@ -96,7 +103,10 @@ def layer_checks(request, layer_id):
     resource = serialize_checks(layer.check_set)
     if request.method == 'POST':
         if 'check' in request.POST:
-            check_layer.delay(layer)
+            if not settings.SKIP_CELERY_TASK:
+                check_layer.delay(layer)
+            else:
+                check_layer(layer)
         if 'remove' in request.POST:
             layer.check_set.all().delete()
 

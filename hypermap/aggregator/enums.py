@@ -3,7 +3,8 @@ SERVICE_TYPES = (
     ('OGC_WMS', 'Web Map Service (WMS)'),
     ('OGC_WMTS', 'Web Map Tile Service (WMTS)'),
     ('OGC_TMS', 'Tile Map Service (TMS)'),
-    ('ESRI', 'ArcGIS REST Service'),
+    ('ESRI_MapServer', 'ArcGIS REST MapServer'),
+    ('ESRI_ImageServer', 'ArcGIS REST ImageServer'),
     ('WARPER', 'Mapwarper'),
 )
 

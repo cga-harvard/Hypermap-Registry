@@ -94,9 +94,9 @@ class Service(Resource):
     """
     Service represents a remote geowebservice.
     """
-    type = models.CharField(max_length=10, choices=SERVICE_TYPES)
+    type = models.CharField(max_length=20, choices=SERVICE_TYPES)
 
-    keywords = TaggableManager()
+    keywords = TaggableManager(blank=True)
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.title)
@@ -113,12 +113,14 @@ class Service(Resource):
         """
         signals.post_save.disconnect(layer_post_save, sender=Layer)
         print 'Updating layers for service id %s' % self.id
-        if self.type == 'OGC:WMS':
+        if self.type == 'OGC_WMS':
             update_layers_wms(self)
-        elif self.type == 'OGC:WMTS':
+        elif self.type == 'OGC_WMTS':
             update_layers_wmts(self)
-        elif self.type == 'ESRI':
-            update_layers_esri(self)
+        elif self.type == 'ESRI_MapServer':
+            update_layers_esri_mapserver(self)
+        elif self.type == 'ESRI_ImageServer':
+            update_layers_esri_imageserver(self)
         elif self.type == 'WM':
             update_layers_wm(self)
         elif self.type == 'WARPER':
@@ -136,9 +138,9 @@ class Service(Resource):
 
         try:
             title = '%s %s' % (self.type, self.url)
-            if self.type == 'OGC:WMS':
+            if self.type == 'OGC_WMS':
                 ows = WebMapService(self.url)
-            if self.type == 'OGC:WMTS':
+            if self.type == 'OGC_WMTS':
                 ows = WebMapTileService(self.url)
             if self.type == 'ESRI':
                 esri = ArcFolder(self.url)
@@ -146,7 +148,7 @@ class Service(Resource):
             if self.type == 'WM':
                 urllib2.urlopen(self.url)
             # TODO add more service types here
-            if self.type.startswith('OGC:'):
+            if self.type.startswith('OGC_'):
                 title = ows.identification.title
             # update title without raising a signal and recursion
             Service.objects.filter(id=self.id).update(title=title)
@@ -201,7 +203,7 @@ class Layer(Resource):
         print 'Generating thumbnail for layer id %s' % self.id
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
         img = None
-        if self.service.type == 'OGC:WMS':
+        if self.service.type == 'OGC_WMS':
             ows = WebMapService(self.service.url)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
@@ -226,7 +228,7 @@ class Layer(Resource):
             if 'ogc.se_xml' in img.info()['Content-Type']:
                 raise ValueError(img.read())
                 img = None
-        elif self.service.type == 'OGC:WMTS':
+        elif self.service.type == 'OGC_WMTS':
 
             ows = WebMapTileService(self.service.url)
             ows_layer = ows.contents[self.name]
@@ -294,47 +296,43 @@ class Layer(Resource):
             if 'ogc.se_xml' in img.info()['Content-Type']:
                 raise ValueError(img.read())
                 img = None
-        elif self.service.type == 'ESRI':
+        elif self.service.type == 'ESRI_MapServer':
             image = None
-            if re.search("\/MapServer\/*(f=json)*", self.service.url):
-                # This is a MapService
-                try:
-                    arcserver = ArcMapService(self.service.url)
-                    bbox = '%s, %s, %s, %s' % (
-                        float(self.bbox_x0),
-                        float(self.bbox_y0),
-                        float(self.bbox_x1),
-                        float(self.bbox_y1)
-                    )
+            try:
+                arcserver = ArcMapService(self.service.url)
+                bbox = '%s, %s, %s, %s' % (
+                    float(self.bbox_x0),
+                    float(self.bbox_y0),
+                    float(self.bbox_x1),
+                    float(self.bbox_y1)
+                )
 
-                    image = arcserver.ExportMap(
-                        bbox=bbox,
-                        layers='show:' + self.name,
-                        transparent='true',
-                        dpi='96',
-                        format='jpg'
-                    )
-                except Exception, e:
-                    print e
-            elif re.search("\/ImageServer\/*(f=json)*", self.service.url):
-                try:
-                    arcserver = ArcImageService(self.service.url)
-                    bbox = (
-                        str(self.bbox_x0) + ',' +
-                        str(self.bbox_y0) + ',' +
-                        str(self.bbox_x1) + ',' +
-                        str(self.bbox_y1)
-                    )
-                    image = arcserver.ExportImage(bbox=bbox)
-                except Exception, e:
-                    print e
-            else:
-                raise NotImplementedError
-            name = re.sub('[^\w\-_\. ]', '_', self.name)
-            thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
-            image.save(thumbnail_file_name)
-            img = open(thumbnail_file_name, 'r')
-            os.remove(thumbnail_file_name)
+                image = arcserver.ExportMap(
+                    bbox=bbox,
+                    layers='show:' + self.name,
+                    transparent='true',
+                    dpi='96',
+                    format='jpg'
+                )
+            except Exception, e:
+                print e
+        elif self.service.type == 'ESRI_ImageServer':
+            try:
+                arcserver = ArcImageService(self.service.url)
+                bbox = (
+                    str(self.bbox_x0) + ',' +
+                    str(self.bbox_y0) + ',' +
+                    str(self.bbox_x1) + ',' +
+                    str(self.bbox_y1)
+                )
+                image = arcserver.ExportImage(bbox=bbox)
+            except Exception, e:
+                print e
+        name = re.sub('[^\w\-_\. ]', '_', self.name)
+        thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
+        image.save(thumbnail_file_name)
+        img = open(thumbnail_file_name, 'r')
+        os.remove(thumbnail_file_name)
 
         # update thumb in model
         if img:
@@ -403,7 +401,7 @@ class Layer(Resource):
 
 def update_layers_wms(service):
     """
-    Update layers for an OGC:WMS service.
+    Update layers for an OGC_WMS service.
     """
     wms = WebMapService(service.url)
     layer_names = list(wms.contents)
@@ -433,7 +431,7 @@ def update_layers_wms(service):
 
 def update_layers_wmts(service):
     """
-    Update layers for an OGC:WMTS service.
+    Update layers for an OGC_WMTS service.
     """
     wmts = WebMapTileService(service.url)
     layer_names = list(wmts.contents)
@@ -604,82 +602,86 @@ def update_layers_warper(service):
                 add_dates_to_layer(dates, layer)
 
 
-def update_layers_esri(service):
+def update_layers_esri_mapserver(service):
     """
-    Update layers for an ESRI REST service.
+    Update layers for an ESRI REST MapServer.
     """
-    if re.search("\/MapServer\/*(f=json)*", service.url):
-        esri_service = ArcMapService(service.url)
-        # check if it has a WMS interface
-        if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
-            # we need to change the url
-            # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
-            # http://cga1.cga.harvard.edu/arcgis/services/ecuador/ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
-            wms_url = service.url.replace('/rest/services/', '/services/')
-            wms_url = wms_url.replace('?f=pjson', '/WMSServer?')
-            print 'This ESRI REST endpoint has an WMS interface to process: %s' % wms_url
-            # import here as otherwise is circular (TODO refactor)
-            from utils import create_service_from_endpoint
-            create_service_from_endpoint(wms_url, 'OGC:WMS')
-        # now process the REST interface
-        for esri_layer in esri_service.layers:
-            # in some case the json is invalid
-            # esri_layer._json_struct
-            # {u'currentVersion': 10.01,
-            # u'error':
-            # {u'message': u'An unexpected error occurred processing the request.', u'code': 500, u'details': []}}
-            if 'error' not in esri_layer._json_struct:
-                print 'Updating layer %s' % esri_layer.name
-                layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
-                if layer.active:
-                    layer.title = esri_layer.name
-                    layer.abstract = esri_service.serviceDescription
-                    layer.url = service.url
-                    # set a default srs
-                    srs = 4326
-                    try:
-                        layer.bbox_x0 = esri_layer.extent.xmin
-                        layer.bbox_y0 = esri_layer.extent.ymin
-                        layer.bbox_x1 = esri_layer.extent.xmax
-                        layer.bbox_y1 = esri_layer.extent.ymax
-                        # crsOptions
-                        srs = esri_layer.extent.spatialReference.wkid
-                        # this is needed as esri_layer.extent can fail because of custom wkid in json
-                    except KeyError:
-                        pass
-                    try:
-                        layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
-                        layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
-                        layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
-                        layer.bbox_y1 = esri_layer._json_struct['extent']['ymax']
-                        wkt_text = esri_layer._json_struct['extent']['spatialReference']['wkt']
-                        if wkt_text:
-                            params = {'exact': 'True', 'error': 'True', 'mode': 'wkt', 'terms': wkt_text}
-                            req = requests.get('http://prj2epsg.org/search.json', params=params)
-                            object = json.loads(req.content)
-                            srs = int(object['codes'][0]['code'])
-                    except Exception:
-                        pass
-                    layer.save()
-                    srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
-                    layer.srs.add(srs)
-    elif re.search("\/ImageServer\/*(f=json)*", service.url):
-        esri_service = ArcImageService(service.url)
-        obj = json.loads(esri_service._contents)
-        layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
-        if layer.active:
-            layer.title = obj['name']
-            layer.abstract = esri_service.serviceDescription
-            layer.url = service.url
-            layer.bbox_x0 = str(obj['extent']['xmin'])
-            layer.bbox_y0 = str(obj['extent']['ymin'])
-            layer.bbox_x1 = str(obj['extent']['xmax'])
-            layer.bbox_y1 = str(obj['extent']['ymax'])
-            layer.save()
-            # crsOptions
-            srs = obj['spatialReference']['wkid']
-            layer.srs.add(srs)
-            layer.save()
+    esri_service = ArcMapService(service.url)
+    # check if it has a WMS interface
+    if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
+        # we need to change the url
+        # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
+        # http://cga1.cga.harvard.edu/arcgis/services/ecuador/ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
+        wms_url = service.url.replace('/rest/services/', '/services/')
+        wms_url = wms_url.replace('?f=pjson', '/WMSServer?')
+        print 'This ESRI REST endpoint has an WMS interface to process: %s' % wms_url
+        # import here as otherwise is circular (TODO refactor)
+        from utils import create_service_from_endpoint
+        create_service_from_endpoint(wms_url, 'OGC_WMS')
+    # now process the REST interface
+    for esri_layer in esri_service.layers:
+        # in some case the json is invalid
+        # esri_layer._json_struct
+        # {u'currentVersion': 10.01,
+        # u'error':
+        # {u'message': u'An unexpected error occurred processing the request.', u'code': 500, u'details': []}}
+        if 'error' not in esri_layer._json_struct:
+            print 'Updating layer %s' % esri_layer.name
+            layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
+            if layer.active:
+                layer.title = esri_layer.name
+                layer.abstract = esri_service.serviceDescription
+                layer.url = service.url
+                # set a default srs
+                srs = 4326
+                try:
+                    layer.bbox_x0 = esri_layer.extent.xmin
+                    layer.bbox_y0 = esri_layer.extent.ymin
+                    layer.bbox_x1 = esri_layer.extent.xmax
+                    layer.bbox_y1 = esri_layer.extent.ymax
+                    # crsOptions
+                    srs = esri_layer.extent.spatialReference.wkid
+                    # this is needed as esri_layer.extent can fail because of custom wkid in json
+                except KeyError:
+                    pass
+                try:
+                    layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
+                    layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
+                    layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
+                    layer.bbox_y1 = esri_layer._json_struct['extent']['ymax']
+                    wkt_text = esri_layer._json_struct['extent']['spatialReference']['wkt']
+                    if wkt_text:
+                        params = {'exact': 'True', 'error': 'True', 'mode': 'wkt', 'terms': wkt_text}
+                        req = requests.get('http://prj2epsg.org/search.json', params=params)
+                        object = json.loads(req.content)
+                        srs = int(object['codes'][0]['code'])
+                except Exception:
+                    pass
+                layer.save()
+                srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
+                layer.srs.add(srs)
+
+
+def update_layers_esri_imageserver(service):
+    """
+    Update layers for an ESRI REST ImageServer.
+    """
+    esri_service = ArcImageService(service.url)
+    obj = json.loads(esri_service._contents)
+    layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
+    if layer.active:
+        layer.title = obj['name']
+        layer.abstract = esri_service.serviceDescription
+        layer.url = service.url
+        layer.bbox_x0 = str(obj['extent']['xmin'])
+        layer.bbox_y0 = str(obj['extent']['ymin'])
+        layer.bbox_x1 = str(obj['extent']['xmax'])
+        layer.bbox_y1 = str(obj['extent']['ymax'])
+        layer.save()
+        # crsOptions
+        srs = obj['spatialReference']['wkid']
+        srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
+        layer.srs.add(srs)
 
 
 class LayerDate(models.Model):
@@ -765,6 +767,8 @@ def endpointlist_post_save(instance, *args, **kwargs):
     f.close()
     if not settings.SKIP_CELERY_TASK:
         update_endpoints.delay(instance)
+    else:
+        update_endpoints(instance)
 
 
 def service_post_save(instance, *args, **kwargs):
@@ -773,6 +777,9 @@ def service_post_save(instance, *args, **kwargs):
     """
     if not settings.SKIP_CELERY_TASK:
         check_service.delay(instance)
+    else:
+        if not settings.TESTING:  # hack until we fix tests
+            check_service(instance)
 
 
 def layer_post_save(instance, *args, **kwargs):
@@ -781,6 +788,9 @@ def layer_post_save(instance, *args, **kwargs):
     """
     if not settings.SKIP_CELERY_TASK:
         check_layer.delay(instance)
+    else:
+        if not settings.TESTING:  # hack until we fix tests
+            check_layer(instance)
 
 
 signals.post_save.connect(endpointlist_post_save, sender=EndpointList)

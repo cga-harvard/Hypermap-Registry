@@ -1,4 +1,5 @@
 import urllib2
+import requests
 import re
 import sys
 import math
@@ -18,12 +19,17 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
     Create a service from an endpoint if it does not already exists.
     """
     if Service.objects.filter(url=endpoint).count() == 0:
-        print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
-        service = Service(
-             type=service_type, url=endpoint, title=title, abstract=abstract
-        )
-        service.save()
-        return service
+        # check if endpoint is valid
+        request = requests.get(endpoint)
+        if request.status_code == 200:
+            print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
+            service = Service(
+                 type=service_type, url=endpoint, title=title, abstract=abstract
+            )
+            service.save()
+            return service
+        else:
+            print 'This endpoint is invalid, status code is %s' % request.status_code
     else:
         print 'A service for this endpoint %s already exists' % endpoint
         return None
@@ -98,35 +104,23 @@ def create_services_from_endpoint(url):
             print str(e)
 
     # Esri
+    # a good sample is here: https://gis.ngdc.noaa.gov/arcgis/rest/services
     if not detected:
         try:
             esri = ArcFolder(endpoint)
             services = esri.services
+
             service_type = 'ESRI'
             detected = True
 
             # root
-            for esri_service in services:
-                if hasattr(esri_service, 'layers'):
-                    service = create_service_from_endpoint(
-                        esri_service.url,
-                        service_type,
-                        esri_service.mapName,
-                        esri_service.description
-                    )
-                    if service is not None:
-                        num_created = num_created + 1
+            root_services = process_esri_services(services)
+            num_created = num_created + len(root_services)
+
             # folders
             for folder in esri.folders:
-                for esri_service in folder.services:
-                    if hasattr(esri_service, 'layers'):
-                        service = create_service_from_endpoint(
-                            esri_service.url,
-                            service_type,
-                            esri_service.mapName,
-                            esri_service.description)
-                        if service is not None:
-                            num_created = num_created + 1
+                folder_services = process_esri_services(folder.services)
+                num_created = num_created + len(folder_services)
 
         except Exception as e:
             print str(e)
@@ -135,6 +129,31 @@ def create_services_from_endpoint(url):
         return True, '%s service/s created' % num_created
     else:
         return False, 'ERROR! Could not detect service type for endpoint %s or already existing' % endpoint
+
+
+def process_esri_services(esri_services):
+    services_created = []
+    for esri_service in esri_services:
+        # for now we process only MapServer and ImageServer
+        if '/MapServer/' in esri_service.url or '/ImageServer/' in esri_service.url:
+            if '/ImageServer/' in esri_service.url:
+                service = create_service_from_endpoint(
+                    esri_service.url,
+                    'ESRI_ImageServer',
+                    '',
+                    esri_service.serviceDescription
+                )
+            if '/MapServer/' in esri_service.url:
+                # we import only MapServer with at least one layer
+                if hasattr(esri_service, 'layers'):
+                    service = create_service_from_endpoint(
+                        esri_service.url,
+                        'ESRI_MapServer',
+                        esri_service.mapName,
+                        esri_service.description
+                    )
+            services_created.append(service)
+    return services_created
 
 
 def inverse_mercator(xy):

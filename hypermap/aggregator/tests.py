@@ -16,7 +16,7 @@ class AggregatorTestCase(TestCase):
             service = Service(
                 url='http://%s.fakeurl.com' % s,
                 title='Title %s' % s,
-                type='OGC:WMS',
+                type='OGC_WMS',
             )
             service.save()
             for l in range(0, 20):
