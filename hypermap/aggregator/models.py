@@ -191,6 +191,7 @@ class Layer(Resource):
     bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
+    page_url = models.URLField()
     srs = models.ManyToManyField(SpatialReferenceSystem)
     service = models.ForeignKey(Service)
 
@@ -297,7 +298,6 @@ class Layer(Resource):
                 raise ValueError(img.read())
                 img = None
         elif self.service.type == 'ESRI_MapServer':
-            image = None
             try:
                 arcserver = ArcMapService(self.service.url)
                 bbox = '%s, %s, %s, %s' % (
@@ -307,7 +307,7 @@ class Layer(Resource):
                     float(self.bbox_y1)
                 )
 
-                image = arcserver.ExportMap(
+                img = arcserver.ExportMap(
                     bbox=bbox,
                     layers='show:' + self.name,
                     transparent='true',
@@ -317,6 +317,7 @@ class Layer(Resource):
             except Exception, e:
                 print e
         elif self.service.type == 'ESRI_ImageServer':
+            image = None
             try:
                 arcserver = ArcImageService(self.service.url)
                 bbox = (
@@ -328,11 +329,11 @@ class Layer(Resource):
                 image = arcserver.ExportImage(bbox=bbox)
             except Exception, e:
                 print e
-        name = re.sub('[^\w\-_\. ]', '_', self.name)
-        thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
-        image.save(thumbnail_file_name)
-        img = open(thumbnail_file_name, 'r')
-        os.remove(thumbnail_file_name)
+            name = re.sub('[^\w\-_\. ]', '_', self.name)
+            thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
+            image.save(thumbnail_file_name)
+            img = open(thumbnail_file_name, 'r')
+            os.remove(thumbnail_file_name)
 
         # update thumb in model
         if img:
@@ -415,6 +416,7 @@ def update_layers_wms(service):
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
             layer.url = service.url
+            layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
             # bbox
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
@@ -443,6 +445,7 @@ def update_layers_wmts(service):
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
             layer.url = service.url
+            layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
             layer.bbox_y0 = bbox[1]
@@ -478,6 +481,7 @@ def update_layers_wm(service):
             title = row['title']
             abstract = row['abstract']
             bbox = row['bbox']
+            page_url = row['detail']
             category = ''
             if 'topic_category' in row:
                 category = row['topic_category']
@@ -497,6 +501,7 @@ def update_layers_wm(service):
                 layer.abstract = abstract
                 layer.is_public = is_public
                 layer.url = endpoint
+                layer.page_url = page_url
                 # category and owner username
                 layer_wm, created = LayerWM.objects.get_or_create(layer=layer, category=category, username=username)
                 # bbox
@@ -583,6 +588,7 @@ def update_layers_warper(service):
                 layer.abstract = abstract
                 layer.is_public = True
                 layer.url = '%s/wms/%s?' % (service.url, name)
+                layer.page_url = '%s/%s' % (service.url, name)
                 # bbox
                 if bbox:
                     bbox_list = bbox.split(',')
@@ -632,6 +638,7 @@ def update_layers_esri_mapserver(service):
                 layer.title = esri_layer.name
                 layer.abstract = esri_service.serviceDescription
                 layer.url = service.url
+                layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
                 # set a default srs
                 srs = 4326
                 try:
@@ -677,6 +684,7 @@ def update_layers_esri_imageserver(service):
         layer.bbox_y0 = str(obj['extent']['ymin'])
         layer.bbox_x1 = str(obj['extent']['xmax'])
         layer.bbox_y1 = str(obj['extent']['ymax'])
+        layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
         layer.save()
         # crsOptions
         srs = obj['spatialReference']['wkid']
