@@ -1,5 +1,0 @@
-[program:mapproxy]
-command = uwsgi --ini /etc/uwsgi/mapproxy.ini
-user = {{ uwsgi_user }}
-stdout_logfile = /var/log/supervisor/mapproxy.log
-redirect_stderr = true

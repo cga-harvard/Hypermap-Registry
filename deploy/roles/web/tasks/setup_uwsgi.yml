@@ -15,10 +15,6 @@
   template: src=vassals-default.skel.j2 dest=/etc/uwsgi/{{ application_name }}.ini
   sudo: yes
 
-- name: write mapproxy configuration file
-  template: src=mapproxy.j2 dest=/etc/uwsgi/mapproxy.ini
-  sudo: yes
-
 - name: write uwsgi configuration for upstart in emperor mode
   template: src=uwsgi.conf.j2 dest=/etc/init/uwsgi.conf
   sudo: yes
