@@ -8,6 +8,7 @@ urlpatterns = patterns(
     '',
     url(r'^admin/', include(admin.site.urls)),
     (r'^', include('aggregator.urls')),
+    (r'^proxymap/', include('proxymap.urls')),
 )
 
 if settings.DEBUG:

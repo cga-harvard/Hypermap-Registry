@@ -1,0 +1,36 @@
+layers:
+  - name: test
+    title: Test Layer
+    sources: [default_cache]
+
+services:
+  wms:
+     srs: ['EPSG:4326', 'CRS:83', 'EPSG:900913']
+     versions: ['1.1.1']
+     image_formats: ['image/png']
+     md:
+       title: Harvard HyperMap Proxy
+       abstract: This is the Harvard HyperMap Proxy.
+  tms:
+  demo:
+
+caches:
+  default_cache:
+    grids: [default_grid]
+    disable_storage: true
+    sources: [default_source]
+
+grids:
+  default_grid:
+    base: GLOBAL_MERCATOR
+    origin: nw
+
+sources:
+  default_source:
+    type: wms
+    coverage:
+      bbox: [-125.0, 25.0, -67.0, 50.0]
+      srs: EPSG:4326
+    req:
+      url: http://demo.geonode.org/geoserver/wms?
+      layers: boxes_with_date
