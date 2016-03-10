@@ -1,20 +1,21 @@
 # from django.shortcuts import render
 from aggregator.models import Layer
 from django.shortcuts import get_object_or_404
-from mapproxy.config.loader import load_configuration
-from mapproxy.wsgiapp import MapProxyApp
-from mapproxy.test.image import is_png
+from django.http import HttpResponse
 from django_wsgi.embedded_wsgi import call_wsgi_app
 from django_wsgi.handler import DjangoWSGIRequest
-from webtest import TestApp as TestApp_
-from itertools import chain
-from traceback import format_exc
 
-from django.conf import settings
-from django.core.handlers.wsgi import WSGIRequest, STATUS_CODE_TEXT
-from django.core.urlresolvers import RegexURLResolver
-from django.http import Http404, HttpResponseNotFound, HttpResponse
-from django.utils.html import escape
+from mapproxy.config.config import load_default_config, load_config
+from mapproxy.config.spec import validate_options
+from mapproxy.config.validator import validate_references
+from mapproxy.config.loader import ProxyConfiguration, ConfigurationError
+from mapproxy.wsgiapp import MapProxyApp
+
+from webtest import TestApp as TestApp_
+
+import logging
+log = logging.getLogger('mapproxy.config')
+
 
 class TestApp(TestApp_):
     """
@@ -24,41 +25,130 @@ class TestApp(TestApp_):
     def get(self, url, *args, **kw):
         return TestApp_.get(self, str(url), *args, **kw)
 
+def simple_name(layer_name):
+    layer_name = str(layer_name)
 
-def get_mapproxy(services_conf='/webapps/hypermap/hypermap/hypermap/boo.yaml'):
-    conf = load_configuration(mapproxy_conf=services_conf, ignore_warnings=False)
-    services = conf.configured_services()
+    if ':' in layer_name:
+        layer_name = layer_name.split(':')[1]
 
-    app = MapProxyApp(services, conf.base_config)
+    return layer_name
 
+
+def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
+    """Creates a mapproxy config for a given layers
+    """
+
+    # A source is the WMS config
+    sources = {
+      'default_source':
+        {'coverage': {
+          'bbox': [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)],
+          'srs': 'EPSG:4326',
+          'supported_srs' : ['EPSG:4326', 'EPSG:900913'],
+          },
+         'req': {
+            'layers': simple_name(layer.name),
+            'url': str(layer.service.url),
+          },
+          'type': 'wms',
+       },
+    }
+
+    # A grid is where it will be projects (Mercator in our case)
+    grids = {'default_grid':
+                 {'base': 'GLOBAL_MERCATOR',
+                 'origin': 'nw'},
+             }
+
+    # A cache that does not store for now. It needs a grid and a source.
+    caches = {'default_cache':
+               {'disable_storage': True,
+                'grids': ['default_grid'],
+                'sources': ['default_source']},
+    }
+
+    # The layer is connected to the cache
+    layers =  [
+        {'name': simple_name(layer.name),
+         'sources': ['default_cache'],
+         'title': str(layer.title),
+         },
+    ]
+
+    # Services expose all layers.
+    # WMS is used for reprojecting
+    # TMS is used for easy tiles
+    # Demo is used to test our installation, may be disabled in final version
+    services =  {
+      'wms': {'image_formats': ['image/png'],
+              'md': {'abstract': 'This is the Harvard HyperMap Proxy.',
+                     'title': 'Harvard HyperMap Proxy'},
+              'srs': ['EPSG:4326', 'CRS:83', 'EPSG:900913'],
+              'versions': ['1.1.1']},
+      'tms': None,
+      'demo': None,
+    }
+
+    # Start with a sane configuration using MapProxy's defaults
+    conf_options = load_default_config()
+
+    # Populate a dictionary with custom config changes
+    extra_config = {
+        'caches': caches,
+        'grids': grids,
+        'layers': layers,
+        'services': services,
+        'sources': sources,
+    }
+
+    # Merge both
+    load_config(conf_options, config_dict=extra_config)
+
+    # Make sure the config is valid.
+    errors, informal_only = validate_options(conf_options)
+    for error in errors:
+        log.warn(error)
+    if not informal_only or (errors and not ignore_warnings):
+        raise ConfigurationError('invalid configuration')
+
+    errors = validate_references(conf_options)
+    for error in errors:
+        log.warn(error)
+
+    conf = ProxyConfiguration(conf_options, seed=seed, renderd=renderd)
+
+    # Create a MapProxy App
+    app = MapProxyApp(conf.configured_services(), conf.base_config)
+
+    # Wrap it in an object that allows to get requests by path as a string.
     return TestApp(app)
 
 
-class ClosingIterator(object):
-    def __init__(self, iterator, close_callback):
-        self.iterator = iter(iterator)
-        self.close_callback = close_callback
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        return self.iterator.next()
-
-    def close(self):
-        self.close_callback()
-
-
 def layer_mapproxy(request,  layer_id, path_info):
+    # Get Layer with matching primary key
     layer = get_object_or_404(Layer, pk=layer_id)
 
-    mp = get_mapproxy()
+    # Set up a mapproxy app for this particular layer
+    mp = get_mapproxy(layer)
 
+    query = request.META['QUERY_STRING']
+
+    # Get a response from MapProxy as if it was running standalone.
     mp_response = mp.get(path_info)
 
+    # Create a Django response from the MapProxy WSGI response.
     response = HttpResponse(mp_response.body, status=mp_response.status_int)
-
     for header, value in mp_response.headers.iteritems():
         response[header] = value
 
     return response
+
+def layer_tms(request,  layer_id, z, y, x):
+    # Get Layer with matching primary key
+    layer = get_object_or_404(Layer, pk=layer_id)
+
+    layer_name = simple_name(layer.name)
+
+    path_info = '/tms/1.0.0/%s/%s/%s/%s.png' % (layer_name, z, y ,x)
+
+    return layer_mapproxy(request, layer_id, path_info)
