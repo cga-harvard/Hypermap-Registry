@@ -23,7 +23,9 @@
           <td>
             <ul>
             <li>Name: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
-            <li>URL: {{ layer.service.url }}</li>
+            <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
+            <li>Layer EndPoint: <a href="{{ layer.service.url }}">{{ layer.url|truncatechars:80 }}</a></li>
+            <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
           </ul>
           </td>
         </tr>
@@ -34,11 +36,15 @@
         <tr>
           <td><strong>Monitoring Period</strong></td>
           <td>
+            {% if layer.checks_count > 0 %}
             <ul>
               <li>First Check: {{ layer.first_check }}</li>
               <li>Last Check: {{ layer.last_check }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
             </ul>
+            {% else %}
+              No checks performed so far
+            {% endif %}
           </td>
         </tr>
         <tr>
@@ -123,7 +129,8 @@
 {% if user.is_superuser %}
 <form action="{% url 'layer_checks' layer.id %}" method="post">
   {% csrf_token %}
-  <input type="submit" value="Check Now!">
+  <input type="submit" name="check" value="Check now">
+  <input type="submit" name="remove" value="Remove checks">
 </form>
 {% endif %}
 

@@ -1,8 +1,10 @@
 ---
 
-# derived from https://github.com/jcalazan/ansible-django-stack
+#sudo chown -R ubuntu:ubuntu /webapps/hypermap/hypermap
+#git pull origin master
+#sudo chown -R www-data:www-data /webapps/hypermap/hypermap
 
-- name: Create a {{ application_name }} virtual machine via vagrant
+- name: Deploy the application
   hosts: tag_role_hypermap
   sudo: yes
   sudo_user: root
@@ -15,8 +17,4 @@
     - env_vars/ubuntu.yml
 
   roles:
-    - base
-    - db
-    - rabbitmq
-    - web
-    - celery
+    - deploy

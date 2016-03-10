@@ -21,7 +21,13 @@ threads = 20
 
 virtualenv = {{ virtualenv_path }}
 vacuum = true
+
 env = DJANGO_SETTINGS_MODULE={{ django_settings_file }}
+
+{% for variable_name, value in django_environment.iteritems() %}
+env = {{ variable_name }}={{ value }}
+{% endfor %}
+
 pidfile = /tmp/%n.pid
 ;harakiri = 20 # respawn processes taking more than 20 seconds
 max-requests = 5000 # respawn processes after serving 5000 requests

@@ -8,6 +8,11 @@
   <h1>Layer details for: {{ layer.name }}</h1>
 </div>
 
+<ul>
+  <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
+  <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
+</ul>
+
 <div class="layer-thumb">
   <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" />
 </div>
@@ -17,30 +22,77 @@
     <table class="table">
       <tbody>
         <tr>
-          <td><strong>Service</strong></td>
+          <td><strong>Endpoints</strong></td>
           <td>
             <ul>
             <li>Name: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
-            <li>URL: {{ layer.service.url }}</li>
+            <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
+            <li>Layer EndPoint: <a href="{{ layer.service.url }}">{{ layer.url|truncatechars:80 }}</a></li>
+            <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
           </ul>
           </td>
         </tr>
         <tr>
-          <td><strong>Name</strong></td>
-          <td>{{ layer.name }}</td>
+          <td><strong>Title</strong></td>
+          <td>{{ layer.title }}</td>
         </tr>
         <tr>
+          <td><strong>Abstract</strong></td>
+          <td>{{ layer.abstract }}</td>
+        </tr>
+        <tr>
+          <td><strong>Keywords</strong></td>
+          <td>
+            <ul>
+              {% for keyword in layer.keywords.all %}
+              <li>{{ keyword.name }}</li>
+              {% endfor %}
+          </ul>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Is Public?</strong></td>
+          <td>{{ layer.is_public }}</td>
+        </tr>
+        {% if layer.service.type = 'WM' %}
+          <tr>
+            <td><strong>Username</strong></td>
+            <td>{{ layer.layerwm.username }}</td>
+          </tr>
+          <tr>
+            <td><strong>Category</strong></td>
+            <td>{{ layer.layerwm.category }}</td>
+          </tr>
+        {% endif %}
+          <tr>
           <td><strong>Monitoring Period</strong></td>
           <td>
+            {% if layer.checks_count > 0 %}
             <ul>
               <li>First Check: {{ layer.first_check }}</li>
               <li>Last Check: {{ layer.last_check }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
               <li>Reliability: {{ layer.reliability }}</li>
-              <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
             </ul>
+            {% else %}
+              No checks performed so far
+            {% endif %}
           </td>
         </tr>
+        <tr>
+        <td><strong>Dates</strong></td>
+        <td>
+          {% if layer.layerdate_set.count > 0 %}
+          <ul>
+            {% for date in layer.layerdate_set.all %}
+              <li>{{ date.date }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+            No dates for this layer
+          {% endif %}
+        </td>
+      </tr>
         <tr>
           <td><strong>Spatial Reference Systems</strong></td>
           <td>
@@ -50,6 +102,10 @@
               {% endfor %}
           </ul>
           </td>
+        </tr>
+        <tr>
+          <td><strong>Bounding Box (x0, y0, x1, y1)</strong></td>
+          <td>{{ layer.bbox_x0|floatformat:2 }}, {{ layer.bbox_y0|floatformat:2 }}, {{ layer.bbox_x1|floatformat:2 }}, {{ layer.bbox_y1|floatformat:2 }}</td>
         </tr>
       </tbody>
     </table>

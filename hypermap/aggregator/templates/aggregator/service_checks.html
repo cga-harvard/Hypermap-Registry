@@ -111,7 +111,8 @@
 {% if user.is_superuser %}
 <form action="{% url 'service_checks' service.id %}" method="post">
   {% csrf_token %}
-  <input type="submit" value="Check Now!">
+  <input type="submit" name="check" value="Check now">
+  <input type="submit" name="remove" value="Remove checks">
 </form>
 {% endif %}
 

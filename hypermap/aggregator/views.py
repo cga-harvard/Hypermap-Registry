@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.shortcuts import render
@@ -8,7 +9,7 @@ from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
-from tasks import check_all_services, check_service, check_layer
+from tasks import check_all_services, check_service, check_layer, remove_service_checks
 from enums import SERVICE_TYPES
 
 from hypermap import celery_app
@@ -51,11 +52,14 @@ def index(request):
     if query:
         services = services.filter(url__icontains=query)
     # types filter
-    type_dict = {}
+    types_list = []
     for service_type in SERVICE_TYPES:
+        type_item = []
         service_type_code = service_type[0]
-        service_type_count = Service.objects.filter(type__exact=service_type_code).count()
-        type_dict[service_type_code] = service_type_count
+        type_item.append(service_type_code)
+        type_item.append(service_type[1])
+        type_item.append(Service.objects.filter(type__exact=service_type_code).count())
+        types_list.append(type_item)
     # stats
     layers_count = Layer.objects.all().count()
     services_count = Service.objects.all().count()
@@ -63,7 +67,7 @@ def index(request):
     template = loader.get_template('aggregator/index.html')
     context = RequestContext(request, {
         'services': services,
-        'type_dict': type_dict,
+        'types_list': types_list,
         'layers_count': layers_count,
         'services_count': services_count,
     })
@@ -79,7 +83,16 @@ def service_checks(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
     resource = serialize_checks(service.check_set)
     if request.method == 'POST':
-        check_service.delay(service)
+        if 'check' in request.POST:
+            if not settings.SKIP_CELERY_TASK:
+                check_service.delay(service)
+            else:
+                check_service(service)
+        if 'remove' in request.POST:
+            if not settings.SKIP_CELERY_TASK:
+                remove_service_checks.delay(service)
+            else:
+                remove_service_checks(service)
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
@@ -92,7 +105,14 @@ def layer_checks(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
     resource = serialize_checks(layer.check_set)
     if request.method == 'POST':
-        check_layer.delay(layer)
+        if 'check' in request.POST:
+            if not settings.SKIP_CELERY_TASK:
+                check_layer.delay(layer)
+            else:
+                check_layer(layer)
+        if 'remove' in request.POST:
+            layer.check_set.all().delete()
+
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
 
 

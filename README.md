@@ -56,8 +56,6 @@ bash-3.2$ echo $AWS_ACCESS_KEY_ID
 AKI...
 bash-3.2$ echo $AWS_SECRET_ACCESS_KEY
 djE...
-bash-3.2$ ssh-add -L
-ssh-rsa AAA... /Users/capooti/.ssh/cga.pem
 ```
 
 Also, set the ssh-agent and make sure it is running correctly:
@@ -72,3 +70,11 @@ ssh-rsa AAAAB3NzaC1yc2E... /Users/capooti/.ssh/cga.pem
 Finally run the playbook:
 
 ansible-playbook aws.yml
+
+If you want to run only a part of the provisioning process:
+
+ansible-playbook aws.yml --tags "uwsgi"
+
+To make a new deployment, after committing to Git, run:
+
+ansible-playbook deploy.yml

@@ -13,8 +13,8 @@
   <div class="row">
     <div class="col-md-6">
       Filter by:
-      {% for key, value in type_dict.items %}
-        &nbsp;<a href="?filter_by={{ key }}">{{ key }} ({{ value }})</a>
+      {% for type in types_list %}
+        &nbsp;<a href="?filter_by={{ type.0 }}">{{ type.1 }} ({{ type.2 }})</a>
       {% endfor %}
     </div>
     <div class="col-md-6">
@@ -55,7 +55,7 @@
           </tr>
         </thead>
         <tbody>
-          {% autopaginate services 5 %}
+          {% autopaginate services 10 %}
           {% for service in services %}
             <tr>
               <td>

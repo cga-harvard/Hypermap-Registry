@@ -66,3 +66,6 @@ db.sqlite3
 .vagrant
 ec2.ini
 ec2.py
+
+hypermap/media
+hypermap/settings/local_settings.py

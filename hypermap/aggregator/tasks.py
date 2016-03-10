@@ -25,9 +25,9 @@ def check_all_services(self):
 
 @shared_task(bind=True)
 def check_service(self, service):
-    # we count 1 for update_layers and 1 for service check for simplicity
-    layer_to_process = service.layer_set.all()
-    total = layer_to_process.count() + 2
+
+    # total is determined (and updated) exactly after service.update_layers
+    total = 100
 
     def status_update(count):
         if not self.request.called_directly:
@@ -38,6 +38,9 @@ def check_service(self, service):
 
     status_update(0)
     service.update_layers()
+    # we count 1 for update_layers and 1 for service check for simplicity
+    layer_to_process = service.layer_set.all()
+    total = layer_to_process.count() + 2
     status_update(1)
     service.check()
     status_update(2)
@@ -57,18 +60,40 @@ def check_layer(layer):
 
 @shared_task(name="layer_to_solr")
 def layer_to_solr(layer):
-    from aggregator.utils import OGP_utils
+    from aggregator.solr import SolrHypermap
     print 'Pushing layer %s to solr' % layer.name
-    solrobject = OGP_utils()
+    solrobject = SolrHypermap()
     solrobject.layer_to_solr(layer)
 
 
 @shared_task(name="clear_solr")
 def clear_solr():
     print 'Clearing the solr core and indexes'
-    from aggregator.utils import OGP_utils
-    solrobject = OGP_utils()
+    from aggregator.solr import SolrHypermap
+    solrobject = SolrHypermap()
     solrobject.clear_solr()
+
+
+@shared_task(bind=True)
+def remove_service_checks(self, service):
+
+    service.check_set.all().delete()
+
+    def status_update(count, total):
+        if not self.request.called_directly:
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': count, 'total': total}
+            )
+
+    layer_to_process = service.layer_set.all()
+    count = 0
+    total = layer_to_process.count()
+    for layer in layer_to_process:
+        # update state
+        status_update(count, total)
+        layer.check_set.all().delete()
+        count = count + 1
 
 
 @shared_task(bind=True)

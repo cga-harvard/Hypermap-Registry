@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import os.path
+import sys
 from datetime import timedelta
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DJANGO_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
@@ -31,7 +33,7 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
 SOLR_ENABLED = True
-SOLR_URL = "http://127.0.0.1:8983/solr/search"
+SOLR_URL = os.getenv('SOLR_URL', 'http://127.0.0.1:8983/solr/search')
 
 # Application definition
 
@@ -45,8 +47,10 @@ INSTALLED_APPS = (
     'djcelery',
     'polymorphic',
     'pagination',
+    'taggit',
     'aggregator',
     'proxymap',
+    'dynasty',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -72,14 +76,14 @@ ROOT_URLCONF = 'hypermap.urls'
 
 WSGI_APPLICATION = 'hypermap.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DATABASE_NAME', 'hypermap'),
+        'USER': os.getenv('DATABASE_USER', 'hypermap'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'hypermap'),
+        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
@@ -175,3 +179,16 @@ LOGGING = {
 
 # we need to get rid of this once we figure out how to bypass the broker in tests
 SKIP_CELERY_TASK = False
+
+# taggit
+TAGGIT_CASE_INSENSITIVE = True
+
+# WorldMap Service credentials (override this in local_settings or _ubuntu in production)
+WM_USERNAME = os.getenv('WM_USERNAME', 'hypermap')
+WM_PASSWORD = os.getenv('WM_PASSWORD', 'secret')
+
+# Load more settings from a file called local_settings.py if it exists
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    pass

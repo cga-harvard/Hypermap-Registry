@@ -16,7 +16,7 @@
   tags: nginx
 
 - include: setup_uwsgi.yml
-  tags: nginx
+  tags: uwsgi
 
 - include: set_file_permissions.yml
   tags: deploy
