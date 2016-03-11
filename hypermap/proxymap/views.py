@@ -63,9 +63,10 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     # A cache that does not store for now. It needs a grid and a source.
     caches = {'default_cache':
                {
-                'cache':
-                   {'type': 'file',
-                    'directory_layout': 'tms',},
+               'disable_storage': True,
+               'cache':
+                   {'type': 'mbtiles',
+                    'filename': '/tmp/proxymap-%s.mbtiles' % layer.id,},
                 'grids': ['default_grid'],
                 'sources': ['default_source']},
     }
