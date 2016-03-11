@@ -11,6 +11,9 @@
 <ul>
   <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
   <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
+  {% if layer.service.type == 'OGC_WMS' %}
+    <li><a href="map/demo/">Go to demo page</a></li>
+  {% endif %}
 </ul>
 
 <div class="layer-thumb">
