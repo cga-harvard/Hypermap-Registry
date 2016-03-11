@@ -133,6 +133,9 @@ def layer_mapproxy(request,  layer_id, path_info):
 
     query = request.META['QUERY_STRING']
 
+    if len(query) > 0:
+        path_info = path_info + '?' + query
+
     # Get a response from MapProxy as if it was running standalone.
     mp_response = mp.get(path_info)
 
@@ -142,6 +145,7 @@ def layer_mapproxy(request,  layer_id, path_info):
         response[header] = value
 
     return response
+
 
 def layer_tms(request,  layer_id, z, y, x):
     # Get Layer with matching primary key
