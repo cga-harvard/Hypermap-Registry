@@ -21,3 +21,5 @@ script:
 notifications:
   email:
     - pcorti@gmail.com
+    - jude@cga.harvard.edu
+    - ingenieroariel@gmail.com
