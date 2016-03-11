@@ -37,21 +37,34 @@ def simple_name(layer_name):
 def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     """Creates a mapproxy config for a given layers
     """
+    bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+
+    if layer.service.type == 'OGC_WMS':
+        default_source = {
+                 'coverage': {
+                  'bbox': bbox,
+                  'srs': 'EPSG:4326',
+                  'supported_srs' : ['EPSG:4326', 'EPSG:900913'],
+                  },
+                 'req': {
+                    'layers':  simple_name(layer.name),
+                    'url': str(layer.service.url),
+                  },
+                  'type': 'wms',
+               }
+
+    elif layer.service.type == 'ESRI_MapServer':
+        default_source = {
+                  'type': 'tile',
+                  'url': str(layer.service.url).split('?')[0] + 'tile/%(z)s/%(y)s/%(x)s',
+                  'transparent': True,
+               }
+    else:
+        assert False
 
     # A source is the WMS config
     sources = {
-      'default_source':
-        {'coverage': {
-          'bbox': [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)],
-          'srs': 'EPSG:4326',
-          'supported_srs' : ['EPSG:4326', 'EPSG:900913'],
-          },
-         'req': {
-            'layers': simple_name(layer.name),
-            'url': str(layer.service.url),
-          },
-          'type': 'wms',
-       },
+      'default_source': default_source
     }
 
     # A grid is where it will be projects (Mercator in our case)
