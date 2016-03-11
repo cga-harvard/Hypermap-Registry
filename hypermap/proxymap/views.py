@@ -62,7 +62,10 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
 
     # A cache that does not store for now. It needs a grid and a source.
     caches = {'default_cache':
-               {'disable_storage': True,
+               {
+                'cache':
+                   {'type': 'file',
+                    'directory_layout': 'tms',},
                 'grids': ['default_grid'],
                 'sources': ['default_source']},
     }
@@ -136,8 +139,18 @@ def layer_mapproxy(request,  layer_id, path_info):
     if len(query) > 0:
         path_info = path_info + '?' + query
 
+    params = {}
+    headers = {
+       'X-Script-Name': '/layer/%s/map' % layer.id,
+       'X-Forwarded-Host': request.META['HTTP_HOST'],
+       'HTTP_HOST': request.META['HTTP_HOST'],
+       'SERVER_NAME': request.META['SERVER_NAME'],
+    }
+
+
     # Get a response from MapProxy as if it was running standalone.
-    mp_response = mp.get(path_info)
+    mp_response = mp.get(path_info, params, headers)
+
 
     # Create a Django response from the MapProxy WSGI response.
     response = HttpResponse(mp_response.body, status=mp_response.status_int)
