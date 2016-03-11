@@ -406,7 +406,6 @@ class Layer(Resource):
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
             self.mine_date()
-            import ipdb;ipdb.set_trace()
             if settings.SOLR_ENABLED:
                 if not settings.SKIP_CELERY_TASK:
                     layer_to_solr.delay(self)
