@@ -186,9 +186,3 @@ TAGGIT_CASE_INSENSITIVE = True
 # WorldMap Service credentials (override this in local_settings or _ubuntu in production)
 WM_USERNAME = os.getenv('WM_USERNAME', 'hypermap')
 WM_PASSWORD = os.getenv('WM_PASSWORD', 'secret')
-
-# Load more settings from a file called local_settings.py if it exists
-try:
-    from local_settings import *  # noqa
-except ImportError:
-    pass
