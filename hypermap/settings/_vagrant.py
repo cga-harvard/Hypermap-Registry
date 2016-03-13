@@ -26,3 +26,9 @@ MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
 )
 
 INTERNAL_IPS = ('192.168.33.1',)
+
+# Load more settings from a file called local_settings.py if it exists
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    pass

@@ -108,6 +108,12 @@ class SolrHypermap(object):
             except Exception:
                 category = None
                 username = None
+
+            abstract = layer.abstract
+            if abstract:
+                abstract = strip_tags(layer.abstract)
+            else:
+                abstract = ''
             SolrHypermap.solr.add([{
                                 "LayerId": "HyperMapLayer_" + str(layer.id),
                                 "LayerName": layer.name,
@@ -122,7 +128,7 @@ class SolrHypermap(object):
                                 "Is_Public": layer.is_public,
                                 "Availability": "Online",
                                 "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                "Abstract": strip_tags(layer.abstract),
+                                "Abstract": abstract,
                                 "SrsProjectionCode": layer.srs.values_list('code', flat=True),
                                 "MinY": minY,
                                 "MinX": minX,
