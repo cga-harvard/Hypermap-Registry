@@ -13,6 +13,7 @@ from mapproxy.wsgiapp import MapProxyApp
 
 from webtest import TestApp as TestApp_
 
+import yaml
 import logging
 log = logging.getLogger('mapproxy.config')
 
@@ -57,7 +58,8 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         default_source = {
                   'type': 'tile',
                   'url': str(layer.service.url).split('?')[0] + 'tile/%(z)s/%(y)s/%(x)s',
-                  'transparent': True,
+                  'grid': 'default_grid',
+                  #'transparent': True,
                }
     else:
         assert False
@@ -68,9 +70,12 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     }
 
     # A grid is where it will be projects (Mercator in our case)
-    grids = {'default_grid':
-                 {'base': 'GLOBAL_MERCATOR',
-                 'origin': 'nw'},
+    grids = {
+             'default_grid': {
+                 'tile_size': [256, 256],
+                 'srs': 'EPSG:900913',
+                 'origin': 'nw',
+                 }
              }
 
     # A cache that does not store for now. It needs a grid and a source.
@@ -102,7 +107,9 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                      'title': 'Harvard HyperMap Proxy'},
               'srs': ['EPSG:4326', 'CRS:83', 'EPSG:900913'],
               'versions': ['1.1.1']},
-      'tms': None,
+      'tms': {
+              'origin': 'nw',
+              },
       'demo': None,
     }
 
@@ -117,6 +124,9 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         'services': services,
         'sources': sources,
     }
+
+    # for debugging
+    yaml_config = yaml.dump(extra_config, default_flow_style=False)
 
     # Merge both
     load_config(conf_options, config_dict=extra_config)
