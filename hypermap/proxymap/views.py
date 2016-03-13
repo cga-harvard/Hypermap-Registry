@@ -2,8 +2,6 @@
 from aggregator.models import Layer
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
-from django_wsgi.embedded_wsgi import call_wsgi_app
-from django_wsgi.handler import DjangoWSGIRequest
 
 from mapproxy.config.config import load_default_config, load_config
 from mapproxy.config.spec import validate_options
@@ -13,7 +11,6 @@ from mapproxy.wsgiapp import MapProxyApp
 
 from webtest import TestApp as TestApp_
 
-import yaml
 import logging
 log = logging.getLogger('mapproxy.config')
 
@@ -25,6 +22,7 @@ class TestApp(TestApp_):
     """
     def get(self, url, *args, **kw):
         return TestApp_.get(self, str(url), *args, **kw)
+
 
 def simple_name(layer_name):
     layer_name = str(layer_name)
@@ -45,13 +43,13 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                  'coverage': {
                   'bbox': bbox,
                   'srs': 'EPSG:4326',
-                  'supported_srs' : ['EPSG:4326', 'EPSG:900913'],
+                  'supported_srs': ['EPSG:4326', 'EPSG:900913'],
                   },
                  'req': {
                     'layers':  simple_name(layer.name),
                     'url': str(layer.service.url),
                   },
-                  'type': 'wms',
+                 'type': 'wms',
                }
 
     elif layer.service.type == 'ESRI_MapServer':
@@ -59,7 +57,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                   'type': 'tile',
                   'url': str(layer.service.url).split('?')[0] + 'tile/%(z)s/%(y)s/%(x)s',
                   'grid': 'default_grid',
-                  #'transparent': True,
+                  'transparent': True,
                }
     else:
         assert False
@@ -80,17 +78,19 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
 
     # A cache that does not store for now. It needs a grid and a source.
     caches = {'default_cache':
-               {
+              {
                'disable_storage': True,
                'cache':
-                   {'type': 'mbtiles',
-                    'filename': '/tmp/proxymap-%s.mbtiles' % layer.id,},
-                'grids': ['default_grid'],
-                'sources': ['default_source']},
-    }
+               {
+                   'type': 'mbtiles',
+                   'filename': '/tmp/proxymap-%s.mbtiles' % layer.id,
+               },
+               'grids': ['default_grid'],
+               'sources': ['default_source']},
+              }
 
     # The layer is connected to the cache
-    layers =  [
+    layers = [
         {'name': simple_name(layer.name),
          'sources': ['default_cache'],
          'title': str(layer.title),
@@ -101,7 +101,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     # WMS is used for reprojecting
     # TMS is used for easy tiles
     # Demo is used to test our installation, may be disabled in final version
-    services =  {
+    services = {
       'wms': {'image_formats': ['image/png'],
               'md': {'abstract': 'This is the Harvard HyperMap Proxy.',
                      'title': 'Harvard HyperMap Proxy'},
@@ -125,8 +125,10 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         'sources': sources,
     }
 
-    # for debugging
-    yaml_config = yaml.dump(extra_config, default_flow_style=False)
+    # If you want to test the resulting configuration. Turn on the next
+    # two lines and use that to generate a yaml config.
+    # yaml_config = yaml.dump(extra_config, default_flow_style=False)
+    # assert False
 
     # Merge both
     load_config(conf_options, config_dict=extra_config)
@@ -171,10 +173,8 @@ def layer_mapproxy(request,  layer_id, path_info):
        'SERVER_NAME': request.META['SERVER_NAME'],
     }
 
-
     # Get a response from MapProxy as if it was running standalone.
     mp_response = mp.get(path_info, params, headers)
-
 
     # Create a Django response from the MapProxy WSGI response.
     response = HttpResponse(mp_response.body, status=mp_response.status_int)
@@ -190,6 +190,6 @@ def layer_tms(request,  layer_id, z, y, x):
 
     layer_name = simple_name(layer.name)
 
-    path_info = '/tms/1.0.0/%s/%s/%s/%s.png' % (layer_name, z, y ,x)
+    path_info = '/tms/1.0.0/%s/%s/%s/%s.png' % (layer_name, z, y, x)
 
     return layer_mapproxy(request, layer_id, path_info)
