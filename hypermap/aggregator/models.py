@@ -34,7 +34,7 @@ class Resource(PolymorphicModel):
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
-    url = models.URLField()
+    url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
 
     def __unicode__(self):
@@ -198,7 +198,7 @@ class Layer(Resource):
     bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
-    page_url = models.URLField()
+    page_url = models.URLField(max_length=255)
     srs = models.ManyToManyField(SpatialReferenceSystem)
     service = models.ForeignKey(Service)
 
@@ -805,7 +805,7 @@ class Endpoint(models.Model):
     processed_datetime = models.DateTimeField(auto_now=True)
     imported = models.BooleanField(default=False)
     message = models.TextField(blank=True, null=True)
-    url = models.URLField(unique=True)
+    url = models.URLField(unique=True, max_length=255)
     endpoint_list = models.ForeignKey(EndpointList)
 
 
