@@ -2,6 +2,9 @@
 ;unix socket (referenced in nginx configuration)
 socket = /tmp/%n.sock
 
+# increase buffer size
+buffer-size = 32768
+
 # set mode of created UNIX socket
 chmod-socket = 666
 
