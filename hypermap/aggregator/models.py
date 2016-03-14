@@ -19,7 +19,7 @@ from dynasty.models import Dynasty
 from polymorphic.models import PolymorphicModel
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
-from arcrest import Folder as ArcFolder, MapService as ArcMapService, ImageService as ArcImageService
+from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import SERVICE_TYPES, DATE_TYPES
 from tasks import update_endpoints, check_service, check_layer, layer_to_solr
@@ -146,11 +146,15 @@ class Service(Resource):
                 ows = WebMapTileService(self.url)
                 title = ows.identification.title
             if self.type == 'ESRI_MapServer':
-                esri = ArcFolder(self.url)
-                title = esri.url
+                esri = ArcMapService(self.url)
+                title = esri.mapName
+                if len(title) == 0:
+                    title = get_esri_service_name(self.url)
             if self.type == 'ESRI_ImageServer':
-                esri = ArcFolder(self.url)
-                title = esri.url
+                esri = ArcImageService(self.url)
+                title = esri._json_struct['name']
+                if len(title) == 0:
+                    title = get_esri_service_name(self.url)
             if self.type == 'WM':
                 urllib2.urlopen(self.url)
                 title = 'Harvard WorldMap'
@@ -175,6 +179,19 @@ class Service(Resource):
         )
         check.save()
         print 'Service checked in %s seconds, status is %s' % (response_time, success)
+
+
+def get_esri_service_name(url):
+    """
+    A method to get a service name from an esri endpoint.
+    For example: http://example.com/arcgis/rest/services/myservice/mylayer/MapServer/?f=json
+    Will return: myservice/mylayer
+    """
+    result = re.search('rest/services/(.*)/[MapServer|ImageServer]', url)
+    if result is None:
+        return url
+    else:
+        return result.group(1)
 
 
 class SpatialReferenceSystem(models.Model):
