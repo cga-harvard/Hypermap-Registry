@@ -817,9 +817,12 @@ def endpointlist_post_save(instance, *args, **kwargs):
     f.open(mode='rb')
     lines = f.readlines()
     for url in lines:
-        if Endpoint.objects.filter(url=url).count() == 0:
-            endpoint = Endpoint(url=url, endpoint_list=instance)
-            endpoint.save()
+        if len(url) > 255:
+            print 'Skipping this enpoint, as it is more than 255 characters: %s' % url
+        else:
+            if Endpoint.objects.filter(url=url).count() == 0:
+                endpoint = Endpoint(url=url, endpoint_list=instance)
+                endpoint.save()
     f.close()
     if not settings.SKIP_CELERY_TASK:
         update_endpoints.delay(instance)
