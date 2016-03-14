@@ -2,8 +2,6 @@
 from aggregator.models import Layer
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
-from django_wsgi.embedded_wsgi import call_wsgi_app
-from django_wsgi.handler import DjangoWSGIRequest
 
 from mapproxy.config.config import load_default_config, load_config
 from mapproxy.config.spec import validate_options
@@ -25,6 +23,7 @@ class TestApp(TestApp_):
     def get(self, url, *args, **kw):
         return TestApp_.get(self, str(url), *args, **kw)
 
+
 def simple_name(layer_name):
     layer_name = str(layer_name)
 
@@ -37,42 +36,61 @@ def simple_name(layer_name):
 def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     """Creates a mapproxy config for a given layers
     """
+    bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+
+    if layer.service.type == 'OGC_WMS':
+        default_source = {
+                 'coverage': {
+                  'bbox': bbox,
+                  'srs': 'EPSG:4326',
+                  'supported_srs': ['EPSG:4326', 'EPSG:900913'],
+                  },
+                 'req': {
+                    'layers':  simple_name(layer.name),
+                    'url': str(layer.service.url),
+                  },
+                 'type': 'wms',
+               }
+
+    elif layer.service.type == 'ESRI_MapServer':
+        default_source = {
+                  'type': 'tile',
+                  'url': str(layer.service.url).split('?')[0] + 'tile/%(z)s/%(y)s/%(x)s',
+                  'grid': 'default_grid',
+                  'transparent': True,
+               }
+    else:
+        assert False
 
     # A source is the WMS config
     sources = {
-      'default_source':
-        {'coverage': {
-          'bbox': [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)],
-          'srs': 'EPSG:4326',
-          'supported_srs' : ['EPSG:4326', 'EPSG:900913'],
-          },
-         'req': {
-            'layers': simple_name(layer.name),
-            'url': str(layer.service.url),
-          },
-          'type': 'wms',
-       },
+      'default_source': default_source
     }
 
     # A grid is where it will be projects (Mercator in our case)
-    grids = {'default_grid':
-                 {'base': 'GLOBAL_MERCATOR',
-                 'origin': 'nw'},
+    grids = {
+             'default_grid': {
+                 'tile_size': [256, 256],
+                 'srs': 'EPSG:900913',
+                 'origin': 'nw',
+                 }
              }
 
     # A cache that does not store for now. It needs a grid and a source.
     caches = {'default_cache':
-               {
+              {
                'disable_storage': True,
                'cache':
-                   {'type': 'mbtiles',
-                    'filename': '/tmp/proxymap-%s.mbtiles' % layer.id,},
-                'grids': ['default_grid'],
-                'sources': ['default_source']},
-    }
+               {
+                   'type': 'mbtiles',
+                   'filename': '/tmp/proxymap-%s.mbtiles' % layer.id,
+               },
+               'grids': ['default_grid'],
+               'sources': ['default_source']},
+              }
 
     # The layer is connected to the cache
-    layers =  [
+    layers = [
         {'name': simple_name(layer.name),
          'sources': ['default_cache'],
          'title': str(layer.title),
@@ -83,13 +101,15 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     # WMS is used for reprojecting
     # TMS is used for easy tiles
     # Demo is used to test our installation, may be disabled in final version
-    services =  {
+    services = {
       'wms': {'image_formats': ['image/png'],
               'md': {'abstract': 'This is the Harvard HyperMap Proxy.',
                      'title': 'Harvard HyperMap Proxy'},
               'srs': ['EPSG:4326', 'CRS:83', 'EPSG:900913'],
               'versions': ['1.1.1']},
-      'tms': None,
+      'tms': {
+              'origin': 'nw',
+              },
       'demo': None,
     }
 
@@ -104,6 +124,11 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         'services': services,
         'sources': sources,
     }
+
+    # If you want to test the resulting configuration. Turn on the next
+    # two lines and use that to generate a yaml config.
+    # yaml_config = yaml.dump(extra_config, default_flow_style=False)
+    # assert False
 
     # Merge both
     load_config(conf_options, config_dict=extra_config)
@@ -148,10 +173,8 @@ def layer_mapproxy(request,  layer_id, path_info):
        'SERVER_NAME': request.META['SERVER_NAME'],
     }
 
-
     # Get a response from MapProxy as if it was running standalone.
     mp_response = mp.get(path_info, params, headers)
-
 
     # Create a Django response from the MapProxy WSGI response.
     response = HttpResponse(mp_response.body, status=mp_response.status_int)
@@ -167,6 +190,6 @@ def layer_tms(request,  layer_id, z, y, x):
 
     layer_name = simple_name(layer.name)
 
-    path_info = '/tms/1.0.0/%s/%s/%s/%s.png' % (layer_name, z, y ,x)
+    path_info = '/tms/1.0.0/%s/%s/%s/%s.png' % (layer_name, z, y, x)
 
     return layer_mapproxy(request, layer_id, path_info)
