@@ -97,6 +97,34 @@ def remove_service_checks(self, service):
 
 
 @shared_task(bind=True)
+def index_service(self, service):
+
+    # total is determined (and updated) exactly after service.update_layers
+    total = 100
+
+    def status_update(count):
+        if not self.request.called_directly:
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': count, 'total': total}
+            )
+
+    status_update(0)
+    # we count 1 for update_layers and 1 for service check for simplicity
+    layer_to_process = service.layer_set.all()
+    total = layer_to_process.count() + 2
+    status_update(1)
+    service.check()
+    status_update(2)
+    count = 3
+    for layer in layer_to_process:
+        # update state
+        status_update(count)
+        layer_to_solr(layer)
+        count = count + 1
+
+
+@shared_task(bind=True)
 def update_endpoints(self, endpoint_list):
     from aggregator.utils import create_services_from_endpoint
     # for now we process the enpoint even if they were already processed
