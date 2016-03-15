@@ -683,7 +683,10 @@ def update_layers_esri_mapserver(service):
             # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
             # http://cga1.cga.harvard.edu/arcgis/services/ecuador/ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
             wms_url = service.url.replace('/rest/services/', '/services/')
-            wms_url = wms_url.replace('?f=pjson', '/WMSServer?')
+            if '?f=pjson' in wms_url:
+                wms_url = wms_url.replace('?f=pjson', 'WMSServer?')
+            if '?f=json' in wms_url:
+                wms_url = wms_url.replace('?f=json', 'WMSServer?')
             print 'This ESRI REST endpoint has an WMS interface to process: %s' % wms_url
             # import here as otherwise is circular (TODO refactor)
             from utils import create_service_from_endpoint
