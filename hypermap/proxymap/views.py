@@ -56,6 +56,12 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         srs = 'EPSG:3857'
         bbox_srs = 'EPSG:3857'
 
+    if layer.service.type == 'WARPER':
+        url = str(layer.url.replace("maps//wms", "maps/wms"))
+
+    if layer.service.type == 'WM':
+        url = str(layer.url.replace("maps//wms", "maps/wms"))
+
     default_source = {
              'type': 'wms',
              'coverage': {
@@ -137,7 +143,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     yaml_config = yaml.dump(extra_config, default_flow_style=False)
     # If you want to test the resulting configuration. Turn on the next
     # line and use that to generate a yaml config.
-    #assert False
+    # assert False
 
     # Merge both
     load_config(conf_options, config_dict=extra_config)
@@ -159,7 +165,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     app = MapProxyApp(conf.configured_services(), conf.base_config)
 
     # Wrap it in an object that allows to get requests by path as a string.
-    return TestApp(app)
+    return TestApp(app), yaml_config
 
 
 def layer_mapproxy(request,  layer_id, path_info):
@@ -167,7 +173,7 @@ def layer_mapproxy(request,  layer_id, path_info):
     layer = get_object_or_404(Layer, pk=layer_id)
 
     # Set up a mapproxy app for this particular layer
-    mp = get_mapproxy(layer)
+    mp, yaml_config = get_mapproxy(layer)
 
     query = request.META['QUERY_STRING']
 
@@ -181,6 +187,10 @@ def layer_mapproxy(request,  layer_id, path_info):
        'HTTP_HOST': request.META['HTTP_HOST'],
        'SERVER_NAME': request.META['SERVER_NAME'],
     }
+
+    if path_info == '/config':
+        response = HttpResponse(yaml_config)
+        return response
 
     # Get a response from MapProxy as if it was running standalone.
     mp_response = mp.get(path_info, params, headers)
