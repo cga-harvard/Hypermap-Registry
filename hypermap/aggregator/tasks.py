@@ -99,8 +99,8 @@ def remove_service_checks(self, service):
 @shared_task(bind=True)
 def index_service(self, service):
 
-    # total is determined (and updated) exactly after service.update_layers
-    total = 100
+    layer_to_process = service.layer_set.all()
+    total = layer_to_process.count()
 
     def status_update(count):
         if not self.request.called_directly:
@@ -109,14 +109,7 @@ def index_service(self, service):
                 meta={'current': count, 'total': total}
             )
 
-    status_update(0)
-    # we count 1 for update_layers and 1 for service check for simplicity
-    layer_to_process = service.layer_set.all()
-    total = layer_to_process.count() + 2
-    status_update(1)
-    service.check()
-    status_update(2)
-    count = 3
+    count = 0
     for layer in layer_to_process:
         # update state
         status_update(count)
