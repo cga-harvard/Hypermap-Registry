@@ -32,6 +32,7 @@
             <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
             <li>Layer EndPoint: <a href="{{ layer.service.url }}">{{ layer.url|truncatechars:80 }}</a></li>
             <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
+            <li>Solr: <a href="{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true" target="new">{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true</a></li>
           </ul>
           </td>
         </tr>
@@ -56,10 +57,6 @@
         <tr>
           <td><strong>Is Public?</strong></td>
           <td>{{ layer.is_public }}</td>
-        </tr>
-       <tr>
-          <td><strong>Solr Endpoint</strong></td>
-          <td><a href="{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true" target="new"> Solr Endpoint</a></td>
         </tr>
         {% if layer.service.type = 'WM' %}
           <tr>
