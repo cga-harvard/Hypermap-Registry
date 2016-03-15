@@ -56,6 +56,12 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         srs = 'EPSG:3857'
         bbox_srs = 'EPSG:3857'
 
+    if layer.service.type == 'WARPER':
+        url = str(layer.url.replace("maps//wms", "maps/wms"))
+
+    if layer.service.type == 'WM':
+        url = str(layer.url.replace("maps//wms", "maps/wms"))
+
     default_source = {
              'type': 'wms',
              'coverage': {

@@ -11,7 +11,7 @@
 <ul>
   <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
   <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
-  {% if layer.service.type == 'OGC_WMS' or layer.service.type == 'ESRI_MapServer' %}
+  {% if layer.service.type == 'OGC_WMS' or layer.service.type == 'ESRI_MapServer' or layer.service.type == 'WM' or layer.service.type == 'WARPER' %}
     <li><a href="map/demo/">Go to demo page</a></li>
   {% endif %}
 </ul>
