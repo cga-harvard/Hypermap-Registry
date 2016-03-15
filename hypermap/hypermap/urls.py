@@ -10,6 +10,8 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     url(r'^layer/(?P<layer_id>\d+)/map(?P<path_info>/.*)$', layer_mapproxy, name='layer_mapproxy'),
     url(r'^layer/(?P<layer_id>\d+)/tms/(?P<z>\d+)/(?P<y>\d+)/(?P<x>\d+).png$', layer_tms, name='layer_tms'),
+    url(r'^layer/(?P<layer_id>\d+)/map/config$', layer_tms, name='layer_tms'),
+
     (r'^', include('aggregator.urls')),
 )
 
