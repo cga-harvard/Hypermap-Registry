@@ -21,6 +21,7 @@ class TestApp(TestApp_):
     Behavior changed with webtest from 1.2->1.3.
     """
     def get(self, url, *args, **kw):
+        kw['expect_errors'] = True
         return TestApp_.get(self, str(url), *args, **kw)
 
 
@@ -40,6 +41,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
 
     if layer.service.type == 'OGC_WMS':
         default_source = {
+                 'type': 'wms',
                  'coverage': {
                   'bbox': bbox,
                   'srs': 'EPSG:4326',
@@ -49,7 +51,6 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                     'layers':  simple_name(layer.name),
                     'url': str(layer.service.url),
                   },
-                 'type': 'wms',
                }
 
     elif layer.service.type == 'ESRI_MapServer':
