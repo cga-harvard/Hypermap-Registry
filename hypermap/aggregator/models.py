@@ -224,6 +224,28 @@ class Layer(Resource):
     def __unicode__(self):
         return self.name
 
+    def get_date(self):
+        date = None
+        type = 1
+        if hasattr(self, 'layerwm'):
+            if self.layerwm.temporal_extent_start and self.layerwm.temporal_extent_end:
+                date = "[%s TO %s]" % (self.layerwm.temporal_extent_start, self.layerwm.temporal_extent_end)
+            if self.layerwm.temporal_extent_end and not self.layerwm.temporal_extent_start:
+                date = self.layerwm.temporal_extent_end
+            if self.layerwm.temporal_extent_start and not self.layerwm.temporal_extent_end:
+                date = self.layerwm.temporal_extent_start
+        else:
+            if self.layerdate_set.values_list():
+                date = self.layerdate_set.values_list('date', flat=True)[0]
+                type = self.layerdate_set.values_list('type', flat=True)[0]
+            else:
+                date = self.created.date().isoformat()
+        if type == 0:
+            type = "Detected"
+        if type == 1:
+            type = "From Metadata"
+        return date, type
+
     def update_thumbnail(self):
         print 'Generating thumbnail for layer id %s' % self.id
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
@@ -373,9 +395,17 @@ class Layer(Resource):
             print 'Thumbnail updated for layer %s' % self.name
 
     def worldmap_date_miner(self):
-        year = re.search('\d{2,4} ?B?CE', str(self.title))
-        if year is None and self.abstract:
-            year = re.search('\d{2,4} ?B?CE', str(self.abstract))
+        try:
+            year = re.search('\d{2,4} ?B?CE', str(self.title))
+            if year is None and self.abstract:
+                year = re.search('\d{2,4} ?B?CE', str(self.abstract))
+        except UnicodeEncodeError:
+            try:
+                year = re.search('\d{2,4} ?B?CE', str(self.title.encode("ascii", "ignore")))
+                if year is None and self.abstract:
+                    year = re.search('\d{2,4} ?B?CE', str(self.abstract.encode("ascii", "ignore")))
+            except:
+                pass
         if year:
             # we get the year numeric as a string object
             year_str = str(int(filter(str.isdigit, year.group(0))))
@@ -403,12 +433,21 @@ class Layer(Resource):
         if self.service.type == "WM":
             self.worldmap_date_miner()
         date = None
-        year = re.search('\d{4}', str(self.title))
-        if year is None and self.abstract:
-            year = re.search('\d{4}', self.abstract)
+        try:
+            year = re.search('\d{4}', str(self.title))
+            if year is None and self.abstract:
+                year = re.search('\d{4}', str(self.abstract))
+        except UnicodeEncodeError:
+            try:
+                year = re.search('\d{4}', str(self.title.encode("ascii", "ignore")))
+                if year is None and self.abstract:
+                    year = re.search('\d{4}', str(self.abstract.encode("ascii", "ignore")))
+            except:
+                pass
         if year:
             date = parse(str(year.group(0)+'-01'+'-01'))
             self.layerdate_set.get_or_create(date=date, type=0)
+        return date
 
     def check(self):
         """
@@ -418,7 +457,6 @@ class Layer(Resource):
         start_time = datetime.datetime.utcnow()
         message = ''
         print 'Checking layer id %s' % self.id
-
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
