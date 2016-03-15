@@ -9,7 +9,8 @@ from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
-from tasks import check_all_services, check_service, check_layer, remove_service_checks, layer_to_solr, index_service
+from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
+                    layer_to_solr, index_service, index_all_layers)
 from enums import SERVICE_TYPES
 
 from hypermap import celery_app
@@ -163,7 +164,10 @@ def celery_monitor(request):
                 reserved_tasks.append(reserved_task)
 
     if request.method == 'POST':
-        check_all_services.delay()
+        if 'check_all' in request.POST:
+            check_all_services.delay()
+        if 'index_all' in request.POST:
+            index_all_layers.delay()
     return render(
         request,
         'aggregator/celery_monitor.html',
