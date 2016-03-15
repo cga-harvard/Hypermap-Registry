@@ -114,11 +114,16 @@ class SolrHypermap(object):
                 abstract = strip_tags(layer.abstract)
             else:
                 abstract = ''
+
+            if layer.service.type == "WM":
+                originator = username
+            else:
+                originator = domain
             SolrHypermap.solr.add([{
-                                "LayerId": "HyperMapLayer_" + str(layer.id),
+                                "LayerId": str(layer.id),
                                 "LayerName": layer.name,
                                 "LayerTitle": layer.title,
-                                "Originator": domain,
+                                "Originator": originator,
                                 "ServiceType": layer.service.type,
                                 "LayerCategory": category,
                                 "LayerUsername": username,

@@ -9,7 +9,7 @@ from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
-from tasks import check_all_services, check_service, check_layer, remove_service_checks
+from tasks import check_all_services, check_service, check_layer, remove_service_checks, layer_to_solr, index_service
 from enums import SERVICE_TYPES
 
 from hypermap import celery_app
@@ -93,12 +93,18 @@ def service_checks(request, service_id):
                 remove_service_checks.delay(service)
             else:
                 remove_service_checks(service)
+        if 'index' in request.POST:
+            if not settings.SKIP_CELERY_TASK:
+                index_service.delay(service)
+            else:
+                index_service(service)
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer})
+    SOLR_URL = settings.SOLR_URL
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'SOLR_URL': SOLR_URL})
 
 
 def layer_checks(request, layer_id):
@@ -112,6 +118,8 @@ def layer_checks(request, layer_id):
                 check_layer(layer)
         if 'remove' in request.POST:
             layer.check_set.all().delete()
+        if 'index' in request.POST:
+            layer_to_solr(layer)
 
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
 

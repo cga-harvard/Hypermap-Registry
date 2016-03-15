@@ -57,6 +57,10 @@
           <td><strong>Is Public?</strong></td>
           <td>{{ layer.is_public }}</td>
         </tr>
+       <tr>
+          <td><strong>Solr Endpoint</strong></td>
+          <td><a href="{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true" target="new"> Solr Endpoint</a></td>
+        </tr>
         {% if layer.service.type = 'WM' %}
           <tr>
             <td><strong>Username</strong></td>
