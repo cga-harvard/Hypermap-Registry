@@ -120,7 +120,7 @@ class SolrHypermap(object):
             else:
                 originator = domain
             SolrHypermap.solr.add([{
-                                "LayerId": "HyperMapLayer_" + str(layer.id),
+                                "LayerId": str(layer.id),
                                 "LayerName": layer.name,
                                 "LayerTitle": layer.title,
                                 "Originator": originator,

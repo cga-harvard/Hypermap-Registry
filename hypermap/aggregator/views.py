@@ -103,7 +103,8 @@ def service_checks(request, service_id):
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer})
+    SOLR_URL = settings.SOLR_URL
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'SOLR_URL': SOLR_URL})
 
 
 def layer_checks(request, layer_id):
