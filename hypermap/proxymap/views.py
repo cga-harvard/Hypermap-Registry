@@ -11,6 +11,7 @@ from mapproxy.wsgiapp import MapProxyApp
 
 from webtest import TestApp as TestApp_
 
+import yaml
 import logging
 log = logging.getLogger('mapproxy.config')
 
@@ -39,29 +40,36 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     """
     bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
 
-    if layer.service.type == 'OGC_WMS':
-        default_source = {
-                 'type': 'wms',
-                 'coverage': {
-                  'bbox': bbox,
-                  'srs': 'EPSG:4326',
-                  'supported_srs': ['EPSG:4326', 'EPSG:900913'],
-                  },
-                 'req': {
-                    'layers':  simple_name(layer.name),
-                    'url': str(layer.service.url),
-                  },
-               }
+    url = str(layer.service.url)
 
-    elif layer.service.type == 'ESRI_MapServer':
-        default_source = {
-                  'type': 'tile',
-                  'url': str(layer.service.url).split('?')[0] + 'tile/%(z)s/%(y)s/%(x)s',
-                  'grid': 'default_grid',
-                  'transparent': True,
-               }
-    else:
-        assert False
+    layer_name = simple_name(layer.name)
+
+    srs = 'EPSG:4326'
+    bbox_srs = 'EPSG:4326'
+
+    if layer.service.type == 'ESRI_MapServer':
+        url = str(layer.service.url).split('?')[0] + 'WMSServer?'
+
+        # blindly replace it with /arcgis/
+        url = url.replace("/ArcGIS/rest/", "/arcgis/")
+
+        srs = 'EPSG:3857'
+        bbox_srs = 'EPSG:3857'
+
+    default_source = {
+             'type': 'wms',
+             'coverage': {
+              'bbox': bbox,
+              'srs': srs,
+              'bbox_srs': bbox_srs,
+              'supported_srs': ['EPSG:4326', 'EPSG:900913', 'EPSG:3857'],
+              },
+             'transparent': True,
+             'req': {
+                'layers': layer_name,
+                'url': url,
+              },
+           }
 
     # A source is the WMS config
     sources = {
@@ -72,7 +80,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     grids = {
              'default_grid': {
                  'tile_size': [256, 256],
-                 'srs': 'EPSG:900913',
+                 'srs': 'EPSG:3857',
                  'origin': 'nw',
                  }
              }
@@ -92,7 +100,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
 
     # The layer is connected to the cache
     layers = [
-        {'name': simple_name(layer.name),
+        {'name': layer_name,
          'sources': ['default_cache'],
          'title': str(layer.title),
          },
@@ -106,7 +114,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
       'wms': {'image_formats': ['image/png'],
               'md': {'abstract': 'This is the Harvard HyperMap Proxy.',
                      'title': 'Harvard HyperMap Proxy'},
-              'srs': ['EPSG:4326', 'CRS:83', 'EPSG:900913'],
+              'srs': ['EPSG:4326', 'EPSG:3857'],
               'versions': ['1.1.1']},
       'tms': {
               'origin': 'nw',
@@ -126,10 +134,10 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         'sources': sources,
     }
 
+    yaml_config = yaml.dump(extra_config, default_flow_style=False)
     # If you want to test the resulting configuration. Turn on the next
-    # two lines and use that to generate a yaml config.
-    # yaml_config = yaml.dump(extra_config, default_flow_style=False)
-    # assert False
+    # line and use that to generate a yaml config.
+    #assert False
 
     # Merge both
     load_config(conf_options, config_dict=extra_config)
