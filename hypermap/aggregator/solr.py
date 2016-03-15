@@ -109,9 +109,9 @@ class SolrHypermap(object):
                 else:
                     abstract = ''
                 if layer.service.type == "WM":
-                   originator = username
+                    originator = username
                 else:
-                   originator = domain
+                    originator = domain
                 SolrHypermap.solr.add([{
                                     "LayerId": str(layer.id),
                                     "LayerName": layer.name,
@@ -143,7 +143,7 @@ class SolrHypermap(object):
                 return True
         except Exception:
             success = False
-            return false
+            return False
         print 'Layer status into solr core %s ' % (success)
 
     @staticmethod
