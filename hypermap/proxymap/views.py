@@ -70,10 +70,10 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
               'bbox_srs': bbox_srs,
               'supported_srs': ['EPSG:4326', 'EPSG:900913', 'EPSG:3857'],
               },
-             'transparent': True,
              'req': {
                 'layers': layer_name,
                 'url': url,
+                'transparent': True,
               },
            }
 
