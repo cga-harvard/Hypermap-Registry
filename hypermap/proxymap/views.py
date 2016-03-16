@@ -114,6 +114,8 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                                              '%s' % layer.id,
                                              'map',
                                              'wmts',
+                                             layer_name,
+                                             'default_grid',
                                              ),
                },
                'grids': ['default_grid'],
