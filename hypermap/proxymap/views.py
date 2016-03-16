@@ -55,6 +55,8 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
 
         # blindly replace it with /arcgis/
         url = url.replace("/ArcGIS/rest/", "/arcgis/")
+        # same for uppercase
+        url = url.replace("/arcgis/rest/", "/arcgis/")
 
         srs = 'EPSG:3857'
         bbox_srs = 'EPSG:3857'
