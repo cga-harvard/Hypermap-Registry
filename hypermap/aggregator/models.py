@@ -238,8 +238,15 @@ class Layer(Resource):
             if self.layerdate_set.values_list():
                 date = self.layerdate_set.values_list('date', flat=True)[0]
                 type = self.layerdate_set.values_list('type', flat=True)[0]
-            else:
-                date = self.created.date().isoformat()
+        if date is None:
+            date = self.created.date().isoformat()
+        if 'TO' not in date:
+            dates_info = date.split('-')
+            if len(dates_info) != 3:
+                if len(dates_info) == 2:
+                    date = parse(str(date+'-01')).isoformat()
+                else:
+                    date = parse(str(date+'-01'+'-01')).isoformat()
         if type == 0:
             type = "Detected"
         if type == 1:

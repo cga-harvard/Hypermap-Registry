@@ -3,8 +3,10 @@ import requests
 import logging
 import math
 import json
+import re
 
 from urlparse import urlparse
+from dateutil.parser import parse
 from django.conf import settings
 from django.utils.html import strip_tags
 
@@ -112,6 +114,10 @@ class SolrHypermap(object):
                     originator = username
                 else:
                     originator = domain
+                date = layer.get_date()[0]
+                if 'TO' in layer.get_date()[0]:
+                    date = re.findall('\d{4}', layer.get_date()[0])[0]
+                    date = parse(str(date+'-01'+'-01'))
                 SolrHypermap.solr.add([{
                                     "LayerId": str(layer.id),
                                     "LayerName": layer.name,
@@ -122,7 +128,8 @@ class SolrHypermap(object):
                                     "LayerUsername": username,
                                     "LayerUrl": layer.url,
                                     "LayerReliability": layer.reliability,
-                                    "LayerDate": layer.get_date()[0],
+                                    "LayerDate": date,
+                                    "LayerDateRange": layer.get_date()[0],
                                     "LayerDateType": layer.get_date()[1],
                                     "Is_Public": layer.is_public,
                                     "Availability": "Online",
