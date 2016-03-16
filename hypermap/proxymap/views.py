@@ -193,7 +193,7 @@ def layer_mapproxy(request,  layer_id, path_info):
     }
 
     if path_info == '/config':
-        response = HttpResponse(yaml_config)
+        response = HttpResponse(yaml_config, content_type='text/plain')
         return response
 
     # Get a response from MapProxy as if it was running standalone.
