@@ -62,7 +62,6 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         # in uppercase or lowercase
         url = url.replace("arcx/rest/services", "arcx/services")
 
-
         srs = 'EPSG:3857'
         bbox_srs = 'EPSG:3857'
 
@@ -134,7 +133,11 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                      'title': 'Harvard HyperMap Proxy'},
               'srs': ['EPSG:4326', 'EPSG:3857'],
               'versions': ['1.1.1']},
-      'wmts': None,
+      'wmts': {
+              'restful': True,
+              'restful_template':
+              '/{Layer}-{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.png',
+              },
       'tms': {
               'origin': 'nw',
               },
