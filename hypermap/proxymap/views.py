@@ -50,7 +50,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     bbox_srs = 'EPSG:4326'
     grid_srs = 'EPSG:3857'
 
-    if layer.service.type == 'ESRI_MapServer':
+    if layer.service.type == 'ESRI_MapServer' or layer.service.type == 'ESRI_ImageServer':
         url = str(layer.service.url).split('?')[0] + 'WMSServer?'
 
         # blindly replace it with /arcgis/
