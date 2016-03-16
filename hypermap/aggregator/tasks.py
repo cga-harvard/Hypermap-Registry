@@ -118,6 +118,11 @@ def index_service(self, service):
 
 
 @shared_task(bind=True)
+def index_layer(self, layer):
+    layer_to_solr(layer)
+
+
+@shared_task(bind=True)
 def index_all_layers(self):
     from aggregator.models import Layer
     clear_solr()
@@ -131,7 +136,7 @@ def index_all_layers(self):
                 state='PROGRESS',
                 meta={'current': count, 'total': total}
             )
-        layer_to_solr(layer)
+        index_layer.delay(layer)
         count = count + 1
 
 
