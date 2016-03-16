@@ -136,7 +136,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
       'wmts': {
               'restful': True,
               'restful_template':
-              '/{Layer}-{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.png',
+              '/{Layer}/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.png',
               },
       'tms': {
               'origin': 'nw',
