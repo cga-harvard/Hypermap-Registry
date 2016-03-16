@@ -139,10 +139,11 @@ class SolrHypermap(object):
                                     "HalfHeight": halfHeight,
                                     "Area": area,
                                     "bbox": wkt}])
-                SolrHypermap.logger.error("solr record saved: " + layer.title)
+                SolrHypermap.logger.info("Solr record saved: " + layer.title)
                 return True
         except Exception:
             success = False
+            SolrHypermap.logger.error("Error svaing solr record for layer: " + layer.title)
             return False
         print 'Layer status into solr core %s ' % (success)
 
