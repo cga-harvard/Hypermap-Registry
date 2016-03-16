@@ -48,6 +48,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
 
     srs = 'EPSG:4326'
     bbox_srs = 'EPSG:4326'
+    grid_srs = 'EPSG:3857'
 
     if layer.service.type == 'ESRI_MapServer':
         url = str(layer.service.url).split('?')[0] + 'WMSServer?'
@@ -60,6 +61,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
 
     if layer.service.type == 'WARPER':
         url = str(layer.url.replace("maps//wms", "maps/wms"))
+        grid_srs = 'EPSG:900913'
 
     if layer.service.type == 'WM':
         url = str(layer.url.replace("maps//wms", "maps/wms"))
@@ -88,7 +90,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     grids = {
              'default_grid': {
                  'tile_size': [256, 256],
-                 'srs': 'EPSG:3857',
+                 'srs': grid_srs,
                  'origin': 'nw',
                  }
              }
