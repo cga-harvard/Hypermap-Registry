@@ -105,7 +105,8 @@
 
 <form action="." method="post">
   {% csrf_token %}
-  <input type="submit" value="Check All Services (Memory Intensive!)">
+  <input type="submit" name='check_all' value="Check all services">
+  <input type="submit" name='index_all' value="Reindex all layers in Solr">
 </form>
 {% endif %}
 

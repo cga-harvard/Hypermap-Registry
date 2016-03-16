@@ -118,6 +118,24 @@ def index_service(self, service):
 
 
 @shared_task(bind=True)
+def index_all_layers(self):
+    from aggregator.models import Layer
+    clear_solr()
+    layer_to_processes = Layer.objects.all()
+    total = layer_to_processes.count()
+    count = 0
+    for layer in Layer.objects.all():
+        # update state
+        if not self.request.called_directly:
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': count, 'total': total}
+            )
+        layer_to_solr(layer)
+        count = count + 1
+
+
+@shared_task(bind=True)
 def update_endpoints(self, endpoint_list):
     from aggregator.utils import create_services_from_endpoint
     # for now we process the enpoint even if they were already processed

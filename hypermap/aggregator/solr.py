@@ -59,93 +59,92 @@ class SolrHypermap(object):
 
     @staticmethod
     def layer_to_solr(layer, i=0):
-        bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
-        for proj in layer.srs.values():
-            if proj['code'] in ('102113', '102100'):
-                bbox = mercator_to_llbbox(bbox)
-        # We check if the any date has been mined and retrieve the
-        # first on the index,will enhance this later when we have dateranges to solr
-        if layer.layerdate_set.values_list():
-            date = layer.layerdate_set.values_list('date', flat=True)[0]
-        else:
-            date = layer.created
-        if (SolrHypermap.good_coords(bbox)) is False:
-            print 'no coords in layer ', layer.title
-            return
-        if (SolrHypermap.good_coords(bbox)):
-            print 'in solr.layer_to_solr, bbox = ', bbox
-            minX = bbox[0]
-            minY = bbox[1]
-            maxX = bbox[2]
-            maxY = bbox[3]
-            if (minY > maxY):
-                tmp = minY
-                minY = maxY
-                maxY = tmp
-            if (minX > maxX):
-                tmp = minX
-                minX = maxX
-                maxX = tmp
-            centerY = (maxY + minY) / 2.0
-            centerX = (maxX + minX) / 2.0
-            halfWidth = (maxX - minX) / 2.0
-            halfHeight = (maxY - minY) / 2.0
-            area = (halfWidth * 2) * (halfHeight * 2)
-            if (minX < -180):
-                minX = -180
-            if (maxX > 180):
-                maxX = 180
-            if (minY < -90):
-                minY = -90
-            if (maxY > 90):
-                maxY = 90
-            # ENVELOPE(minX, maxX, maxY, minY) per https://github.com/spatial4j/spatial4j/issues/36
-            wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
-            domain = SolrHypermap.get_domain(layer.service.url)
-            try:
-                category = layer.layerwm.category
-                username = layer.layerwm.username
-            except Exception:
-                category = None
-                username = None
-
-            abstract = layer.abstract
-            if abstract:
-                abstract = strip_tags(layer.abstract)
-            else:
-                abstract = ''
-
-            if layer.service.type == "WM":
-                originator = username
-            else:
-                originator = domain
-            SolrHypermap.solr.add([{
-                                "LayerId": str(layer.id),
-                                "LayerName": layer.name,
-                                "LayerTitle": layer.title,
-                                "Originator": originator,
-                                "ServiceType": layer.service.type,
-                                "LayerCategory": category,
-                                "LayerUsername": username,
-                                "LayerUrl": layer.url,
-                                "LayerReliability": layer.reliability,
-                                "LayerDate": date,
-                                "Is_Public": layer.is_public,
-                                "Availability": "Online",
-                                "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                "Abstract": abstract,
-                                "SrsProjectionCode": layer.srs.values_list('code', flat=True),
-                                "MinY": minY,
-                                "MinX": minX,
-                                "MaxY": maxY,
-                                "MaxX": maxX,
-                                "CenterY": centerY,
-                                "CenterX": centerX,
-                                "HalfWidth": halfWidth,
-                                "HalfHeight": halfHeight,
-                                "Area": area,
-                                "bbox": wkt}])
-            SolrHypermap.logger.error("solr record saved: " + layer.title)
+        success = True
+        category = None
+        username = None
+        try:
+            bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+            for proj in layer.srs.values():
+                if proj['code'] in ('102113', '102100'):
+                    bbox = mercator_to_llbbox(bbox)
+            if (SolrHypermap.good_coords(bbox)) is False:
+                print 'no coords in layer ', layer.title
+                return
+            if (SolrHypermap.good_coords(bbox)):
+                print 'in solr.layer_to_solr, bbox = ', bbox
+                minX = bbox[0]
+                minY = bbox[1]
+                maxX = bbox[2]
+                maxY = bbox[3]
+                if (minY > maxY):
+                    tmp = minY
+                    minY = maxY
+                    maxY = tmp
+                if (minX > maxX):
+                    tmp = minX
+                    minX = maxX
+                    maxX = tmp
+                centerY = (maxY + minY) / 2.0
+                centerX = (maxX + minX) / 2.0
+                halfWidth = (maxX - minX) / 2.0
+                halfHeight = (maxY - minY) / 2.0
+                area = (halfWidth * 2) * (halfHeight * 2)
+                if (minX < -180):
+                    minX = -180
+                if (maxX > 180):
+                    maxX = 180
+                if (minY < -90):
+                    minY = -90
+                if (maxY > 90):
+                    maxY = 90
+                # ENVELOPE(minX, maxX, maxY, minY) per https://github.com/spatial4j/spatial4j/issues/36
+                wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
+                domain = SolrHypermap.get_domain(layer.service.url)
+                if hasattr(layer, 'layerwm'):
+                    category = layer.layerwm.category
+                    username = layer.layerwm.username
+                abstract = layer.abstract
+                if abstract:
+                    abstract = strip_tags(layer.abstract)
+                else:
+                    abstract = ''
+                if layer.service.type == "WM":
+                    originator = username
+                else:
+                    originator = domain
+                SolrHypermap.solr.add([{
+                                    "LayerId": str(layer.id),
+                                    "LayerName": layer.name,
+                                    "LayerTitle": layer.title,
+                                    "Originator": originator,
+                                    "ServiceType": layer.service.type,
+                                    "LayerCategory": category,
+                                    "LayerUsername": username,
+                                    "LayerUrl": layer.url,
+                                    "LayerReliability": layer.reliability,
+                                    "LayerDate": layer.get_date()[0],
+                                    "LayerDateType": layer.get_date()[1],
+                                    "Is_Public": layer.is_public,
+                                    "Availability": "Online",
+                                    "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                                    "Abstract": abstract,
+                                    "SrsProjectionCode": layer.srs.values_list('code', flat=True),
+                                    "MinY": minY,
+                                    "MinX": minX,
+                                    "MaxY": maxY,
+                                    "MaxX": maxX,
+                                    "CenterY": centerY,
+                                    "CenterX": centerX,
+                                    "HalfWidth": halfWidth,
+                                    "HalfHeight": halfHeight,
+                                    "Area": area,
+                                    "bbox": wkt}])
+                SolrHypermap.logger.error("solr record saved: " + layer.title)
+                return True
+        except Exception:
+            success = False
+            return False
+        print 'Layer status into solr core %s ' % (success)
 
     @staticmethod
     def clear_solr():
