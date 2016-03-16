@@ -58,14 +58,6 @@ def check_layer(layer):
     layer.check()
 
 
-@shared_task(name="layer_to_solr")
-def layer_to_solr(layer):
-    from aggregator.solr import SolrHypermap
-    print 'Pushing layer %s to solr' % layer.name
-    solrobject = SolrHypermap()
-    solrobject.layer_to_solr(layer)
-
-
 @shared_task(name="clear_solr")
 def clear_solr():
     print 'Clearing the solr core and indexes'
@@ -113,13 +105,16 @@ def index_service(self, service):
     for layer in layer_to_process:
         # update state
         status_update(count)
-        layer_to_solr(layer)
+        index_layer(layer)
         count = count + 1
 
 
 @shared_task(bind=True)
 def index_layer(self, layer):
-    layer_to_solr(layer)
+    from aggregator.solr import SolrHypermap
+    print 'Pushing layer %s to solr' % layer.name
+    solrobject = SolrHypermap()
+    solrobject.layer_to_solr(layer)
 
 
 @shared_task(bind=True)
