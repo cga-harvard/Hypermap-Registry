@@ -32,7 +32,12 @@ server {
         if (-f {{ virtualenv_path }}/maintenance_on.html) {
             return 503;
         }
-        uwsgi_pass  unix:///tmp/{{ application_name }}.sock;
+        root /tmp/mapproxy/;
+        try_files $uri @django;
+    }
+
+    location @django {
+        uwsgi_pass  unix:///tmp/hypermap.sock;
         include     /etc/nginx/uwsgi_params;
     }
 

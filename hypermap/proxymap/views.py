@@ -107,9 +107,16 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                'cache':
                {
                    'type': 'file',
+                   'directory_layout': 'tms',
                    'directory': os.path.join(tempfile.gettempdir(),
                                              'mapproxy',
-                                             'hypermap-%s' % layer.id),
+                                             'layer',
+                                             '%s' % layer.id,
+                                             'map',
+                                             'wmts',
+                                             layer_name,
+                                             'default_grid',
+                                             ),
                },
                'grids': ['default_grid'],
                'sources': ['default_source']},
