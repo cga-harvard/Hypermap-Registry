@@ -125,6 +125,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
                      'title': 'Harvard HyperMap Proxy'},
               'srs': ['EPSG:4326', 'EPSG:3857'],
               'versions': ['1.1.1']},
+      'wmts': None,
       'tms': {
               'origin': 'nw',
               },
