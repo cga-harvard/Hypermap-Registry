@@ -62,7 +62,6 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         # in uppercase or lowercase
         url = url.replace("arcx/rest/services", "arcx/services")
 
-
         srs = 'EPSG:3857'
         bbox_srs = 'EPSG:3857'
 
