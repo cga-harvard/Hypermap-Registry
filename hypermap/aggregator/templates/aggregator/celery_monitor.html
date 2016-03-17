@@ -85,7 +85,7 @@ setInterval(function(){
 }, 3000);
 </script>
 
-<span id="jobs_number">0</span> jobs are in the queue, these are the reserved (prefetched) ones:
+<span id="jobs_number">{{ jobs }}</span> jobs are in the queue, these are the reserved (prefetched) ones:
 
 {% if active_tasks %}
   <div class="row">
