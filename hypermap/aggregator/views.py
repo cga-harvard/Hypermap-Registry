@@ -1,3 +1,4 @@
+import urllib2
 import json
 
 from django.conf import settings
@@ -10,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
-                   layer_to_solr, index_service, index_all_layers)
+                   index_service, index_all_layers, index_layer)
 from enums import SERVICE_TYPES
 
 from hypermap import celery_app
@@ -33,9 +34,23 @@ def serialize_checks(check_set):
 
 
 def index(request):
-    # services = Service.objects.annotate(
-    #    num_checks=Count('resource_ptr__check')).filter(num_checks__gt=0)
-    # services = Service.objects.filter(check__isnull=False)
+    url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=DomainName,ServiceId&wt=json&indent=true&rows=0'
+           % settings.SOLR_URL)
+    response = urllib2.urlopen(url)
+    data = response.read().replace('\n', '')
+    # stats
+    layers_count = Layer.objects.all().count()
+    services_count = Service.objects.all().count()
+    template = loader.get_template('aggregator/index.html')
+    context = RequestContext(request, {
+        'data': data,
+        'layers_count': layers_count,
+        'services_count': services_count,
+    })
+    return HttpResponse(template.render(context))
+
+
+def search(request):
     order_by = request.GET.get('order_by', '-last_updated')
     filter_by = request.GET.get('filter_by', None)
     query = request.GET.get('q', None)
@@ -61,16 +76,11 @@ def index(request):
         type_item.append(service_type[1])
         type_item.append(Service.objects.filter(type__exact=service_type_code).count())
         types_list.append(type_item)
-    # stats
-    layers_count = Layer.objects.all().count()
-    services_count = Service.objects.all().count()
 
-    template = loader.get_template('aggregator/index.html')
+    template = loader.get_template('aggregator/search.html')
     context = RequestContext(request, {
         'services': services,
         'types_list': types_list,
-        'layers_count': layers_count,
-        'services_count': services_count,
     })
     return HttpResponse(template.render(context))
 
@@ -120,7 +130,10 @@ def layer_checks(request, layer_id):
         if 'remove' in request.POST:
             layer.check_set.all().delete()
         if 'index' in request.POST:
-            layer_to_solr(layer)
+            if not settings.SKIP_CELERY_TASK:
+                index_layer.delay(layer)
+            else:
+                index_layer(layer)
 
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
 

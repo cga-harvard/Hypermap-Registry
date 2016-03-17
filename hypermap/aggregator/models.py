@@ -22,7 +22,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import SERVICE_TYPES, DATE_TYPES
-from tasks import update_endpoints, check_service, check_layer, layer_to_solr
+from tasks import update_endpoints, check_service, check_layer, index_layer
 
 
 class Resource(PolymorphicModel):
@@ -238,8 +238,15 @@ class Layer(Resource):
             if self.layerdate_set.values_list():
                 date = self.layerdate_set.values_list('date', flat=True)[0]
                 type = self.layerdate_set.values_list('type', flat=True)[0]
-            else:
-                date = self.created.date().isoformat()
+        if date is None:
+            date = self.created.date().isoformat()
+        if 'TO' not in date:
+            dates_info = date.split('-')
+            if len(dates_info) != 3:
+                if len(dates_info) == 2:
+                    date = parse(str(date+'-01')).isoformat()
+                else:
+                    date = parse(str(date+'-01'+'-01')).isoformat()
         if type == 0:
             type = "Detected"
         if type == 1:
@@ -463,9 +470,9 @@ class Layer(Resource):
             self.mine_date()
             if settings.SOLR_ENABLED:
                 if not settings.SKIP_CELERY_TASK:
-                    layer_to_solr.delay(self)
+                    index_layer.delay(self)
                 else:
-                    layer_to_solr(self)
+                    index_layer(self)
             signals.post_save.connect(layer_post_save, sender=Layer)
 
         except Exception, err:

@@ -1,10 +1,13 @@
+import sys
 import pysolr
 import requests
 import logging
 import math
 import json
+import re
 
 from urlparse import urlparse
+from dateutil.parser import parse
 from django.conf import settings
 from django.utils.html import strip_tags
 
@@ -112,17 +115,23 @@ class SolrHypermap(object):
                     originator = username
                 else:
                     originator = domain
+                date = layer.get_date()[0]
+                if 'TO' in layer.get_date()[0]:
+                    date = re.findall('\d{4}', layer.get_date()[0])[0]
+                    date = parse(str(date+'-01'+'-01'))
                 SolrHypermap.solr.add([{
                                     "LayerId": str(layer.id),
                                     "LayerName": layer.name,
                                     "LayerTitle": layer.title,
                                     "Originator": originator,
+                                    "ServiceId": str(layer.service.id),
                                     "ServiceType": layer.service.type,
                                     "LayerCategory": category,
                                     "LayerUsername": username,
                                     "LayerUrl": layer.url,
                                     "LayerReliability": layer.reliability,
-                                    "LayerDate": layer.get_date()[0],
+                                    "LayerDate": date,
+                                    "LayerDateRange": layer.get_date()[0],
                                     "LayerDateType": layer.get_date()[1],
                                     "Is_Public": layer.is_public,
                                     "Availability": "Online",
@@ -138,12 +147,15 @@ class SolrHypermap(object):
                                     "HalfWidth": halfWidth,
                                     "HalfHeight": halfHeight,
                                     "Area": area,
-                                    "bbox": wkt}])
+                                    "bbox": wkt,
+                                    "DomainName": layer.service.get_domain,
+                                    }])
                 SolrHypermap.logger.info("Solr record saved for layer with id: %s" % layer.id)
                 return True
         except Exception:
             success = False
-            SolrHypermap.logger.error("Error svaing solr record for layer with id: %s" % layer.id)
+            SolrHypermap.logger.error("Error saving solr record for layer with id: %s - %s"
+                                      % (layer.id, sys.exc_info()[1]))
             return False
         print 'Layer status into solr core %s ' % (success)
 

@@ -1,0 +1,105 @@
+Alabama ,AL ,Ala ,Ala 
+
+Alaska ,AK ,Alaska ,Alas
+
+Arizona ,AZ ,Ariz ,Ariz 
+
+Arkansas ,AR ,Ark ,Ark 
+
+California ,CA ,Calif ,Calif 
+
+Colorado ,CO ,Colo ,Colo 
+
+Connecticut ,CT ,Conn ,Conn 
+
+Delaware ,DE ,Del ,Del 
+
+District of Columbia ,DC ,DC ,DC 
+
+Florida ,FL ,Fla ,Fla 
+
+Georgia ,GA ,Ga ,Ga 
+
+Hawaii ,HI ,Hawaii ,Hawaii 
+
+Idaho ,ID ,Idaho ,Idaho 
+
+Illinois ,IL ,Ill ,Ill 
+
+Indiana ,IN ,Ind ,Ind 
+
+Iowa ,IA ,Iowa ,Iowa 
+
+Kansas ,KS ,Kans ,Kan 
+
+Kentucky ,KY ,Ky ,Ky 
+
+Louisiana ,LA ,La ,La 
+
+Maine ,ME ,Maine ,Maine 
+
+Maryland ,MD ,Md ,Md 
+
+Massachusetts ,MA ,Mass ,Mass 
+
+Michigan ,MI ,Mich ,Mich 
+
+Minnesota ,MN ,Minn ,Minn 
+
+Mississippi ,MS ,Miss ,Miss 
+
+Missouri ,MO ,Mo ,Mo 
+
+Montana ,MT ,Mont ,Mont 
+
+Nebraska ,NE ,Nebr ,Neb 
+
+Nevada ,NV ,Nev ,Nev 
+
+New Hampshire ,NH ,NH ,NH 
+
+New Jersey ,NJ ,NJ ,NJ 
+
+New Mexico ,NM ,N Mex ,NM 
+
+New York ,NY ,NY ,NY 
+
+North Carolina ,NC ,NC ,N Car
+
+North Dakota ,ND ,N Dak ,ND 
+
+Ohio ,OH ,Ohio ,Ohio 
+
+Oklahoma ,OK ,Okla ,Okla 
+
+Oregon ,OR ,Oreg ,Ore 
+
+Pennsylvania ,PA ,Pa ,Penn
+
+Rhode Island ,RI ,RI ,RI 
+
+South Carolina ,SC ,SC ,S Car
+
+South Dakota ,SD ,S Dak ,SD 
+
+Tennessee ,TN ,Tenn ,Tenn 
+
+Texas ,TX ,Tex ,Texas 
+
+Utah ,UT ,Utah ,Utah 
+
+Vermont ,VT ,Vt ,Vt 
+
+Virginia ,VA ,Va ,Virg 
+
+Washington ,WA ,Wash ,Wash 
+
+West Virginia ,WV ,W Va ,WVa 
+
+Wisconsin ,WI ,Wis ,Wisc
+
+Wyoming ,WY ,Wyo ,Wyo 
+
+Puerto Rico,PR,PR,
+
+
