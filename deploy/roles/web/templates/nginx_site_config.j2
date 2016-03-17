@@ -1,11 +1,3 @@
-upstream {{ application_name }}_wsgi_server {
-  # fail_timeout=0 means we always retry an upstream even if it failed
-  # to return a good HTTP response (in case the Unicorn master nukes a
-  # single worker for timing out).
-
-  server unix:{{ virtualenv_path }}/run/gunicorn.sock fail_timeout=0;
-}
-
 server {
     listen      80;
     server_name {{ nginx_server_name }};
@@ -23,15 +15,8 @@ server {
         alias   {{ nginx_media_dir }};
     }
 
-    location /mapproxy/ {
-        uwsgi_pass  unix:///tmp/mapproxy.sock;
-        include     /etc/nginx/uwsgi_params;
-    }
-
     location / {
-        if (-f {{ virtualenv_path }}/maintenance_on.html) {
-            return 503;
-        }
+        # Try to serve files from the mapproxy nginx cache before hitting django
         root /tmp/mapproxy/;
         try_files $uri @django;
     }
