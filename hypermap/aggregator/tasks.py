@@ -16,10 +16,7 @@ def check_all_services(self):
                 state='PROGRESS',
                 meta={'current': count, 'total': total}
             )
-        service.update_layers()
-        service.check()
-        for layer in service.layer_set.all():
-            layer.check()
+        check_service.delay(service)
         count = count + 1
 
 
