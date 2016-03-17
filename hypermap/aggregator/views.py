@@ -175,6 +175,13 @@ def celery_monitor(request):
                 reserved_task.args = args
                 reserved_task.worker = worker
                 reserved_tasks.append(reserved_task)
+    # to detect tasks in the queued the only way is to use amqplib so far
+    # TODO secure broker password
+    from amqplib import client_0_8 as amqp
+    conn = amqp.Connection(host='localhost:5672', userid='hypermap',
+                           password='hypermap', virtual_host='hypermap', insist=False)
+    chan = conn.channel()
+    name, jobs, consumers = chan.queue_declare(queue="celery", passive=True)
 
     if request.method == 'POST':
         if 'check_all' in request.POST:
@@ -186,7 +193,8 @@ def celery_monitor(request):
         'aggregator/celery_monitor.html',
         {
             'active_tasks': active_tasks,
-            'reserved_tasks': reserved_tasks
+            'reserved_tasks': reserved_tasks,
+            'jobs': jobs,
         }
     )
 
