@@ -1,3 +1,4 @@
+import sys
 import pysolr
 import requests
 import logging
@@ -123,6 +124,7 @@ class SolrHypermap(object):
                                     "LayerName": layer.name,
                                     "LayerTitle": layer.title,
                                     "Originator": originator,
+                                    "ServiceId": str(layer.service.id),
                                     "ServiceType": layer.service.type,
                                     "LayerCategory": category,
                                     "LayerUsername": username,
@@ -145,12 +147,15 @@ class SolrHypermap(object):
                                     "HalfWidth": halfWidth,
                                     "HalfHeight": halfHeight,
                                     "Area": area,
-                                    "bbox": wkt}])
+                                    "bbox": wkt,
+                                    "DomainName": layer.service.get_domain,
+                                    }])
                 SolrHypermap.logger.info("Solr record saved for layer with id: %s" % layer.id)
                 return True
         except Exception:
             success = False
-            SolrHypermap.logger.error("Error svaing solr record for layer with id: %s" % layer.id)
+            SolrHypermap.logger.error("Error saving solr record for layer with id: %s - %s"
+                                      % (layer.id, sys.exc_info()[1]))
             return False
         print 'Layer status into solr core %s ' % (success)
 

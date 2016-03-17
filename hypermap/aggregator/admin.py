@@ -8,7 +8,7 @@ from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
 
 class ServiceAdmin(admin.ModelAdmin):
     model = Service
-    list_display = ('id', 'type', 'title', 'active', )
+    list_display = ('id', 'type', 'title', 'active', 'url', )
     list_display_links = ('id', )
     search_fields = ['title', 'url', ]
     list_filter = ('type', )
