@@ -6,3 +6,8 @@
     - libjpeg-dev
     - python-imaging
     - vim
+    - libgeos-dev
+    - python-lxml
+    - libgdal-dev
+    - python-shapely
+    - libproj0
