@@ -5,6 +5,7 @@ import logging
 import math
 import json
 import re
+import datetime
 
 from urlparse import urlparse
 from dateutil.parser import parse
@@ -14,11 +15,62 @@ from django.utils.html import strip_tags
 from aggregator.utils import mercator_to_llbbox
 
 
+def get_date(layer):
+    """
+    Returns a date for Solr. A date can be detected or from metadata.
+    It can be a range or a simple date in isoformat.
+    """
+    date = None
+    type = 1
+    # for WM layer we may have a range
+    if hasattr(layer, 'layerwm'):
+        if layer.layerwm.temporal_extent_start and layer.layerwm.temporal_extent_end:
+            date = "[%s TO %s]" % (layer.layerwm.temporal_extent_start, layer.layerwm.temporal_extent_end)
+        if layer.layerwm.temporal_extent_end and not layer.layerwm.temporal_extent_start:
+            date = layer.layerwm.temporal_extent_end
+        if layer.layerwm.temporal_extent_start and not layer.layerwm.temporal_extent_end:
+            date = layer.layerwm.temporal_extent_start
+    else:
+        if layer.layerdate_set.values_list():
+            date = layer.layerdate_set.values_list('date', flat=True)[0]
+            type = layer.layerdate_set.values_list('type', flat=True)[0]
+    if date is None:
+        date = layer.created.date().isoformat()
+    if 'TO' not in date:
+        dates_info = date.split('-')
+        if len(dates_info) != 3:
+            if len(dates_info) == 2:
+                date = parse(str(date+'-01')).isoformat()
+            else:
+                date = parse(str(date+'-01'+'-01')).isoformat()
+    if type == 0:
+        type = "Detected"
+    if type == 1:
+        type = "From Metadata"
+    return date, type
+
+
+def get_solr_date(date):
+    """
+    Returns a date in a valid Solr format from a string.
+    """
+    # check if date is valid and then set it to solr format YYYY-MM-DDThh:mm:ssZ
+    try:
+        pydate = parse(date)
+        if isinstance(pydate, datetime.datetime):
+            solr_date = '%sZ' % pydate.isoformat()[0:19]
+            return solr_date
+        else:
+            return None
+    except Exception:
+        return None
+
+
 class SolrHypermap(object):
 
     solr_url = settings.SOLR_URL
     solr = pysolr.Solr(solr_url, timeout=60)
-    logger = logging.getLogger("hypermap.aggregator.solr")
+    logger = logging.getLogger("hypermap")
 
     @staticmethod
     def good_coords(coords):
@@ -61,8 +113,7 @@ class SolrHypermap(object):
         return response
 
     @staticmethod
-    def layer_to_solr(layer, i=0):
-        success = True
+    def layer_to_solr(layer):
         category = None
         username = None
         try:
@@ -71,10 +122,10 @@ class SolrHypermap(object):
                 if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
             if (SolrHypermap.good_coords(bbox)) is False:
-                print 'no coords in layer ', layer.title
-                return
+                print 'There are not valid coordinates for this layer ', layer.title
+                SolrHypermap.logger.error('There are not valid coordinates for layer id: %s' % layer.id)
+                return False
             if (SolrHypermap.good_coords(bbox)):
-                print 'in solr.layer_to_solr, bbox = ', bbox
                 minX = bbox[0]
                 minY = bbox[1]
                 maxX = bbox[2]
@@ -100,7 +151,6 @@ class SolrHypermap(object):
                     minY = -90
                 if (maxY > 90):
                     maxY = 90
-                # ENVELOPE(minX, maxX, maxY, minY) per https://github.com/spatial4j/spatial4j/issues/36
                 wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
                 domain = SolrHypermap.get_domain(layer.service.url)
                 if hasattr(layer, 'layerwm'):
@@ -115,49 +165,52 @@ class SolrHypermap(object):
                     originator = username
                 else:
                     originator = domain
-                date = layer.get_date()[0]
-                if 'TO' in layer.get_date()[0]:
-                    date = re.findall('\d{4}', layer.get_date()[0])[0]
+                date = get_date(layer)[0]
+                if 'TO' in get_date(layer)[0]:
+                    date = re.findall('\d{4}', get_date(layer)[0])[0]
                     date = parse(str(date+'-01'+'-01'))
-                SolrHypermap.solr.add([{
-                                    "LayerId": str(layer.id),
-                                    "LayerName": layer.name,
-                                    "LayerTitle": layer.title,
-                                    "Originator": originator,
-                                    "ServiceId": str(layer.service.id),
-                                    "ServiceType": layer.service.type,
-                                    "LayerCategory": category,
-                                    "LayerUsername": username,
-                                    "LayerUrl": layer.url,
-                                    "LayerReliability": layer.reliability,
-                                    "LayerDate": date,
-                                    "LayerDateRange": layer.get_date()[0],
-                                    "LayerDateType": layer.get_date()[1],
-                                    "Is_Public": layer.is_public,
-                                    "Availability": "Online",
-                                    "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                    "Abstract": abstract,
-                                    "SrsProjectionCode": layer.srs.values_list('code', flat=True),
-                                    "MinY": minY,
-                                    "MinX": minX,
-                                    "MaxY": maxY,
-                                    "MaxX": maxX,
-                                    "CenterY": centerY,
-                                    "CenterX": centerX,
-                                    "HalfWidth": halfWidth,
-                                    "HalfHeight": halfHeight,
-                                    "Area": area,
-                                    "bbox": wkt,
-                                    "DomainName": layer.service.get_domain,
-                                    }])
+
+                solr_record = {
+                                "LayerId": str(layer.id),
+                                "LayerName": layer.name,
+                                "LayerTitle": layer.title,
+                                "Originator": originator,
+                                "ServiceId": str(layer.service.id),
+                                "ServiceType": layer.service.type,
+                                "LayerCategory": category,
+                                "LayerUsername": username,
+                                "LayerUrl": layer.url,
+                                "LayerReliability": layer.reliability,
+                                "LayerDateRange": get_date(layer)[0],
+                                "LayerDateType": get_date(layer)[1],
+                                "Is_Public": layer.is_public,
+                                "Availability": "Online",
+                                "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                                "Abstract": abstract,
+                                "SrsProjectionCode": layer.srs.values_list('code', flat=True),
+                                "MinY": minY,
+                                "MinX": minX,
+                                "MaxY": maxY,
+                                "MaxX": maxX,
+                                "CenterY": centerY,
+                                "CenterX": centerX,
+                                "HalfWidth": halfWidth,
+                                "HalfHeight": halfHeight,
+                                "Area": area,
+                                "bbox": wkt,
+                                "DomainName": layer.service.get_domain,
+                                }
+                # LayerDate sometime is missing
+                solr_date = get_solr_date(date)
+                if solr_date is not None:
+                    solr_record['LayerDate'] = solr_date
+                SolrHypermap.solr.add([solr_record])
                 SolrHypermap.logger.info("Solr record saved for layer with id: %s" % layer.id)
                 return True
         except Exception:
-            success = False
             SolrHypermap.logger.error("Error saving solr record for layer with id: %s - %s"
                                       % (layer.id, sys.exc_info()[1]))
             return False
-        print 'Layer status into solr core %s ' % (success)
 
     @staticmethod
     def clear_solr():
