@@ -87,6 +87,14 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
               },
            }
 
+        if layer.service.type == 'ESRI_MapServer':
+            default_source = {
+                  'type': 'tile',
+                  'url': str(layer.service.url).split('?')[0] + 'tile/%(z)s/%(y
+                  'grid': 'default_grid',
+                  'transparent': True,
+        }
+
     # A source is the WMS config
     sources = {
       'default_source': default_source
