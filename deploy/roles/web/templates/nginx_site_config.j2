@@ -16,15 +16,28 @@ server {
     }
 
     location / {
-        # Try to serve files from the mapproxy nginx cache before hitting django
-        root /tmp/mapproxy/;
-        try_files $uri @django;
+
+       if ($request_method = OPTIONS) {
+         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, OPTIONS";
+         add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept";
+         add_header Access-Control-Allow-Credentials true;
+         add_header Content-Length 0;
+         add_header Content-Type text/plain;
+         add_header Access-Control-Max-Age 1728000;
+         return 200;
+       }
+
+       include     /etc/nginx/uwsgi_params;
+       uwsgi_pass  unix:///tmp/hypermap.sock;
+       uwsgi_read_timeout 30;
+       client_max_body_size 15M;
+       client_body_buffer_size 128K;
+       add_header Access-Control-Allow-Credentials false;
+       add_header Access-Control-Allow-Headers "Content-Type, Accept, Authorization, Origin, User-Agent";
+       add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, OPTIONS";
+       proxy_set_header X-Forwarded-Protocol $scheme;
     }
 
-    location @django {
-        uwsgi_pass  unix:///tmp/hypermap.sock;
-        include     /etc/nginx/uwsgi_params;
-    }
 
     # Error pages
     error_page 500 502 504 /500.html;
