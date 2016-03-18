@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^layer/(?P<layer_id>\d+)/checks$', views.layer_checks, name='layer_checks'),
     url(r'^celery_monitor/$', views.celery_monitor, name='celery_monitor'),
     url(r'^update_progressbar/(?P<task_id>[^/]*)$', views.update_progressbar, name='update_progressbar'),
+    url(r'^update_jobs_number/$', views.update_jobs_number, name='update_jobs_number'),
 ]
 
 if settings.DEBUG:

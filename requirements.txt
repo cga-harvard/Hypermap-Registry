@@ -1,3 +1,4 @@
+amqplib==1.0.2
 arcrest==10.3
 celery==3.1.19
 Django==1.6.11

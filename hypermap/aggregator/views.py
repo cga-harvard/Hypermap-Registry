@@ -186,9 +186,29 @@ def celery_monitor(request):
         'aggregator/celery_monitor.html',
         {
             'active_tasks': active_tasks,
-            'reserved_tasks': reserved_tasks
+            'reserved_tasks': reserved_tasks,
+            'jobs': get_queued_jobs_number(),
         }
     )
+
+
+def get_queued_jobs_number():
+    # to detect tasks in the queued the only way is to use amqplib so far
+    # TODO secure broker password
+    from amqplib import client_0_8 as amqp
+    conn = amqp.Connection(host='localhost:5672', userid='hypermap',
+                           password='hypermap', virtual_host='hypermap', insist=False)
+    chan = conn.channel()
+    name, jobs, consumers = chan.queue_declare(queue="celery", passive=True)
+    return jobs
+
+
+@login_required
+def update_jobs_number(request):
+    response_data = {}
+    response_data['jobs'] = get_queued_jobs_number()
+    json_data = json.dumps(response_data)
+    return HttpResponse(json_data, content_type="application/json")
 
 
 @login_required
