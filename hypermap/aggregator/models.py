@@ -212,35 +212,6 @@ class Layer(Resource):
     def __unicode__(self):
         return self.name
 
-    def get_date(self):
-        date = None
-        type = 1
-        if hasattr(self, 'layerwm'):
-            if self.layerwm.temporal_extent_start and self.layerwm.temporal_extent_end:
-                date = "[%s TO %s]" % (self.layerwm.temporal_extent_start, self.layerwm.temporal_extent_end)
-            if self.layerwm.temporal_extent_end and not self.layerwm.temporal_extent_start:
-                date = self.layerwm.temporal_extent_end
-            if self.layerwm.temporal_extent_start and not self.layerwm.temporal_extent_end:
-                date = self.layerwm.temporal_extent_start
-        else:
-            if self.layerdate_set.values_list():
-                date = self.layerdate_set.values_list('date', flat=True)[0]
-                type = self.layerdate_set.values_list('type', flat=True)[0]
-        if date is None:
-            date = self.created.date().isoformat()
-        if 'TO' not in date:
-            dates_info = date.split('-')
-            if len(dates_info) != 3:
-                if len(dates_info) == 2:
-                    date = parse(str(date+'-01')).isoformat()
-                else:
-                    date = parse(str(date+'-01'+'-01')).isoformat()
-        if type == 0:
-            type = "Detected"
-        if type == 1:
-            type = "From Metadata"
-        return date, type
-
     def update_thumbnail(self):
         print 'Generating thumbnail for layer id %s' % self.id
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'

@@ -499,7 +499,7 @@
   <field name="HalfWidth" type="tdouble" multiValued="false" indexed="true" stored="true"/>
   <field name="Is_Public" type="text_en" multiValued="false" indexed="true" stored="true"/>
   <field name="LayerCategory" type="string" multiValued="false" indexed="true" stored="true"/>
-  <field name="LayerDate" type="tdate" default="NOW" multiValued="false" indexed="true" stored="true"/>
+  <field name="LayerDate" type="tdate" multiValued="false" indexed="true" stored="true"/>
   <field name="LayerDateSort" type="string" multiValued="false" indexed="true" stored="false"/>
   <field name="LayerDateRange" type="daterange" default="NOW" multiValued="false" indexed="true" stored="true"/>
   <field name="LayerDateType" type="text_en"  multiValued="false" indexed="true" stored="true"/>

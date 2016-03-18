@@ -169,7 +169,7 @@ LOGGING = {
         "django": {
             "handlers": ["console"], "level": "ERROR", },
         "hypermap": {
-            "handlers": ["console"], "level": "ERROR", },
+            "handlers": ["console"], "level": "INFO", },
         "owslib": {
             "handlers": ["console"], "level": "ERROR", },
         "celery": {

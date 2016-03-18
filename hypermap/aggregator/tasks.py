@@ -45,7 +45,7 @@ def check_service(self, service):
     for layer in layer_to_process:
         # update state
         status_update(count)
-        layer.check()
+        check_layer.delay(layer)
         count = count + 1
 
 
@@ -102,14 +102,14 @@ def index_service(self, service):
     for layer in layer_to_process:
         # update state
         status_update(count)
-        index_layer(layer)
+        index_layer.delay(layer)
         count = count + 1
 
 
 @shared_task(bind=True)
 def index_layer(self, layer):
     from aggregator.solr import SolrHypermap
-    print 'Pushing layer %s to solr' % layer.name
+    print 'Syncing layer %s to solr' % layer.name
     solrobject = SolrHypermap()
     solrobject.layer_to_solr(layer)
 
