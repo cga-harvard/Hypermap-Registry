@@ -3,13 +3,9 @@ from django.conf.urls import include, patterns, url
 
 from . import views
 
-index = url(r'^', views.search, name='index')
-
-if settings.SOLR_ENABLED:
-    index = url(r'^$', views.index, name='index')
 
 urlpatterns = [
-    index,
+    url(r'^$', views.index, name='index'),
     url(r'^search', views.search, name='search'),
     url(r'^service/(?P<service_id>\d+)/$', views.service_detail, name='service_detail'),
     url(r'^service/(?P<service_id>\d+)/checks$', views.service_checks, name='service_checks'),
