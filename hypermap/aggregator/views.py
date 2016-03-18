@@ -33,7 +33,7 @@ def serialize_checks(check_set):
     return check_set_list
 
 
-def index(request):
+def domains(request):
     url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=DomainName,ServiceId&wt=json&indent=true&rows=0'
            % settings.SOLR_URL)
     response = urllib2.urlopen(url)
@@ -50,7 +50,7 @@ def index(request):
     return HttpResponse(template.render(context))
 
 
-def search(request):
+def index(request):
     order_by = request.GET.get('order_by', '-last_updated')
     filter_by = request.GET.get('filter_by', None)
     query = request.GET.get('q', None)

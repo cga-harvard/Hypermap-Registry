@@ -6,7 +6,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^search', views.search, name='search'),
+    url(r'^domains', views.domains, name='domains'),
     url(r'^service/(?P<service_id>\d+)/$', views.service_detail, name='service_detail'),
     url(r'^service/(?P<service_id>\d+)/checks$', views.service_checks, name='service_checks'),
     url(r'^layer/(?P<layer_id>\d+)/$', views.layer_detail, name='layer_detail'),

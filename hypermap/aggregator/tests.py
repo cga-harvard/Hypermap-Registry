@@ -53,8 +53,8 @@ class AggregatorTestCase(TestCase):
         codes
         """
 
-        # anonymous can go to search page
-        response = self.client.get(reverse('search'))
+        # anonymous can go to index page
+        response = self.client.get(reverse('index'))
         self.assertEqual(200, response.status_code)
 
         # anonymous going to service_detail is authorized
