@@ -37,6 +37,7 @@ class LayerAdmin(admin.ModelAdmin):
 
 class LayerWMAdmin(admin.ModelAdmin):
     model = LayerWM
+    list_display = ('layer', 'username', 'category', 'temporal_extent_start', 'temporal_extent_end')
 
 
 class CheckAdmin(admin.ModelAdmin):
