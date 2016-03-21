@@ -30,8 +30,14 @@ def get_date(layer):
             date = layer.layerwm.temporal_extent_end
         if layer.layerwm.temporal_extent_start and not layer.layerwm.temporal_extent_end:
             date = layer.layerwm.temporal_extent_start
-    else:
-        if layer.layerdate_set.values_list():
+    if layer.layerdate_set.values_list() and date is None:
+        date_text = layer.layerdate_set.values_list('date', flat=True)
+        for text in date_text:
+            if 'TO' in text:
+                date = "[%s]" % text
+                type = layer.layerdate_set.get(date=text).type
+        # will resolve this later by adding them to list to get the min(dates) while removing any TO's
+        if date is None:
             date = layer.layerdate_set.values_list('date', flat=True)[0]
             type = layer.layerdate_set.values_list('type', flat=True)[0]
     if date is None:
@@ -56,7 +62,7 @@ def get_solr_date(date):
     """
     # check if date is valid and then set it to solr format YYYY-MM-DDThh:mm:ssZ
     try:
-        pydate = parse(date)
+        pydate = parse(date, yearfirst=True)
         if isinstance(pydate, datetime.datetime):
             solr_date = '%sZ' % pydate.isoformat()[0:19]
             return solr_date
@@ -166,9 +172,11 @@ class SolrHypermap(object):
                 else:
                     originator = domain
                 date = get_date(layer)[0]
+                check_range = None
                 if 'TO' in get_date(layer)[0]:
-                    date = re.findall('\d{4}', get_date(layer)[0])[0]
-                    date = parse(str(date+'-01'+'-01'))
+                    check_range = 1 
+                    date = re.findall('[+-]?\d{4}', get_date(layer)[0])[0]
+                    date = str(date+'-01'+'-01')
 
                 solr_record = {
                                 "LayerId": str(layer.id),
@@ -201,7 +209,10 @@ class SolrHypermap(object):
                                 "DomainName": layer.service.get_domain,
                                 }
                 # LayerDate sometime is missing
-                solr_date = get_solr_date(date)
+                if check_range:
+                    solr_date = date
+                else:
+                    solr_date = get_solr_date(date)
                 if solr_date is not None:
                     solr_record['LayerDate'] = solr_date
                 SolrHypermap.solr.add([solr_record])
