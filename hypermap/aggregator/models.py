@@ -239,11 +239,12 @@ class Layer(Resource):
                 dates.append(end_date)
         for layerdate in self.layerdate_set.all().order_by('date'):
             sdate = layerdate.date
-            date = []
-            pydate = get_parsed_date(sdate)
-            date.append(pydate)
-            date.append(layerdate.type)
-            dates.append(date)
+            if 'TO' not in sdate:
+                date = []
+                pydate = get_parsed_date(sdate)
+                date.append(pydate)
+                date.append(layerdate.type)
+                dates.append(date)
         return dates
 
     def update_thumbnail(self):
