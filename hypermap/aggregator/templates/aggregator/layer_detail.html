@@ -86,6 +86,10 @@
         <td>
           {% if layer.layerdate_set.count > 0 %}
           <ul>
+            {% if layer.service.type = 'WM' %}
+              <li>Start Date: {{ layer.layerwm.temporal_extent_start }}</li>
+              <li>End Date: {{ layer.layerwm.temporal_extent_end }}</li>
+            {% endif %}
             {% for date in layer.layerdate_set.all %}
               <li>{{ date.date }}</li>
             {% endfor %}

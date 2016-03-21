@@ -4,11 +4,9 @@ import requests
 import logging
 import math
 import json
-import re
 import datetime
 
 from urlparse import urlparse
-from dateutil.parser import parse
 from django.conf import settings
 from django.utils.html import strip_tags
 
@@ -24,45 +22,25 @@ def get_date(layer):
     type = 1
     # for WM layer we may have a range
     if hasattr(layer, 'layerwm'):
-        if layer.layerwm.temporal_extent_start and layer.layerwm.temporal_extent_end:
-            date = "[%s TO %s]" % (layer.layerwm.temporal_extent_start, layer.layerwm.temporal_extent_end)
-        if layer.layerwm.temporal_extent_end and not layer.layerwm.temporal_extent_start:
-            date = layer.layerwm.temporal_extent_end
-        if layer.layerwm.temporal_extent_start and not layer.layerwm.temporal_extent_end:
-            date = layer.layerwm.temporal_extent_start
-    if layer.layerdate_set.values_list() and date is None:
-        date_text = layer.layerdate_set.values_list('date', flat=True)
-        for text in date_text:
-            if 'TO' in text:
-                date = "[%s]" % text
-                type = layer.layerdate_set.get(date=text).type
-        # will resolve this later by adding them to list to get the min(dates) while removing any TO's
-        if date is None:
-            date = layer.layerdate_set.values_list('date', flat=True)[0]
-            type = layer.layerdate_set.values_list('type', flat=True)[0]
+        layer_dates = layer.get_layer_dates()
+        if layer_dates:
+            date = layer_dates[0][0]
+            type = layer_dates[0][1]
     if date is None:
-        date = layer.created.date().isoformat()
-    if 'TO' not in date:
-        dates_info = date.split('-')
-        if len(dates_info) != 3:
-            if len(dates_info) == 2:
-                date = parse(str(date+'-01')).isoformat()
-            else:
-                date = parse(str(date+'-01'+'-01')).isoformat()
+        date = layer.created.date()
     if type == 0:
         type = "Detected"
     if type == 1:
         type = "From Metadata"
-    return date, type
+    return get_solr_date(date), type
 
 
-def get_solr_date(date):
+def get_solr_date(pydate):
     """
     Returns a date in a valid Solr format from a string.
     """
     # check if date is valid and then set it to solr format YYYY-MM-DDThh:mm:ssZ
     try:
-        pydate = parse(date, yearfirst=True)
         if isinstance(pydate, datetime.datetime):
             solr_date = '%sZ' % pydate.isoformat()[0:19]
             return solr_date
@@ -171,12 +149,6 @@ class SolrHypermap(object):
                     originator = username
                 else:
                     originator = domain
-                date = get_date(layer)[0]
-                check_range = None
-                if 'TO' in get_date(layer)[0]:
-                    check_range = 1 
-                    date = re.findall('[+-]?\d{4}', get_date(layer)[0])[0]
-                    date = str(date+'-01'+'-01')
 
                 solr_record = {
                                 "LayerId": str(layer.id),
@@ -189,8 +161,6 @@ class SolrHypermap(object):
                                 "LayerUsername": username,
                                 "LayerUrl": layer.url,
                                 "LayerReliability": layer.reliability,
-                                "LayerDateRange": get_date(layer)[0],
-                                "LayerDateType": get_date(layer)[1],
                                 "Is_Public": layer.is_public,
                                 "Availability": "Online",
                                 "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
@@ -208,13 +178,10 @@ class SolrHypermap(object):
                                 "bbox": wkt,
                                 "DomainName": layer.service.get_domain,
                                 }
-                # LayerDate sometime is missing
-                if check_range:
-                    solr_date = date
-                else:
-                    solr_date = get_solr_date(date)
+                solr_date, type = get_date(layer)
                 if solr_date is not None:
                     solr_record['LayerDate'] = solr_date
+                    solr_record['LayerDateType'] = type
                 SolrHypermap.solr.add([solr_record])
                 SolrHypermap.logger.info("Solr record saved for layer with id: %s" % layer.id)
                 return True
