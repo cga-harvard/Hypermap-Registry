@@ -20,12 +20,10 @@ def get_date(layer):
     """
     date = None
     type = 1
-    # for WM layer we may have a range
-    if hasattr(layer, 'layerwm'):
-        layer_dates = layer.get_layer_dates()
-        if layer_dates:
-            date = layer_dates[0][0]
-            type = layer_dates[0][1]
+    layer_dates = layer.get_layer_dates()
+    if layer_dates:
+        date = layer_dates[0][0]
+        type = layer_dates[0][1]
     if date is None:
         date = layer.created.date()
     if type == 0:
@@ -180,6 +178,7 @@ class SolrHypermap(object):
                                 "bbox": wkt,
                                 "DomainName": layer.service.get_domain,
                                 }
+
                 solr_date, type = get_date(layer)
                 if solr_date is not None:
                     solr_record['LayerDate'] = solr_date
