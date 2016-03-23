@@ -158,7 +158,7 @@ def celery_monitor(request):
                 active_task = celery_app.AsyncResult(id)
                 active_task.name = name
                 active_task.args = args
-                active_task.worker = worker
+                active_task.worker = '%s, pid: %s' % (worker, task['worker_pid'])
                 active_task.time_start = time_start
                 task_id_sanitized = id.replace('-', '_')
                 active_task.task_id_sanitized = task_id_sanitized
