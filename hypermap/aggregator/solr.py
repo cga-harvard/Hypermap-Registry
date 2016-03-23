@@ -26,6 +26,10 @@ def get_date(layer):
         type = layer_dates[0][1]
     if date is None:
         date = layer.created.date()
+    # layer date > 2300 is invalid for sure
+    # TODO put this logic in date miner
+    if date.year > 2300:
+        date = None
     if type == 0:
         type = "Detected"
     if type == 1:
