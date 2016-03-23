@@ -149,7 +149,9 @@ class SolrHypermap(object):
                     originator = username
                 else:
                     originator = domain
-
+                # we need to remove the exising index in case there is already one
+                SolrHypermap.solr.delete(q='LayerId:%s' % layer.id)
+                # now we add the index
                 solr_record = {
                                 "LayerId": str(layer.id),
                                 "LayerName": layer.name,
