@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="page-header">
-  <h1>Layer details for: {{ layer.name }}</h1>
+  <h1>Layer checks for: {{ layer.title }}</h1>
 </div>
 
 <a href="{% url 'layer_detail' layer.id %}">Go to layer details page</a>
@@ -18,21 +18,6 @@
   <div class="col-md-6">
     <table class="table">
       <tbody>
-        <tr>
-          <td><strong>Service</strong></td>
-          <td>
-            <ul>
-            <li>Name: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
-            <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
-            <li>Layer EndPoint: <a href="{{ layer.service.url }}">{{ layer.url|truncatechars:80 }}</a></li>
-            <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
-          </ul>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>Name</strong></td>
-          <td>{{ layer.name }}</td>
-        </tr>
         <tr>
           <td><strong>Monitoring Period</strong></td>
           <td>
@@ -57,17 +42,6 @@
             </ul>
           </td>
         </tr>
-        <tr>
-          <td><strong>Spatial Reference Systems</strong></td>
-          <td>
-            <ul>
-              {% for srs in layer.srs.all %}
-              <li>{{ srs.code }}</li>
-              {% endfor %}
-          </ul>
-          </td>
-        </tr>
-        <tr>
           <td><strong>Reliability</strong></td>
           <td>
             {% if layer.reliability > 97 %}
@@ -125,15 +99,6 @@
     <p>No checks are available.</p>
 {% endif %}
 {% endwith %}
-
-{% if user.is_superuser %}
-<form action="{% url 'layer_checks' layer.id %}" method="post">
-  {% csrf_token %}
-  <input type="submit" name="check" value="Check now">
-  <input type="submit" name="remove" value="Remove checks">
-  <input type="submit" name="index" value="Index in Solr">
-</form>
-{% endif %}
 
 {% endblock %}
 {% block extrafoot %}

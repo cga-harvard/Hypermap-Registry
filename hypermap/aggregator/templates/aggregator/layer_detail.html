@@ -5,34 +5,52 @@
 {% block content %}
 
 <div class="page-header">
-  <h1>Layer details for: {{ layer.name }}</h1>
+  <h1>Layer details for: {{ layer.title }}</h1>
 </div>
 
-<ul>
-  <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
-  <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
-  <li><a href="map/demo/">Go to demo page</a></li>
-</ul>
+<div class="row">
+  <div class="col-md-6">
+    <ul>
+      <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
+      <li><a href="map/demo/">Go to demo page</a></li>
+    </ul>
+</div>
+  <div class="col-md-6">
+    {% if user.is_superuser %}
+    Administrative actions:
+    <form action="{% url 'layer_detail' layer.id %}" method="post">
+      {% csrf_token %}
+      <input type="submit" name="check" value="Check now">
+      <input type="submit" name="remove" value="Remove checks">
+      <input type="submit" name="index" value="Index in Solr">
+    </form>
+    {% endif %}
+  </div>
+</div>
 
 <div class="layer-thumb">
   <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" />
 </div>
 
 <div class="row">
-  <div class="col-md-6">
+  <div class="col-md-12">
     <table class="table">
       <tbody>
         <tr>
           <td><strong>Endpoints</strong></td>
           <td>
             <ul>
-            <li>Name: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
+            <li>Service Name: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
             <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
             <li>Layer EndPoint: <a href="{{ layer.service.url }}">{{ layer.url|truncatechars:80 }}</a></li>
             <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
             <li>Solr: <a href="{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true" target="new">{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true</a></li>
           </ul>
           </td>
+        </tr>
+        <tr>
+          <td><strong>Name</strong></td>
+          <td>{{ layer.name }}</td>
         </tr>
         <tr>
           <td><strong>Title</strong></td>
@@ -66,21 +84,6 @@
             <td>{{ layer.layerwm.category }}</td>
           </tr>
         {% endif %}
-          <tr>
-          <td><strong>Monitoring Period</strong></td>
-          <td>
-            {% if layer.checks_count > 0 %}
-            <ul>
-              <li>First Check: {{ layer.first_check }}</li>
-              <li>Last Check: {{ layer.last_check }}</li>
-              <li>Total Checks: {{ layer.checks_count }}</li>
-              <li>Reliability: {{ layer.reliability }}</li>
-            </ul>
-            {% else %}
-              No checks performed so far
-            {% endif %}
-          </td>
-        </tr>
         <tr>
         <td><strong>Dates</strong></td>
         <td>
@@ -112,6 +115,22 @@
         <tr>
           <td><strong>Bounding Box (x0, y0, x1, y1)</strong></td>
           <td>{{ layer.bbox_x0|floatformat:8 }}, {{ layer.bbox_y0|floatformat:8 }}, {{ layer.bbox_x1|floatformat:8 }}, {{ layer.bbox_y1|floatformat:8 }}</td>
+        </tr>
+        <tr>
+          <td><strong>Monitoring Period</strong></td>
+          <td>
+            {% if layer.checks_count > 0 %}
+            <ul>
+              <li>First Check: {{ layer.first_check }}</li>
+              <li>Last Check: {{ layer.last_check }}</li>
+              <li>Total Checks: {{ layer.checks_count }}</li>
+              <li>Reliability: {{ layer.reliability }}</li>
+              <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
+            </ul>
+            {% else %}
+              No checks performed so far
+            {% endif %}
+          </td>
         </tr>
       </tbody>
     </table>

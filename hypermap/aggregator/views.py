@@ -87,12 +87,7 @@ def index(request):
 
 def service_detail(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
-    return render(request, 'aggregator/service_detail.html', {'service': service})
 
-
-def service_checks(request, service_id):
-    service = get_object_or_404(Service, pk=service_id)
-    resource = serialize_checks(service.check_set)
     if request.method == 'POST':
         if 'check' in request.POST:
             if not settings.SKIP_CELERY_TASK:
@@ -109,18 +104,21 @@ def service_checks(request, service_id):
                 index_service.delay(service)
             else:
                 index_service(service)
+
+    return render(request, 'aggregator/service_detail.html', {'service': service})
+
+
+def service_checks(request, service_id):
+    service = get_object_or_404(Service, pk=service_id)
+    resource = serialize_checks(service.check_set)
+
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
     SOLR_URL = settings.SOLR_URL
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'SOLR_URL': SOLR_URL})
 
-
-def layer_checks(request, layer_id):
-    layer = get_object_or_404(Layer, pk=layer_id)
-    resource = serialize_checks(layer.check_set)
     if request.method == 'POST':
         if 'check' in request.POST:
             if not settings.SKIP_CELERY_TASK:
@@ -134,6 +132,13 @@ def layer_checks(request, layer_id):
                 index_layer.delay(layer)
             else:
                 index_layer(layer)
+
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'SOLR_URL': SOLR_URL})
+
+
+def layer_checks(request, layer_id):
+    layer = get_object_or_404(Layer, pk=layer_id)
+    resource = serialize_checks(layer.check_set)
 
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
 

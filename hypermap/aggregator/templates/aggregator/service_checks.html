@@ -108,15 +108,6 @@
 {% endif %}
 {% endwith %}
 
-{% if user.is_superuser %}
-<form action="{% url 'service_checks' service.id %}" method="post">
-  {% csrf_token %}
-  <input type="submit" name="check" value="Check now">
-  <input type="submit" name="remove" value="Remove checks">
-  <input type="submit" name="index" value="Index in Solr">
-</form>
-{% endif %}
-
 {% endblock %}
 {% block extrafoot %}
 <script type="text/javascript">

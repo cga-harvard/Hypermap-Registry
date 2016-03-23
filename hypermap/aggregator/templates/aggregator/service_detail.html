@@ -8,7 +8,24 @@
   <h1>Service details for: {{ service.title|truncatechars:40 }}</h1>
 </div>
 
-<p><a href="{% url 'service_checks' service.id %}">See full check stats</a></p>
+<div class="row">
+  <div class="col-md-6">
+    <ul>
+      <li><a href="{% url 'service_checks' service.id %}">See full check stats</a></li>
+    </ul>
+  </div>
+  <div class="col-md-6">
+    {% if user.is_superuser %}
+    Administrative actions:
+    <form action="{% url 'service_detail' service.id %}" method="post">
+      {% csrf_token %}
+      <input type="submit" name="check" value="Check now">
+      <input type="submit" name="remove" value="Remove checks">
+      <input type="submit" name="index" value="Index in Solr">
+    </form>
+    {% endif %}
+  </div>
+</div>
 
 <div class="row">
   <div class="col-md-6">
