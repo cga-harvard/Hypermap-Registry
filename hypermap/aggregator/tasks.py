@@ -49,10 +49,18 @@ def check_service(self, service):
         count = count + 1
 
 
-@shared_task(name="check_specific_layer")
-def check_layer(layer):
+@shared_task(bind=True)
+def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
-    layer.check()
+    success, message = layer.check()
+    if not success:
+        from aggregator.models import TaskError
+        task_error = TaskError(
+            task_name=self.name,
+            args=layer.id,
+            message=message
+        )
+        task_error.save()
 
 
 @shared_task(name="clear_solr")
@@ -111,7 +119,15 @@ def index_layer(self, layer):
     from aggregator.solr import SolrHypermap
     print 'Syncing layer %s to solr' % layer.name
     solrobject = SolrHypermap()
-    solrobject.layer_to_solr(layer)
+    success, message = solrobject.layer_to_solr(layer)
+    if not success:
+        from aggregator.models import TaskError
+        task_error = TaskError(
+            task_name=self.name,
+            args=layer.id,
+            message=message
+        )
+        task_error.save()
 
 
 @shared_task(bind=True)

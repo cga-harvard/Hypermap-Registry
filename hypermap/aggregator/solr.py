@@ -186,11 +186,11 @@ class SolrHypermap(object):
                     solr_record['LayerDateType'] = type
                 SolrHypermap.solr.add([solr_record])
                 SolrHypermap.logger.info("Solr record saved for layer with id: %s" % layer.id)
-                return True
+                return True, None
         except Exception:
             SolrHypermap.logger.error("Error saving solr record for layer with id: %s - %s"
                                       % (layer.id, sys.exc_info()[1]))
-            return False
+            return False, sys.exc_info()[1]
 
     @staticmethod
     def clear_solr():

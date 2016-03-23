@@ -486,6 +486,7 @@ class Layer(Resource):
         )
         check.save()
         print 'Service checked in %s seconds, status is %s' % (response_time, success)
+        return success, message
 
     def get_absolute_url(self):
         return reverse('layer_detail', args=(self.id,))
@@ -560,6 +561,16 @@ class Endpoint(models.Model):
     message = models.TextField(blank=True, null=True)
     url = models.URLField(unique=True, max_length=255)
     endpoint_list = models.ForeignKey(EndpointList)
+
+
+class TaskError(models.Model):
+    """
+    TaskError represents a task error, until we find a better way to handle this with Celery.
+    """
+    task_name = models.CharField(max_length=255)
+    args = models.CharField(max_length=255)
+    error_datetime = models.DateTimeField(auto_now=True)
+    message = models.TextField(blank=True, null=True)
 
 
 def endpointlist_post_save(instance, *args, **kwargs):
