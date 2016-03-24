@@ -1,12 +1,14 @@
 {% extends "aggregator/base.html" %}
 
+{% load humanize %}
+
 {% block content %}
 
 <div class="page-header">
-  <h1>HHypermap Home Page</h1>
+  <h1>Domains</h1>
 </div>
 
-<p>We track health of {{ services_count }} remote map services, containing a total of {{ layers_count }} layers.</p>
+<p>We track health of {{ services_count|intcomma }} remote map services, containing a total of {{ layers_count|intcomma }} layers.</p>
 
 <div class="row">
   <div class="col-md-12">

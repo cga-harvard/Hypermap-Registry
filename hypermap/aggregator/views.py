@@ -77,10 +77,16 @@ def index(request):
         type_item.append(Service.objects.filter(type__exact=service_type_code).count())
         types_list.append(type_item)
 
+    # stats
+    layers_count = Layer.objects.all().count()
+    services_count = Service.objects.all().count()
+
     template = loader.get_template('aggregator/search.html')
     context = RequestContext(request, {
         'services': services,
         'types_list': types_list,
+        'layers_count': layers_count,
+        'services_count': services_count,
     })
     return HttpResponse(template.render(context))
 
