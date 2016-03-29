@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Mocks for the WorldMap API library tests.
+Mocks for testing a WorldMap service type.
 """
 
 from httmock import response, urlmatch
