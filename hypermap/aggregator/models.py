@@ -594,15 +594,30 @@ def endpointlist_post_save(instance, *args, **kwargs):
         update_endpoints(instance)
 
 
+def service_pre_save(instance, *args, **kwargs):
+    """
+    Used to do a service full check when saving it.
+    """
+    # for some service we need to constraint some default values
+    if instance.type == 'WM':
+        instance.title = 'Harvard WorldMap'
+        instance.url = 'http://worldmap.harvard.edu/'
+    # check if service is unique
+    # we cannot use unique_together as it relies on a combination of fields
+    # from different models (service, resource)
+    if Service.objects.filter(url=instance.url, type=instance.type).count() > 0:
+        raise Exception("There is already such a service")
+
+
 def service_post_save(instance, *args, **kwargs):
     """
     Used to do a service full check when saving it.
     """
+    # check service
     if not settings.SKIP_CELERY_TASK:
         check_service.delay(instance)
     else:
-        if not settings.TESTING:  # hack until we fix tests
-            check_service(instance)
+        check_service(instance)
 
 
 def layer_post_save(instance, *args, **kwargs):
@@ -612,10 +627,10 @@ def layer_post_save(instance, *args, **kwargs):
     if not settings.SKIP_CELERY_TASK:
         check_layer.delay(instance)
     else:
-        if not settings.TESTING:  # hack until we fix tests
-            check_layer(instance)
+        check_layer(instance)
 
 
 signals.post_save.connect(endpointlist_post_save, sender=EndpointList)
+signals.pre_save.connect(service_pre_save, sender=Service)
 signals.post_save.connect(service_post_save, sender=Service)
 signals.post_save.connect(layer_post_save, sender=Layer)
