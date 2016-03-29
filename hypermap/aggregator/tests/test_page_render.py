@@ -1,16 +1,23 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 
-from models import Service, Layer, Check
+from django.db.models import signals
 
-SERVICE_NUMBER = 10
-LAYER_PER_SERVICE_NUMBER = 20
-TIMES_TO_CHECK = 3
+from aggregator.models import Service, Layer
+from aggregator.models import layer_post_save, service_post_save
 
 
-class AggregatorTestCase(TestCase):
+SERVICE_NUMBER = 2
+LAYER_PER_SERVICE_NUMBER = 2
+TIMES_TO_CHECK = 1
+
+
+class PageRendererTestCase(TestCase):
 
     def setUp(self):
+
+        signals.post_save.disconnect(layer_post_save, sender=Layer)
+        signals.post_save.disconnect(service_post_save, sender=Service)
 
         for s in range(0, SERVICE_NUMBER):
             service = Service(
@@ -19,7 +26,7 @@ class AggregatorTestCase(TestCase):
                 type='OGC_WMS',
             )
             service.save()
-            for l in range(0, 20):
+            for l in range(0, LAYER_PER_SERVICE_NUMBER):
                 layer = Layer(
                     name='Layer %s, from service %s' % (l, s),
                     bbox_x0=-179,
@@ -37,15 +44,9 @@ class AggregatorTestCase(TestCase):
                 for layer in service.layer_set.all():
                     layer.check()
 
-    def test_checks_count(self):
-        total_checks = (
-            (SERVICE_NUMBER + (SERVICE_NUMBER * LAYER_PER_SERVICE_NUMBER)) * TIMES_TO_CHECK
-        )
-        self.assertEqual(total_checks, Check.objects.all().count())
-
-    def test_check_status(self):
-        check = Check.objects.all()[0]
-        self.assertFalse(check.success)
+    def tearDown(self):
+        signals.post_save.connect(layer_post_save, sender=Layer)
+        signals.post_save.connect(service_post_save, sender=Service)
 
     def test_pages_render(self):
         """
