@@ -296,15 +296,15 @@ def update_layers_wm(service):
     """
     Update layers for an WorldMap.
     """
-    response = urllib2.urlopen('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
-    data = json.load(response)
+    response = requests.get('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
+    data = json.loads(response.content)
     total = data['total']
 
     for i in range(0, total, 10):
         url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
-        print url
-        response = urllib2.urlopen(url)
-        data = json.load(response)
+        print 'Fetching %s' % url
+        response = requests.get(url)
+        data = json.loads(response.content)
         for row in data['rows']:
             name = row['name']
             title = row['title']
