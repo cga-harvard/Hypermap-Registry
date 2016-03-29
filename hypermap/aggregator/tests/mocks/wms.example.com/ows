@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE WMT_MS_Capabilities SYSTEM "http://schemas.opengis.net/wms/1.1.1/capabilities_1_1_1.dtd" [
+<!ELEMENT VendorSpecificCapabilities (TileSet*) >
+<!ELEMENT TileSet (SRS, BoundingBox?, Resolutions, Width, Height, Format, Layers*, Styles*) >
+<!ELEMENT Resolutions (#PCDATA) >
+<!ELEMENT Width (#PCDATA) >
+<!ELEMENT Height (#PCDATA) >
+<!ELEMENT Layers (#PCDATA) >
+<!ELEMENT Styles (#PCDATA) >
+]>
+
+<WMT_MS_Capabilities version="1.1.1">
+  <Service>
+    <Name>OGC:WMS</Name>
+    <Title>Web Map Service - GeoWebCache</Title>
+    <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://demo.geonode.org/geoserver/gwc/service/wms?SERVICE=WMS&amp;"/>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <Format>application/vnd.ogc.wms_xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://demo.geonode.org/geoserver/gwc/service/wms?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetCapabilities>
+      <GetMap>
+        <Format>image/jpeg</Format>
+        <Format>image/png</Format>
+        <Format>image/png8</Format>
+        <Format>image/gif</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://demo.geonode.org/geoserver/gwc/service/wms?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetMap>
+      <GetFeatureInfo>
+        <Format>application/vnd.ogc.gml/3.1.1</Format>
+        <Format>text/plain</Format>
+        <Format>application/json</Format>
+        <Format>text/xml</Format>
+        <Format>application/vnd.ogc.gml</Format>
+        <Format>text/html</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://demo.geonode.org/geoserver/gwc/service/wms?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetFeatureInfo>
+      <DescribeLayer>
+        <Format>application/vnd.ogc.wms_xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://demo.geonode.org/geoserver/gwc/service/wms?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </DescribeLayer>
+      <GetLegendGraphic>
+        <Format>image/png</Format>
+        <Format>image/jpeg</Format>
+        <Format>image/gif</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://demo.geonode.org/geoserver/gwc/service/wms?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetLegendGraphic>
+    </Request>
+    <Exception>
+      <Format>application/vnd.ogc.se_xml</Format>
+    </Exception>
+    <Layer>
+      <Title>GeoWebCache WMS</Title>
+      <Abstract>Note that not all GeoWebCache instances provide a full WMS service.</Abstract>
+      <LatLonBoundingBox minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+      <Layer queryable="1">
+        <Name>geonode:_30river_project1_1</Name>
+        <Title>Rivers</Title>
+        <Abstract>REQUIRED: A brief narrative summary of the data set.</Abstract>
+        <KeywordList>
+          <Keyword>road</Keyword>
+          <Keyword>transportation</Keyword>
+          <Keyword>atlas</Keyword>
+        </KeywordList>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="0.0" miny="0.0" maxx="90.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:900913" minx="0.0" miny="0.0" maxx="1.0018754169999998E7" maxy="1.0018754169999998E7"/>
+        <BoundingBox SRS="EPSG:4326" minx="0.0" miny="0.0" maxx="90.0" maxy="90.0"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:gis_osm_adminareas_v06</Name>
+        <Title>South Florida Information Access (SOFIA) Website</Title>
+        <Abstract>The South Florida Information Access web site (SOFIA) was created as a &apos;one-stop-shopping&apos; access point for research on South Florida.  All USGS South Florida Priority Ecosystems Science research projects, ranging from mercury contamination in the Everglades to coral reef decline, are online at this site.  The site provides project descriptions, proposals, publications, references, data (through the data exchange site), metadata, presentations, and contact information, as well as general interest items, such as photographs and posters.  In addition, the SOFIA site has an educational section which displays the work SOFIA is doing with the  Academy of Science and Technology in West Palm Beach, Florida.
+
+The initial version of the site was specifically tailored for scientists, managers and decision-makers.  More recent and expanded versions of the site have added educational materials and general outreach items designed for the general public.  The number of visitors to the site has increased from just under 80 per day in 1998 to over 1400 visitors/day in early 2003.  The SOFIA site has grown tremendously since its inception and currently contains over 5500 documents.
+
+The objective of the SOFIA website is to continue to provide a usable and Section-508-compliant website that provides direct access to all South Florida Place-Based Studies information.  Every effort is made to ensure that the SOFIA site is usable and accessible, though usability testing, link verification, and checking for Section 508 compliance.</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="13.359375" miny="50.625" maxx="14.0625" maxy="51.328125"/>
+        <BoundingBox SRS="EPSG:4326" minx="13.359375" miny="50.625" maxx="14.0625" maxy="51.328125"/>
+        <BoundingBox SRS="EPSG:900913" minx="1408887.3051562496" miny="6574807.424062502" maxx="1565430.3390625007" maxy="6731350.457968749"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:phadom_1</Name>
+        <Title>Prueba pp</Title>
+        <Abstract>Recintos de prueba</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="-22.5" miny="22.5" maxx="-11.25" maxy="33.75"/>
+        <BoundingBox SRS="EPSG:900913" minx="-1878516.4068749994" miny="3130860.6781250015" maxx="-1565430.3390625007" maxy="3443946.7459375"/>
+        <BoundingBox SRS="EPSG:4326" minx="-22.5" miny="22.5" maxx="-11.25" maxy="33.75"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:baumann_1897_modified</Name>
+        <Title>baumann_1897_modified</Title>
+        <Abstract>Zanzibar City Map</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:4326" minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:900913" minx="-2.003750834E7" miny="-2.003750834E7" maxx="2.003750834E7" maxy="2.003750834E7"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:san_andres_y_providencia_natural</Name>
+        <Title>San Andres Y Providencia Natural</Title>
+        <Abstract>No abstract provided</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="-84.375" miny="11.25" maxx="-78.75" maxy="16.875"/>
+        <BoundingBox SRS="EPSG:4326" minx="-84.375" miny="11.25" maxx="-78.75" maxy="16.875"/>
+        <BoundingBox SRS="EPSG:900913" minx="-9392582.034375" miny="1252344.2712499984" maxx="-8766409.89875" maxy="1878516.4068749994"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:boxes_with_end_date</Name>
+        <Title>Boxes With End Date</Title>
+        <Abstract>No abstract provided</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="-180.0" miny="-90.0" maxx="0.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:900913" minx="-2.003750834E7" miny="0.0" maxx="0.0" maxy="2.003750834E7"/>
+        <BoundingBox SRS="EPSG:4326" minx="-180.0" miny="-90.0" maxx="0.0" maxy="90.0"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:roads_2</Name>
+        <Title>roads_2</Title>
+        <Abstract>No abstract provided</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:4326" minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:900913" minx="-2.003750834E7" miny="-2.003750834E7" maxx="2.003750834E7" maxy="2.003750834E7"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:prov</Name>
+        <Title>prov</Title>
+        <Abstract>No abstract provided</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="0.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:900913" minx="-2.003750834E7" miny="-2.003750834E7" maxx="2.003750834E7" maxy="2.003750834E7"/>
+        <BoundingBox SRS="EPSG:4326" minx="0.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+      </Layer>
+      <Layer queryable="1">
+        <Name>geonode:ne_50m_admin_0_countries_1</Name>
+        <Title>ne_50m_admin_0_countries_1</Title>
+        <Abstract>No abstract provided</Abstract>
+        <SRS>EPSG:4326</SRS>
+        <SRS>EPSG:900913</SRS>
+        <LatLonBoundingBox minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+        <BoundingBox SRS="EPSG:900913" minx="-2.003750834E7" miny="-2.003750834E7" maxx="2.003750834E7" maxy="2.003750834E7"/>
+        <BoundingBox SRS="EPSG:4326" minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
+      </Layer>
+    </Layer>
+  </Capability>
+</WMT_MS_Capabilities>
