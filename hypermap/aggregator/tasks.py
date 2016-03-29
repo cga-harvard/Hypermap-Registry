@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from django.conf import settings
+
 from celery import shared_task
 
 
@@ -22,7 +24,6 @@ def check_all_services(self):
 
 @shared_task(bind=True)
 def check_service(self, service):
-
     # total is determined (and updated) exactly after service.update_layers
     total = 100
 
@@ -45,7 +46,10 @@ def check_service(self, service):
     for layer in layer_to_process:
         # update state
         status_update(count)
-        check_layer.delay(layer)
+        if not settings.SKIP_CELERY_TASK:
+            check_layer.delay(layer)
+        else:
+            check_layer(layer)
         count = count + 1
 
 
