@@ -397,16 +397,11 @@ class Layer(Resource):
 
     def worldmap_date_miner(self):
         try:
-            year = re.search('\d{2,4} ?B?CE', str(self.title))
+            year = re.search('\d{2,4} ?B?CE', self.title)
             if year is None and self.abstract:
-                year = re.search('\d{2,4} ?B?CE', str(self.abstract))
-        except UnicodeEncodeError:
-            try:
-                year = re.search('\d{2,4} ?B?CE', str(self.title.encode("ascii", "ignore")))
-                if year is None and self.abstract:
-                    year = re.search('\d{2,4} ?B?CE', str(self.abstract.encode("ascii", "ignore")))
-            except:
-                pass
+                year = re.search('\d{2,4} ?B?CE', self.abstract)
+        except:
+            pass
         if year:
             # we get the year numeric as a string object
             year_str = str(int(filter(str.isdigit, year.group(0))))
@@ -435,18 +430,13 @@ class Layer(Resource):
             self.worldmap_date_miner()
         date = None
         try:
-            year = re.search('\d{4}', str(self.title))
+            year = re.search('(?:^|\D)(\d{4})(?=$|\D)', self.title)
             if year is None and self.abstract:
-                year = re.search('\d{4}', str(self.abstract))
-        except UnicodeEncodeError:
-            try:
-                year = re.search('\d{4}', str(self.title.encode("ascii", "ignore")))
-                if year is None and self.abstract:
-                    year = re.search('\d{4}', str(self.abstract.encode("ascii", "ignore")))
-            except:
-                pass
+                year = re.search('(?:^|\D)(\d{4})(?=$|\D)', self.abstract)
+        except:
+            pass
         if year:
-            date = parse(str(year.group(0)+'-01'+'-01'))
+            date = parse(str(year.group(1)+'-01'+'-01'))
             self.layerdate_set.get_or_create(date=date, type=0)
         return date
 
