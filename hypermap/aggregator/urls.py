@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls import include, patterns, url
 
-from . import views
+from aggregator import views
 
 
 urlpatterns = [
