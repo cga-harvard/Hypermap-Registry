@@ -261,6 +261,9 @@ def update_layers_wms(service):
             layer.bbox_y0 = bbox[1]
             layer.bbox_x1 = bbox[2]
             layer.bbox_y1 = bbox[3]
+            # keywords
+            for keyword in ows_layer.keywords:
+                layer.keywords.add(keyword)
             # crsOptions
             # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
             for crs_code in ows_layer.crsOptions:
