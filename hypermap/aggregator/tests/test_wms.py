@@ -46,7 +46,6 @@ class TestWorldMap(unittest.TestCase):
             duplicated_service.save()
 
         self.assertRaises(Exception, create_duplicated_service)
-        self.assertEqual(Service.objects.all().count(), 1)
 
 
 if __name__ == '__main__':
