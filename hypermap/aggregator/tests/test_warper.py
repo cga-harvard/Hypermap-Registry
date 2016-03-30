@@ -1,0 +1,51 @@
+# -*- coding: utf-8 -*-
+
+"""
+Tests for the WMS Service Type.
+"""
+
+import unittest
+
+from httmock import with_httmock
+import mocks.warper
+
+from aggregator.models import Service
+
+
+class TestWarper(unittest.TestCase):
+
+    @with_httmock(mocks.warper.resource_get)
+    def test_create_wms_service(self):
+        # create the service
+        service = Service(
+            type='WARPER',
+            url='http://warper.example.com/warper/maps',
+        )
+        service.save()
+
+        # check layer number
+        self.assertEqual(service.layer_set.all().count(), 15)
+
+        # check layer 0 (public)
+        layer_0 = service.layer_set.all()[0]
+        self.assertEqual(layer_0.name, '29568')
+        self.assertEqual(layer_0.title, 'Plate 24: Map bounded by Myrtle Avenue')
+        self.assertTrue(layer_0.is_public)
+        self.assertEqual(layer_0.keywords.all().count(), 0)
+        self.assertEqual(layer_0.srs.all().count(), 3)
+        self.assertEqual(layer_0.check_set.all().count(), 1)
+        self.assertEqual(layer_0.layerdate_set.all()[0].date, '1855-01-01T00:00:00')
+
+        # test that if creating the service and is already exiting it is not being duplicated
+        # create the service
+        def create_duplicated_service():
+            duplicated_service = Service(
+                type='WARPER',
+                url='http://warper.example.com/warper/maps',
+            )
+            duplicated_service.save()
+
+        self.assertRaises(Exception, create_duplicated_service)
+
+if __name__ == '__main__':
+    unittest.main()
