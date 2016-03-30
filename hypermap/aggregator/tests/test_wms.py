@@ -12,7 +12,7 @@ import mocks.wms
 from aggregator.models import Service
 
 
-class TestWorldMap(unittest.TestCase):
+class TestWMS(unittest.TestCase):
 
     @with_httmock(mocks.wms.resource_get)
     def test_create_wms_service(self):
