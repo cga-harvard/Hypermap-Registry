@@ -40,7 +40,21 @@ You can edit the files with your IDE from your host, as the directory
 To run Celery in development mode run the worker process like this:
 
 ```
-  ./manage.py celery -A hypermap worker -B -l info
+./manage.py celery -A hypermap worker -B -l info
+```
+
+To run unit tests:
+
+```
+cd /webapps/hypermap/hypermap
+paver run_tests
+```
+
+If you want to run integration tests, you need to create a solr core named 'hypermap_test', and then:
+
+```
+cd /webapps/hypermap/hypermap/hypermap/
+./manage.py test tests.integration --settings=settings.test --failfast
 ```
 
 ## Hypermap on AWS
