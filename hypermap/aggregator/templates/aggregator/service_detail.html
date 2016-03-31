@@ -67,7 +67,7 @@
 <div class="clearfix"></div>
 <div id="run-chart" class="run-chart"></div>
 
-<h2>Layers</h2>
+<h2>Layers ({{ service.layer_set.all.count }})</h2>
 
 {% with service.layer_set.all as layer_set %}
 {% if layer_set %}
