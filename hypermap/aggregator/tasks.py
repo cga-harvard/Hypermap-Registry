@@ -148,7 +148,10 @@ def index_all_layers(self):
                 state='PROGRESS',
                 meta={'current': count, 'total': total}
             )
-        index_layer.delay(layer)
+        if not settings.SKIP_CELERY_TASK:
+            index_layer.delay(layer)
+        else:
+            index_layer(layer)
         count = count + 1
 
 
