@@ -36,12 +36,12 @@ class TestWarper(unittest.TestCase):
         self.assertEqual(layer_0.check_set.all().count(), 1)
         self.assertEqual(layer_0.layerdate_set.all()[0].date, '1855-01-01T00:00:00')
 
-        # a layer with no bbox must be stored with 0, 0, 0, 0 bounding box
+        # a layer with no bbox must be stored with None coordinates
         layer_no_bbox = service.layer_set.get(name='16239')
-        self.assertEqual(layer_no_bbox.bbox_x0, 0)
-        self.assertEqual(layer_no_bbox.bbox_y0, 0)
-        self.assertEqual(layer_no_bbox.bbox_x1, 0)
-        self.assertEqual(layer_no_bbox.bbox_y1, 0)
+        self.assertEqual(layer_no_bbox.bbox_x0, None)
+        self.assertEqual(layer_no_bbox.bbox_y0, None)
+        self.assertEqual(layer_no_bbox.bbox_x1, None)
+        self.assertEqual(layer_no_bbox.bbox_y1, None)
 
         # test that if creating the service and is already exiting it is not being duplicated
         # create the service

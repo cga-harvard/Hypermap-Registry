@@ -332,7 +332,7 @@
       },
       {
          "id":23931,
-         "title":"Bayside, Auburndale, Oakland Gardens, Little Neck, Douglaston.",
+         "title":"no_bbox_1",
          "description":"From District 11",
          "created_at":"2014-03-14T08:48:38.899Z",
          "updated_at":"2016-03-29T21:41:11.221Z",
@@ -357,7 +357,7 @@
       },
       {
          "id":23923,
-         "title":"Bayside, Auburndale, Oakland Gardens, Little Neck, Douglaston.",
+         "title":"no_bbox_2",
          "description":"From District 11",
          "created_at":"2014-03-14T08:48:34.808Z",
          "updated_at":"2016-03-29T21:34:16.312Z",

@@ -864,7 +864,7 @@
          },
          "uuid":"1eb32bfd-4b39-457a-b60b-e307d24c6b8f",
          "_local":true,
-         "title":"Landsat5, 2009, Band1",
+         "title":"layer_with_a_missing_coordinate",
          "_permissions":{
             "change_permissions":true,
             "delete":true,
@@ -904,7 +904,7 @@
          "bbox":{
             "minx":"71.13516205105506",
             "miny":"36.45478671723314",
-            "maxx":"73.95935667895604",
+            "maxx":"",
             "maxy":"38.48360582993934"
          },
          "keywords":[
@@ -921,7 +921,7 @@
          ],
          "temporal_extent_start":"2009-08-25",
          "owner_username":"franzjaeger2001",
-         "name":"geonode:L5151034_03420090825_B10_poF"
+         "name":"geonode:layer_with_a_missing_coordinate"
       }
    ],
    "success":true,

@@ -49,12 +49,6 @@ class SolrTest(TestCase):
     def setUp(self):
         solr_url = settings.SOLR_URL
         self.solr = pysolr.Solr(solr_url, timeout=60)
-        # create a some services (WMS, WARPER, WM)
-        # service_wms = Service(
-        #     type='OGC_WMS',
-        #     url='http://wms.example.com/ows?',
-        # )
-        # service_wms.save()
         create_wms_service()
         create_warper_service()
         create_wm_service()
@@ -66,6 +60,9 @@ class SolrTest(TestCase):
 
     def test_solr_sync(self):
         nlayers = Layer.objects.all().count()
-
+        nlayers_invalid_coordinates = 0
+        for layer in Layer.objects.all():
+            if not layer.has_valid_bbox():
+                nlayers_invalid_coordinates = nlayers_invalid_coordinates + 1
         results = self.solr.search(q='*:*')
-        self.assertEqual(results.hits, nlayers)
+        self.assertEqual(results.hits, nlayers - nlayers_invalid_coordinates)
