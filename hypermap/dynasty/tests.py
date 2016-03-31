@@ -11,7 +11,7 @@ class DateMinerTest(TestCase):
         self.data = ['mytext', '2003_Pathv5.0daynight_SST', '1950CE title',
                      '11BCE abstract', 'Ming regions', 'Carte des Etats-unis : 2010 provinces méridionales.',
                      'Garden in Front of Palace of Fine Arts<div><img src="http://www.ndl.go.jp/site_nippon/viennae/data/img/2_0006.jpg" align="none"/></div>',
-                      '60 BCE', '2003_this_has two 2013']
+                      '160 BCE', '2003_this_has two 2013', '19BC abstract']
 
     def test_mine_date_none(self):
         self.assertIsNone(mine_date(self.data[0]))
@@ -22,13 +22,16 @@ class DateMinerTest(TestCase):
     def test_year_miner_ce(self):
         self.assertEqual(mine_date(self.data[2])[0].isoformat(), '1950-01-01T00:00:00')
 
+    def test_year_miner_bc(self):
+        self.assertEqual(mine_date(self.data[9])[0], '-0019-01-01')
+
+    def test_year_miner_bce_units(self):
+        self.assertEqual(mine_date(self.data[7])[0], '-0160-01-01')
+
     def test_year_miner_bce(self):
-        self.assertEqual(mine_date(self.data[7])[0], '-0059-01-01')
+        self.assertEqual(mine_date(self.data[3])[0], '-0011-01-01')
 
-    def test_worldmap_date_miner_bce(self):
-        self.assertEqual(mine_date(self.data[3])[0], '-0010-01-01')
-
-    def test_worldmap_date_miner_range(self):
+    def test_year_range_miner_range(self):
         self.assertEqual(mine_date(self.data[4])[0], '1368 TO 1644')
 
     def test_unicode_errors(self):

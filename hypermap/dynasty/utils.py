@@ -5,7 +5,7 @@ from dateutil.parser import parse
 def year_miner(text):
     date = None
     try:
-        year = re.search('\d{2,4} ?B?CE', text)
+        year = re.search('\d{2,4} ?B?CE?', text)
     except:
         pass
     if year:
@@ -13,9 +13,8 @@ def year_miner(text):
         year_str = str(int(filter(str.isdigit, str(year.group(0)))))
         if "CE" in year.group(0):
             date = str(year_str.zfill(4))+'-01'+'-01'
-        if "BCE" in year.group(0):
-            year = int(year_str) - 1
-            date = str('-'+str(year).zfill(4))+'-01'+'-01'
+        if "BCE" or "BC" in year.group(0):
+            date = str('-'+str(year_str).zfill(4))+'-01'+'-01'
     return date
 
 def dynasty_miner(text):
