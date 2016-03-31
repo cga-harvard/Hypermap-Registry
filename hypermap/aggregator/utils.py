@@ -216,14 +216,14 @@ def flip_coordinates(c1, c2):
 
 def format_float(value):
     if value is None:
-        return None
+        return 0
     try:
         value = float(value)
         if value > 999999999:
             return None
         return value
     except ValueError:
-        return None
+        return 0
 
 
 def add_dates_to_layer(dates, layer):
@@ -409,16 +409,20 @@ def update_layers_warper(service):
                 layer.url = '%s/wms/%s?' % (service.url, name)
                 layer.page_url = '%s/%s' % (service.url, name)
                 # bbox
+                x0 = 0
+                y0 = 0
+                x1 = 0
+                y1 = 0
                 if bbox:
                     bbox_list = bbox.split(',')
                     x0 = format_float(bbox_list[0])
                     y0 = format_float(bbox_list[1])
                     x1 = format_float(bbox_list[2])
                     y1 = format_float(bbox_list[3])
-                    layer.bbox_x0 = x0
-                    layer.bbox_y0 = y0
-                    layer.bbox_x1 = x1
-                    layer.bbox_y1 = y1
+                layer.bbox_x0 = x0
+                layer.bbox_y0 = y0
+                layer.bbox_x1 = x1
+                layer.bbox_y1 = y1
                 # crsOptions
                 for crs_code in [3857, 4326, 900913]:
                     srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
