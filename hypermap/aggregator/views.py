@@ -14,7 +14,7 @@ from tasks import (check_all_services, check_service, check_layer, remove_servic
                    index_service, index_all_layers, index_layer)
 from enums import SERVICE_TYPES
 
-import celery as celery_app
+from hypermap import celery_app
 
 
 def serialize_checks(check_set):
