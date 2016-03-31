@@ -2,7 +2,7 @@ from dynasty.models import Dynasty
 import re
 from dateutil.parser import parse
 
-def worldmap_date_miner(text):
+def year_miner(text):
     date = None
     try:
         year = re.search('\d{2,4} ?B?CE', text)
@@ -14,7 +14,8 @@ def worldmap_date_miner(text):
         if "CE" in year.group(0):
             date = str(year_str.zfill(4))+'-01'+'-01'
         if "BCE" in year.group(0):
-            date = str('-'+year_str.zfill(4))+'-01'+'-01'
+            year = int(year_str) - 1
+            date = str('-'+str(year).zfill(4))+'-01'+'-01'
     return date
 
 def dynasty_miner(text):
@@ -30,21 +31,30 @@ def dynasty_miner(text):
             date_range = Dynasty.objects.get(name=item).date_range
     return date_range
 
+def valid_dates(years):
+    valid_years = []
+    for year in years:
+        if len(year) <= 4 and int(year) >=1400:
+            date = parse(str(year+'-01'+'-01'))
+            valid_years.append(date)
+    return valid_years
+
 def mine_date(text):
     text = text.decode("utf-8")
     date = None
     dates = []
     try:
-        year = re.search('(?:^|\D)(\d{4})(?=$|\D)', text)
+        years = re.findall(r'\d+', text)
     except:
         pass
-    if year:
-        date = parse(str(year.group(1)+'-01'+'-01'))
-        dates.append(date)
+    if years:
+        dates = valid_dates(years)
     if dynasty_miner(text):
         dates.append(dynasty_miner(text))
-    if worldmap_date_miner(text):
-        dates.append(worldmap_date_miner(text))
+    if year_miner(text):
+        if date:
+            dates.remove(date)
+        dates.append(year_miner(text))
     if dates:
         date = dates 
     return date
