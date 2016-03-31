@@ -1,6 +1,5 @@
 from settings.default import *  # noqa
 
-SOLR_ENABLED = False
 SKIP_CELERY_TASK = True
 
 DATABASES = {
@@ -9,6 +8,9 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+SOLR_ENABLED = True
+SOLR_URL = 'http://localhost:8983/solr/hypermap_test'
 
 # BROKER_BACKEND = 'memory'
 # BROKER_URL='memory://'
