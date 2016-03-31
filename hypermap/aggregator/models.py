@@ -222,6 +222,15 @@ class Layer(Resource):
     def __unicode__(self):
         return self.name
 
+    def has_valid_bbox(self):
+        if self.bbox_x0 is None or self.bbox_y0 is None or self.bbox_x1 is None or self.bbox_y1 is None:
+            return False
+        else:
+            if self.bbox_x0 > self.bbox_x1 or self.bbox_y0 > self.bbox_y1:
+                return False
+            else:
+                return True
+
     def get_layer_dates(self):
         dates = []
         if hasattr(self, 'layerwm'):
@@ -249,6 +258,9 @@ class Layer(Resource):
 
     def update_thumbnail(self):
         print 'Generating thumbnail for layer id %s' % self.id
+        if not self.has_valid_bbox():
+            raise ValueError('Extent for this layer is invalid, cannot generate thumbnail')
+            return None
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
         img = None
         if self.service.type == 'OGC_WMS':
