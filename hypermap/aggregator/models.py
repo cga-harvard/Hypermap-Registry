@@ -24,13 +24,16 @@ from tasks import update_endpoints, check_service, check_layer, index_layer
 
 
 def get_parsed_date(sdate):
-    pydate = parse(sdate, yearfirst=True)
-    # parser has a problem for dates from 1 to 100
-    if sdate[:2] == '00' or sdate[:3] == '000':
-        effective_year = int(sdate[:4])
-        effective_pydate = datetime.datetime(effective_year, pydate.month, pydate.day)
-        pydate = effective_pydate
-    return pydate
+    try:
+        pydate = parse(sdate, yearfirst=True)
+        # parser has a problem for dates from 1 to 100
+        if sdate[:2] == '00' or sdate[:3] == '000':
+            effective_year = int(sdate[:4])
+            effective_pydate = datetime.datetime(effective_year, pydate.month, pydate.day)
+            pydate = effective_pydate
+        return pydate
+    except:
+        return None
 
 
 class Resource(PolymorphicModel):
@@ -246,25 +249,28 @@ class Layer(Resource):
         dates = []
         if hasattr(self, 'layerwm'):
             if self.layerwm.temporal_extent_start:
-                start_date = []
                 pydate = get_parsed_date(self.layerwm.temporal_extent_start)
-                start_date.append(pydate)
-                start_date.append(1)
-                dates.append(start_date)
+                if pydate:
+                    start_date = []
+                    start_date.append(pydate)
+                    start_date.append(1)
+                    dates.append(start_date)
             if self.layerwm.temporal_extent_start:
-                end_date = []
                 pydate = get_parsed_date(self.layerwm.temporal_extent_end)
-                end_date.append(pydate)
-                end_date.append(1)
-                dates.append(end_date)
+                if pydate:
+                    end_date = []
+                    end_date.append(pydate)
+                    end_date.append(1)
+                    dates.append(end_date)
         for layerdate in self.layerdate_set.all().order_by('date'):
             sdate = layerdate.date
             if 'TO' not in sdate:
-                date = []
                 pydate = get_parsed_date(sdate)
-                date.append(pydate)
-                date.append(layerdate.type)
-                dates.append(date)
+                if pydate:
+                    date = []
+                    date.append(pydate)
+                    date.append(layerdate.type)
+                    dates.append(date)
         return dates
 
     def update_thumbnail(self):
