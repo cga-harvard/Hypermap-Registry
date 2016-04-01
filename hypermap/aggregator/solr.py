@@ -138,6 +138,8 @@ class SolrHypermap(object):
                             "LayerUsername": username,
                             "LayerUrl": layer.url,
                             "LayerReliability": layer.reliability,
+                            "LayerRecentReliability": layer.recent_reliability,
+                            "LayerLastStatus": layer.last_status,
                             "Is_Public": layer.is_public,
                             "Availability": "Online",
                             "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
@@ -149,7 +151,7 @@ class SolrHypermap(object):
                             "MaxX": maxX,
                             "Area": area,
                             "bbox": wkt,
-                            "DomainName": layer.service.get_domain,
+                            "DomainName": layer.service.get_domain
                             }
 
             solr_date, type = get_date(layer)

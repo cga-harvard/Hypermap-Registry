@@ -98,6 +98,17 @@ class Resource(PolymorphicModel):
         else:
             return None
 
+    @property
+    def recent_reliability(self):
+        total_checks = self.check_set.count()
+        recent_checks_number = 2
+        if total_checks >= recent_checks_number:
+            recent_checks = self.check_set.all().order_by('-checked_datetime')[0:recent_checks_number]
+            success_checks = sum(check.success for check in recent_checks)
+            return (success_checks/float(recent_checks_number)) * 100
+        else:
+            return self.reliability
+
 
 class Service(Resource):
     """
