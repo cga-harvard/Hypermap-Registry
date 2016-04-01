@@ -94,7 +94,11 @@
               <li>End Date: {{ layer.layerwm.temporal_extent_end }}</li>
             {% endif %}
             {% for date in layer.layerdate_set.all %}
-              <li>{{ date.date }}</li>
+              {% if date.type == 0 %}
+                 <li>{{ date.date }} Detected</li>
+              {% else %}
+                 <li>{{ date.date }} From Metadata</li>
+              {% endif %}
             {% endfor %}
           </ul>
           {% else %}
