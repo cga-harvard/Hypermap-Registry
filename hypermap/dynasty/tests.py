@@ -3,42 +3,50 @@
 
 from django.test import TestCase
 from dynasty.utils import mine_date
-import datetime
+
 
 class DateMinerTest(TestCase):
 
     def setUp(self):
-        self.data = ['mytext', '2003_Pathv5.0daynight_SST', '1950CE title',
-                     '11BCE abstract', 'Ming regions', 'Carte des Etats-unis : 2010 provinces méridionales.',
-                     'Garden in Front of Palace of Fine Arts<div><img src="http://www.ndl.go.jp/site_nippon/viennae/data/img/2_0006.jpg" align="none"/></div>',
-                      '160 BCE', '2003_this_has two 2013', '19BC abstract']
+        self.text_plain = 'mytext'
+        self.text_year = '2003_Pathv5.0daynight_SST'
+        self.text_ce = '1950CE title'
+        self.text_bce = '11BCE abstract'
+        self.text_dynasty = 'Ming regions'
+        self.text_unicode = 'Carte des Etats-unis : 2010 provinces méridionales.'
+        self.text_less_resource = "Garden in Front of Palace of Fine Arts<div> " \
+                                  "<img src='http://www.ndl.go.jp/site_nippon/viennae/data/img/2_0006.jpg'" \
+                                  "align='none'/></div>"
+        self.text_bce_three = '160 BCE'
+        self.text_multiple_dates = '2003_this_has two 2013'
+        self.text_bc = '19BC abstract'
 
     def test_mine_date_none(self):
-        self.assertIsNone(mine_date(self.data[0]))
- 
+        self.assertIsNone(mine_date(self.text_plain))
+
     def test_mine_date_text(self):
-        self.assertEqual(mine_date(self.data[1])[0].year, 2003)
- 
+        self.assertEqual(mine_date(self.text_year)[0], '2003-01-01')
+
     def test_year_miner_ce(self):
-        self.assertEqual(mine_date(self.data[2])[0].isoformat(), '1950-01-01T00:00:00')
+        self.assertEqual(mine_date(self.text_ce)[0], '1950-01-01')
 
     def test_year_miner_bc(self):
-        self.assertEqual(mine_date(self.data[9])[0], '-0019-01-01')
+        self.assertEqual(mine_date(self.text_bc)[0], '-0019-01-01')
 
     def test_year_miner_bce_units(self):
-        self.assertEqual(mine_date(self.data[7])[0], '-0160-01-01')
+        self.assertEqual(mine_date(self.text_bce_three)[0], '-0160-01-01')
 
     def test_year_miner_bce(self):
-        self.assertEqual(mine_date(self.data[3])[0], '-0011-01-01')
+        self.assertEqual(mine_date(self.text_bce)[0], '-0011-01-01')
 
     def test_year_range_miner_range(self):
-        self.assertEqual(mine_date(self.data[4])[0], '1368 TO 1644')
+        self.assertEqual(mine_date(self.text_dynasty)[0], ['1368-01-01', '1644-01-01'])
 
     def test_unicode_errors(self):
-        self.assertEqual(mine_date(self.data[5])[0].year, 2010)
+        self.assertEqual(mine_date(self.text_unicode)[0], '2010-01-01')
 
-    def test_mine_date_none(self):
-        self.assertIsNone(mine_date(self.data[6]))
-    
+    def test_mine_date_none_resource(self):
+        self.assertIsNone(mine_date(self.text_less_resource))
+
     def test_mine_date_multipe(self):
-        self.assertEqual(mine_date(self.data[8]), [datetime.datetime(2003, 1, 1, 0, 0), datetime.datetime(2013, 1, 1, 0, 0)])
+        self.assertEqual(mine_date(self.text_multiple_dates), ['2003-01-01', '2013-01-01'])

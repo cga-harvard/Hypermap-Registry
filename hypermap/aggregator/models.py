@@ -13,7 +13,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 
 from taggit.managers import TaggableManager
-from dynasty.models import Dynasty
+from dynasty.utils import mine_date
 from polymorphic.models import PolymorphicModel
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
@@ -418,50 +418,29 @@ class Layer(Resource):
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             print 'Thumbnail updated for layer %s' % self.name
 
-    def worldmap_date_miner(self):
-        try:
-            year = re.search('\d{2,4} ?B?CE', self.title)
-            if year is None and self.abstract:
-                year = re.search('\d{2,4} ?B?CE', self.abstract)
-        except:
-            pass
-        if year:
-            # we get the year numeric as a string object
-            year_str = str(int(filter(str.isdigit, year.group(0))))
-            if "CE" in year.group(0):
-                date = str(year_str.zfill(4))+'-01'+'-01'
-            if "BCE" in year.group(0):
-                date = str('-'+year_str.zfill(4))+'-01'+'-01'
+    def get_mined_dates(self):
+        mined_dates = []
+        title_dates = mine_date(self.title)
+        abstract_dates = mine_date(self.abstract)
+        if title_dates:
+            for i in title_dates:
+                if isinstance(i, list):
+                    for ranges in i:
+                        mined_dates.append(ranges)
+                else:
+                    mined_dates.append(i)
+        if abstract_dates:
+            for i in abstract_dates:
+                if isinstance(i, list):
+                    for ranges in i:
+                        mined_dates.append(ranges)
+                else:
+                    mined_dates.append(i)
+        # we remove duplicates
+        mined_dates = list(set(mined_dates))
+        for date in mined_dates:
             self.layerdate_set.get_or_create(date=date, type=0)
-        else:
-            dynasties = Dynasty.objects.values_list('name', flat=True)
-            word_set = set(dynasties)
-            abstract_set = set(self.abstract.split())
-            title_set = set(self.title.split())
-            common_set = None
-            if word_set.intersection(title_set):
-                common_set = word_set.intersection(title_set)
-            if not common_set and word_set.intersection(abstract_set):
-                common_set = word_set.intersection(abstract_set)
-            if common_set:
-                for item in common_set:
-                    date_range = Dynasty.objects.get(name=item).date_range
-                    self.layerdate_set.get_or_create(date=date_range, type=0)
-
-    def mine_date(self):
-        if self.service.type == "WM":
-            self.worldmap_date_miner()
-        date = None
-        try:
-            year = re.search('(?:^|\D)(\d{4})(?=$|\D)', self.title)
-            if year is None and self.abstract:
-                year = re.search('(?:^|\D)(\d{4})(?=$|\D)', self.abstract)
-        except:
-            pass
-        if year:
-            date = parse(str(year.group(1)+'-01'+'-01'))
-            self.layerdate_set.get_or_create(date=date, type=0)
-        return date
+        return mined_dates
 
     def check(self):
         """
@@ -474,7 +453,7 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            self.mine_date()
+            self.get_mined_dates()
             if settings.SOLR_ENABLED:
                 if not settings.SKIP_CELERY_TASK:
                     index_layer.delay(self)
