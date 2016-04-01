@@ -60,9 +60,10 @@ class SolrTest(TestCase):
 
     def test_solr_sync(self):
         nlayers = Layer.objects.all().count()
-        nlayers_invalid_coordinates = 0
-        for layer in Layer.objects.all():
-            if not layer.has_valid_bbox():
-                nlayers_invalid_coordinates = nlayers_invalid_coordinates + 1
+        # layers indexed in solr must be same number in django db
         results = self.solr.search(q='*:*')
-        self.assertEqual(results.hits, nlayers - nlayers_invalid_coordinates)
+        self.assertEqual(results.hits, nlayers)
+        # layers with invalid bbox don't have the bbox attribute in solr
+        nlayers_valid_coordinates = sum(layer.has_valid_bbox() for layer in Layer.objects.all())
+        results = self.solr.search(q='bbox:*')
+        self.assertEqual(results.hits, nlayers_valid_coordinates)

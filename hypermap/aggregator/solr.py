@@ -88,31 +88,32 @@ class SolrHypermap(object):
         try:
             # as a first thing we need to remove the existing index in case there is already one
             SolrHypermap.solr.delete(q='LayerId:%s' % layer.id)
+            bbox = None
             if not layer.has_valid_bbox():
                 message = 'There are not valid coordinates for layer id: %s' % layer.id
                 SolrHypermap.logger.error(message)
-                return False, message
-            bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
-            for proj in layer.srs.values():
-                if proj['code'] in ('102113', '102100'):
-                    bbox = mercator_to_llbbox(bbox)
-            minX = bbox[0]
-            minY = bbox[1]
-            maxX = bbox[2]
-            maxY = bbox[3]
-            # coords hack needed by solr
-            if (minX < -180):
-                minX = -180
-            if (maxX > 180):
-                maxX = 180
-            if (minY < -90):
-                minY = -90
-            if (maxY > 90):
-                maxY = 90
-            wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
-            halfWidth = (maxX - minX) / 2.0
-            halfHeight = (maxY - minY) / 2.0
-            area = (halfWidth * 2) * (halfHeight * 2)
+            else:
+                bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+                for proj in layer.srs.values():
+                    if proj['code'] in ('102113', '102100'):
+                        bbox = mercator_to_llbbox(bbox)
+                minX = bbox[0]
+                minY = bbox[1]
+                maxX = bbox[2]
+                maxY = bbox[3]
+                # coords hack needed by solr
+                if (minX < -180):
+                    minX = -180
+                if (maxX > 180):
+                    maxX = 180
+                if (minY < -90):
+                    minY = -90
+                if (maxY > 90):
+                    maxY = 90
+                wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
+                halfWidth = (maxX - minX) / 2.0
+                halfHeight = (maxY - minY) / 2.0
+                area = (halfWidth * 2) * (halfHeight * 2)
             domain = SolrHypermap.get_domain(layer.service.url)
             if hasattr(layer, 'layerwm'):
                 category = layer.layerwm.category
@@ -145,12 +146,6 @@ class SolrHypermap(object):
                             "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
                             "Abstract": abstract,
                             "SrsProjectionCode": layer.srs.values_list('code', flat=True),
-                            "MinY": minY,
-                            "MinX": minX,
-                            "MaxY": maxY,
-                            "MaxX": maxX,
-                            "Area": area,
-                            "bbox": wkt,
                             "DomainName": layer.service.get_domain
                             }
 
@@ -158,6 +153,13 @@ class SolrHypermap(object):
             if solr_date is not None:
                 solr_record['LayerDate'] = solr_date
                 solr_record['LayerDateType'] = type
+            if bbox is not None:
+                solr_record['MinX'] = minX
+                solr_record['MinY'] = minY
+                solr_record['MaxX'] = maxX
+                solr_record['MaxY'] = maxY
+                solr_record['Area'] = area
+                solr_record['bbox'] = wkt
             SolrHypermap.solr.add([solr_record])
             SolrHypermap.logger.info("Solr record saved for layer with id: %s" % layer.id)
             return True, None
