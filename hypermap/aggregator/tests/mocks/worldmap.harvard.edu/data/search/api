@@ -410,14 +410,14 @@
          },
          "uuid":"f7dbf449-e317-405d-bde3-5dd562605299",
          "_local":true,
-         "title":"Approaches to Heard Island",
+         "title":"Stati più popolosi del mondo",
          "_permissions":{
             "change_permissions":true,
             "delete":true,
             "change":true,
             "view":true
          },
-         "abstract":"Scanned map of Heard Island and surrounding area.",
+         "abstract":"È lo Stato più popoloso del mondo, con una popolazione di oltre 1.376 milioni di persone.",
          "download_links":[
             [
                "tiff",
@@ -474,7 +474,7 @@
             ]
          ],
          "owner_username":"matt",
-         "name":"geonode:A00605"
+         "name":"geonode:layers_with_no_utf8_encoding"
       },
       {
          "attribution":{
