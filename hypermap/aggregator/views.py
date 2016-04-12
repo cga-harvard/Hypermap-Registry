@@ -184,7 +184,6 @@ def celery_monitor(request):
                 reserved_task = celery_app.AsyncResult(id)
                 reserved_task.name = name
                 reserved_task.args = args
-                reserved_task.worker = worker
                 reserved_tasks.append(reserved_task)
 
     if request.method == 'POST':
