@@ -105,20 +105,21 @@
          "name":"geonode:River_basin_num2"
       },
       {
+         "temporal_extent_end":"2015-09-30",
          "attribution":{
             "href":"",
             "title":""
          },
          "uuid":"f454ddc0-e1b4-4497-9973-e2e8db0d6eb9",
          "_local":true,
-         "title":"UVA FP April 7",
+         "title":"Layer with many dates 1999 (1882)",
          "_permissions":{
             "change_permissions":true,
             "delete":true,
             "change":true,
             "view":false
          },
-         "abstract":"Database of UVa's research projects about or in the continent of Africa. \n\nThis layer is a test to see if all points appear fully, and if data appears.",
+         "abstract":"In the title there is one date, here there are more ones _1632 :1661: #1992 31/12/1338.",
          "download_links":[
             [
                "zip",
@@ -203,10 +204,10 @@
          ],
          "temporal_extent_start":"2011-01-24",
          "owner_username":"kpohlUVA",
-         "name":"geonode:UVA_FP_April7"
+         "name":"geonode:layer_with_many_dates"
       },
       {
-         "temporal_extent_end":"1990-12-31",
+         "temporal_extent_end":"Date in invalid format",
          "attribution":{
             "href":"",
             "title":""
@@ -298,7 +299,7 @@
          ],
          "temporal_extent_start":"1990-01-01",
          "owner_username":"Lex",
-         "name":"geonode:SouthJiangsu_1990"
+         "name":"geonode:layer_with_few_dates"
       },
       {
          "attribution":{

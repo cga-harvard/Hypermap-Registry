@@ -43,7 +43,34 @@ class TestWorldMap(unittest.TestCase):
         self.assertEqual(layer_0.keywords.all().count(), 4)
         self.assertEqual(layer_0.srs.all().count(), 3)
         self.assertEqual(layer_0.check_set.all().count(), 1)
-        # TODO test layer_0.layerdate_set
+
+        # test dates #1
+        layer_with_many_dates = service.layer_set.get(name='geonode:layer_with_many_dates')
+        # this layer has the following dates
+        # in title: 1999, 1882
+        # in abstract: 1632, 1661, 1992, 1338
+        # from metadata: temporal_extent_start: 2011-01-24
+        # from metadata: temporal_extent_end: 2015-09-30
+        # check detected dates
+        for date in ('1999-01-01', '1882-01-01', '1632-01-01', '1661-01-01', '1992-01-01'):
+            self.assertEqual(layer_with_many_dates.layerdate_set.filter(date=date).filter(type='0').count(), 1)
+        # check metadata dates
+        for date in ('2011-01-24', '2015-09-30'):
+            self.assertEqual(layer_with_many_dates.layerdate_set.filter(date=date).filter(type='1').count(), 1)
+
+        # test dates #2
+        layer_with_few_dates = service.layer_set.get(name='geonode:layer_with_few_dates')
+        # this layer has the following dates
+        # in title: 1990
+        # in abstract: 1990, 1996, 2000
+        # from metadata: temporal_extent_start: 1990-01-01
+        # from metadata: temporal_extent_end: Date in invalid format
+        # check detected dates
+        for date in ('1990-01-01', '1996-01-01', '2000-01-01'):
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='0').count(), 1)
+        # check metadata dates
+        for date in ('1990-01-01', ):
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='1').count(), 1)
 
         # check layer 1 (private)
         layer_1 = service.layer_set.all()[1]

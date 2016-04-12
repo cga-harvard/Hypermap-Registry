@@ -2,6 +2,22 @@ from dynasty.models import Dynasty
 import re
 
 
+def get_mined_dates(text):
+    mined_dates = []
+    dates = mine_date(text)
+    if dates:
+        for date in dates:
+            if isinstance(date, list):
+                for range_date in date:
+                    mined_dates.append(range_date)
+                    # TODO here we need to detect first date and last date
+            else:
+                mined_dates.append(date)
+    # we remove duplicates
+    mined_dates = list(set(mined_dates))
+    return mined_dates
+
+
 def year_miner(text):
     date = None
     try:

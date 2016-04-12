@@ -17,6 +17,7 @@ from arcrest import Folder as ArcFolder
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from models import Layer, LayerDate, LayerWM, SpatialReferenceSystem
+from dynasty.utils import get_mined_dates
 
 
 def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None):
@@ -226,16 +227,30 @@ def format_float(value):
         return None
 
 
-def add_dates_to_layer(dates, layer):
+def add_metadata_dates_to_layer(dates, layer):
     default = datetime.datetime(2016, 1, 1)
     for date in dates:
         if date:
             date = '%s' % date
             if date != '':
-                dt = parse(date, default=default)
-                iso_date = dt.isoformat()
-                print 'Adding date %s to layer %s' % (iso_date, layer.id)
-                layerdate, created = LayerDate.objects.get_or_create(layer=layer, date=iso_date, type=1)
+                try:
+                    dt = parse(date, default=default)
+                    if dt:
+                        iso = dt.isoformat()
+                        tokens = iso.strip().split("T")
+                        fdate = tokens[0]
+                        print 'Adding date %s to layer %s' % (fdate, layer.id)
+                        layerdate, created = LayerDate.objects.get_or_create(layer=layer, date=fdate, type=1)
+                    else:
+                        print 'Skipping date "%s" as is invalid.' % date
+                except:
+                    print 'Skipping date "%s" as is invalid.' % date
+
+
+def add_mined_dates(layer):
+    mined_dates = get_mined_dates(layer.title + layer.abstract)
+    for date in mined_dates:
+        layer.layerdate_set.get_or_create(date=date, type=0)
 
 
 def update_layers_wms(service):
@@ -270,6 +285,8 @@ def update_layers_wms(service):
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
                 layer.srs.add(srs)
             layer.save()
+            # dates
+            add_mined_dates(layer)
 
 
 def update_layers_wmts(service):
@@ -293,6 +310,8 @@ def update_layers_wmts(service):
             layer.bbox_x1 = bbox[2]
             layer.bbox_y1 = bbox[3]
             layer.save()
+            # dates
+            add_mined_dates(layer)
 
 
 def update_layers_wm(service):
@@ -367,6 +386,9 @@ def update_layers_wm(service):
                     srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
                     layer.srs.add(srs)
                 layer.save()
+                # dates
+                add_mined_dates(layer)
+                add_metadata_dates_to_layer([layer_wm.temporal_extent_start, layer_wm.temporal_extent_end], layer)
 
 
 def update_layers_warper(service):
@@ -428,7 +450,9 @@ def update_layers_warper(service):
                     srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
                     layer.srs.add(srs)
                 layer.save()
-                add_dates_to_layer(dates, layer)
+                # dates
+                add_mined_dates(layer)
+                add_metadata_dates_to_layer(dates, layer)
 
 
 def update_layers_esri_mapserver(service):
@@ -494,6 +518,8 @@ def update_layers_esri_mapserver(service):
                 layer.save()
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
                 layer.srs.add(srs)
+                # dates
+                add_mined_dates(layer)
 
 
 def update_layers_esri_imageserver(service):
@@ -517,3 +543,5 @@ def update_layers_esri_imageserver(service):
         srs = obj['spatialReference']['wkid']
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
         layer.srs.add(srs)
+        # dates
+        add_mined_dates(layer)

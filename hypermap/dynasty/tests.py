@@ -19,7 +19,11 @@ class DateMinerTest(TestCase):
                                   "align='none'/></div>"
         self.text_bce_three = '160 BCE'
         self.text_multiple_dates = '2003_this_has two 2013'
+        self.text_multiple_dates_2 = '_1981 2003_this_has three 2013'
         self.text_bc = '19BC abstract'
+        self.text_exact_date = 'My birthday is 02/06/1971 in case you cannot remember'
+        self.text_exact_dates = 'My birthday is 02/06/1971 in case you cannot remember' \
+                                'My wife birthday is 09/30/1974 and my father was born in 1933.'
 
     def test_mine_date_none(self):
         self.assertIsNone(mine_date(self.text_plain))
@@ -50,3 +54,7 @@ class DateMinerTest(TestCase):
 
     def test_mine_date_multipe(self):
         self.assertEqual(mine_date(self.text_multiple_dates), ['2003-01-01', '2013-01-01'])
+        self.assertEqual(mine_date(self.text_multiple_dates_2), ['1981-01-01', '2003-01-01', '2013-01-01'])
+
+    def test_exact_dates(self):
+        self.assertEqual(mine_date(self.text_exact_dates), ['1971-01-01', '1974-01-01', '1933-01-01'])
