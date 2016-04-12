@@ -248,7 +248,12 @@ def add_metadata_dates_to_layer(dates, layer):
 
 
 def add_mined_dates(layer):
-    mined_dates = get_mined_dates(layer.title + layer.abstract)
+    text_to_mine = ''
+    if layer.title:
+        text_to_mine = text_to_mine + layer.title
+    if layer.abstract:
+        text_to_mine = text_to_mine + ' ' + layer.abstract
+    mined_dates = get_mined_dates(text_to_mine)
     for date in mined_dates:
         layer.layerdate_set.get_or_create(date=date, type=0)
 
