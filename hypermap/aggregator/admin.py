@@ -63,6 +63,7 @@ class TaskErrorAdmin(admin.ModelAdmin):
     model = TaskError
     list_display = ('task_name', 'args', 'error_datetime', 'message')
     list_filter = ('task_name',)
+    date_hierarchy = 'error_datetime'
 
 
 admin.site.register(Service, ServiceAdmin)
