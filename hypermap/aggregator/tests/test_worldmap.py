@@ -10,6 +10,7 @@ from httmock import with_httmock
 import mocks.worldmap
 
 from aggregator.models import Service
+from aggregator.enums import DATE_DETECTED, DATE_FROM_METADATA
 
 
 class TestWorldMap(unittest.TestCase):
@@ -53,10 +54,10 @@ class TestWorldMap(unittest.TestCase):
         # from metadata: temporal_extent_end: 2015-09-30
         # check detected dates
         for date in ('1999-01-01', '1882-01-01', '1632-01-01', '1661-01-01', '1992-01-01'):
-            self.assertEqual(layer_with_many_dates.layerdate_set.filter(date=date).filter(type='0').count(), 1)
+            self.assertEqual(layer_with_many_dates.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 1)
         # check metadata dates
         for date in ('2011-01-24', '2015-09-30'):
-            self.assertEqual(layer_with_many_dates.layerdate_set.filter(date=date).filter(type='1').count(), 1)
+            self.assertEqual(layer_with_many_dates.layerdate_set.filter(date=date).filter(type=DATE_FROM_METADATA).count(), 1)
 
         # test dates #2
         layer_with_few_dates = service.layer_set.get(name='geonode:layer_with_few_dates')
@@ -67,10 +68,10 @@ class TestWorldMap(unittest.TestCase):
         # from metadata: temporal_extent_end: Date in invalid format
         # check detected dates
         for date in ('1990-01-01', '1996-01-01', '2000-01-01'):
-            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='0').count(), 1)
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 1)
         # check metadata dates
         for date in ('1990-01-01', ):
-            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='1').count(), 1)
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type=DATE_FROM_METADATA).count(), 1)
 
         # test dates #3
         layer_with_complex_dates = service.layer_set.get(name='geonode:layer_with_complex_dates')
@@ -79,10 +80,10 @@ class TestWorldMap(unittest.TestCase):
         # from metadata: temporal_extent_start: -1900-01-01
         # from metadata: temporal_extent_end: -2000-01-01
         for date in ('-1900-01-01', '-2000-01-01', '-1600-01-01', '-2100-01-01'):
-            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='0').count(), 1)
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 1)
         # check metadata dates
         for date in ('-1900-01-01', '-2000-01-01', ):
-            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='1').count(), 1)
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type=DATE_FROM_METADATA).count(), 1)
 
         # check layer 1 (private)
         layer_1 = service.layer_set.all()[1]

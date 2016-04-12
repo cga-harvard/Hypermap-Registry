@@ -8,7 +8,10 @@ SERVICE_TYPES = (
     ('WARPER', 'Mapwarper'),
 )
 
+DATE_DETECTED = 0
+DATE_FROM_METADATA = 1
+
 DATE_TYPES = (
-    (0, 'Detected'),
-    (1, 'From Metadata'),
+    (DATE_DETECTED, 'Detected'),
+    (DATE_FROM_METADATA, 'From Metadata'),
 )
