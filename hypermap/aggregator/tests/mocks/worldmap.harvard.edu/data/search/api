@@ -308,6 +308,7 @@
          },
          "uuid":"cf245949-8bd5-4669-bf44-8e08720eae6d",
          "_local":true,
+         "temporal_extent_end":"-1900-01-01",
          "title":"kenya_malaria_zones_2",
          "_permissions":{
             "change_permissions":true,
@@ -315,7 +316,7 @@
             "change":true,
             "view":true
          },
-         "abstract":"No abstract provided",
+         "abstract":"Layer representing something from 1900 BCE to 2000 BCE (this era in China is under the Xia dynasty)",
          "download_links":[
             [
                "zip",
@@ -398,8 +399,9 @@
                "http://worldmap.harvard.edu/geonetwork/srv/en/csw?service=CSW&OutputSchema=http%3A%2F%2Fwww.isotc211.org%2F2005%2Fgmd&request=GetRecordById&version=2.0.2&ElementSetName=full&id=cf245949-8bd5-4669-bf44-8e08720eae6d"
             ]
          ],
+         "temporal_extent_start":"-2000-01-01",
          "owner_username":"capooti",
-         "name":"geonode:kenya_malaria_zones_2"
+         "name":"geonode:layer_with_complex_dates"
       },
       {
          "attribution":{

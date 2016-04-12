@@ -72,6 +72,18 @@ class TestWorldMap(unittest.TestCase):
         for date in ('1990-01-01', ):
             self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='1').count(), 1)
 
+        # test dates #3
+        layer_with_complex_dates = service.layer_set.get(name='geonode:layer_with_complex_dates')
+        # this layer has the following dates
+        # in abstract: 1900 BCE, 2000 BCE, Xia dynasty
+        # from metadata: temporal_extent_start: -1900-01-01
+        # from metadata: temporal_extent_end: -2000-01-01
+        for date in ('-1900-01-01', '-2000-01-01', '-1600-01-01', '-2100-01-01'):
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='0').count(), 1)
+        # check metadata dates
+        for date in ('-1900-01-01', '-2000-01-01', ):
+            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type='1').count(), 1)
+
         # check layer 1 (private)
         layer_1 = service.layer_set.all()[1]
         self.assertFalse(layer_1.is_public)
