@@ -137,7 +137,7 @@ class SolrHypermap(object):
                 solr_record['Area'] = area
                 solr_record['bbox'] = wkt
                 srs_list = [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)]
-                solr_record['SrsProjectionCode'] = ''.join(srs_list)
+                solr_record['SrsProjectionCode'] = ', '.join(srs_list)
 
             # time to send request to solr
             url_solr_update = '%s/update/json/docs' % settings.SOLR_URL
