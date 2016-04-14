@@ -18,22 +18,22 @@ def get_date(layer):
     It can be a range or a simple date in isoformat.
     """
     date = None
-    type = 1
+    date_type = 1
     layer_dates = layer.get_layer_dates()
     if layer_dates:
         date = layer_dates[0][0]
-        type = layer_dates[0][1]
+        date_type = layer_dates[0][1]
     if date is None:
         date = layer.created.date()
     # layer date > 2300 is invalid for sure
     # TODO put this logic in date miner
     if date.year > 2300:
         date = None
-    if type == 0:
-        type = "Detected"
-    if type == 1:
-        type = "From Metadata"
-    return get_solr_date(date), type
+    if date_type == 0:
+        date_type = "Detected"
+    if date_type == 1:
+        date_type = "From Metadata"
+    return get_solr_date(date), date_type
 
 
 def get_solr_date(pydate):
@@ -53,45 +53,22 @@ def get_solr_date(pydate):
 
 class SolrHypermap(object):
 
-    solr_url = settings.SOLR_URL
-    solr = pysolr.Solr(solr_url, timeout=60)
-    logger = logging.getLogger("hypermap")
-
-    @staticmethod
-    def get_domain(url):
+    def get_domain(self, url):
         urlParts = urlparse(url)
         hostname = urlParts.hostname
         if hostname == "localhost":
             return "Harvard"  # assumption
         return hostname
 
-    @staticmethod
-    def is_solr_up():
-        solr_url = settings.SOLR_URL
-        solr_url_parts = solr_url.split('/')
-        admin_url = '/'.join(solr_url_parts[:-1]) + '/admin/cores'
-        params = {'action': 'STATUS', 'wt': 'json'}
-        try:
-            req = requests.get(admin_url, params=params)
-            response = json.loads(req.text)
-            status = response['status']
-            if status:
-                response = True
-        except requests.exceptions.RequestException:
-            response = False
-        return response
-
-    @staticmethod
-    def layer_to_solr(layer):
+    def layer_to_solr(self, layer):
+        logger = logging.getLogger("hypermap")
         category = None
         username = None
         try:
-            # as a first thing we need to remove the existing index in case there is already one
-            SolrHypermap.solr.delete(q='LayerId:%s' % layer.id)
             bbox = None
             if not layer.has_valid_bbox():
                 message = 'There are not valid coordinates for layer id: %s' % layer.id
-                SolrHypermap.logger.error(message)
+                logger.error(message)
             else:
                 bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
                 for proj in layer.srs.values():
@@ -114,7 +91,7 @@ class SolrHypermap(object):
                 halfWidth = (maxX - minX) / 2.0
                 halfHeight = (maxY - minY) / 2.0
                 area = (halfWidth * 2) * (halfHeight * 2)
-            domain = SolrHypermap.get_domain(layer.service.url)
+            domain = self.get_domain(layer.service.url)
             if hasattr(layer, 'layerwm'):
                 category = layer.layerwm.category
                 username = layer.layerwm.username
@@ -145,14 +122,13 @@ class SolrHypermap(object):
                             "Availability": "Online",
                             "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
                             "Abstract": abstract,
-                            "SrsProjectionCode": layer.srs.values_list('code', flat=True),
                             "DomainName": layer.service.get_domain
                             }
 
-            solr_date, type = get_date(layer)
+            solr_date, date_type = get_date(layer)
             if solr_date is not None:
                 solr_record['LayerDate'] = solr_date
-                solr_record['LayerDateType'] = type
+                solr_record['LayerDateType'] = date_type
             if bbox is not None:
                 solr_record['MinX'] = minX
                 solr_record['MinY'] = minY
@@ -160,16 +136,24 @@ class SolrHypermap(object):
                 solr_record['MaxY'] = maxY
                 solr_record['Area'] = area
                 solr_record['bbox'] = wkt
-            SolrHypermap.solr.add([solr_record])
-            SolrHypermap.logger.info("Solr record saved for layer with id: %s" % layer.id)
+                srs_list = [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)]
+                solr_record['SrsProjectionCode'] = ''.join(srs_list)
+
+            # time to send request to solr
+            url_solr_update = '%s/update/json/docs' % settings.SOLR_URL
+            headers = {"content-type": "application/json"}
+            params = {"commitWithin": 1500}
+            solr_json = json.dumps(solr_record)
+            requests.post(url_solr_update, data=solr_json, params=params,  headers=headers)
+            logger.info("Solr record saved for layer with id: %s" % layer.id)
             return True, None
         except Exception:
-            SolrHypermap.logger.error("Error saving solr record for layer with id: %s - %s"
-                                      % (layer.id, sys.exc_info()[1]))
+            logger.error("Error saving solr record for layer with id: %s - %s" % (layer.id, sys.exc_info()[1]))
             return False, sys.exc_info()[1]
 
-    @staticmethod
-    def clear_solr():
+    def clear_solr(self):
         """Clear all indexes in the solr core"""
-        SolrHypermap.solr.delete(q='*:*')
+        solr_url = settings.SOLR_URL
+        solr = pysolr.Solr(solr_url, timeout=60)
+        solr.delete(q='*:*')
         print 'Solr core cleared'

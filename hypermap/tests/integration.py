@@ -1,5 +1,6 @@
 from httmock import with_httmock
 import pysolr
+import time
 
 from django.conf import settings
 from django.test import LiveServerTestCase as TestCase
@@ -54,6 +55,8 @@ class SolrTest(TestCase):
         create_wm_service()
         # index all
         index_all_layers()
+        # some time sleep to commit docs
+        time.sleep(10)
 
     def tearDown(self):
         pass

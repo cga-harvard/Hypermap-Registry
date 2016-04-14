@@ -122,16 +122,20 @@ def index_service(self, service):
 def index_layer(self, layer):
     from aggregator.solr import SolrHypermap
     print 'Syncing layer %s to solr' % layer.name
-    solrobject = SolrHypermap()
-    success, message = solrobject.layer_to_solr(layer)
-    if not success:
-        from aggregator.models import TaskError
-        task_error = TaskError(
-            task_name=self.name,
-            args=layer.id,
-            message=message
-        )
-        task_error.save()
+    try:
+        solrobject = SolrHypermap()
+        success, message = solrobject.layer_to_solr(layer)
+        if not success:
+            from aggregator.models import TaskError
+            task_error = TaskError(
+                task_name=self.name,
+                args=layer.id,
+                message=message
+            )
+            task_error.save()
+    except:
+        print 'There was an exception here!'
+        self.retry(layer)
 
 
 @shared_task(bind=True)
