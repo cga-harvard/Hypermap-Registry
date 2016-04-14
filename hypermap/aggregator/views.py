@@ -123,7 +123,6 @@ def service_checks(request, service_id):
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
-    SOLR_URL = settings.SOLR_URL
 
     if request.method == 'POST':
         if 'check' in request.POST:
@@ -139,7 +138,7 @@ def layer_detail(request, layer_id):
             else:
                 index_layer(layer)
 
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer, 'SOLR_URL': SOLR_URL})
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer, })
 
 
 def layer_checks(request, layer_id):
@@ -228,12 +227,13 @@ def update_progressbar(request, task_id):
     progressbar = 100
     status = '100%'
     state = 'COMPLETED'
-    if not active_task.ready():
-        current = active_task.info['current']
-        total = active_task.info['total']
-        progressbar = (current / float(total) * 100)
-        status = "%s/%s (%.2f %%)" % (current, total, progressbar)
-        state = active_task.state
+    if active_task:
+        if not active_task.ready():
+            current = active_task.info['current']
+            total = active_task.info['total']
+            progressbar = (current / float(total) * 100)
+            status = "%s/%s (%.2f %%)" % (current, total, progressbar)
+            state = active_task.state
     response_data['progressbar'] = progressbar
     response_data['status'] = status
     response_data['state'] = state

@@ -45,7 +45,12 @@
         </tr>
         <tr>
           <td><strong>URL</strong></td>
-          <td><a href="{{ service.url }}">{{ service.url }}</a></td>
+          <td>
+            <ul>
+              <li>EndPoint: <a href="{{ service.url }}">{{ service.url|truncatechars:80 }}</a></li>
+              <li>Solr: <a href="{{SOLR_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true" target="new">{{SOLR_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true</a></li>
+            </ul>
+          </td>
         </tr>
         <tr>
           <td><strong>Monitoring Period</strong></td>
