@@ -73,7 +73,7 @@ def valid_dates(years):
 
 
 def mine_date(text):
-    text = text.decode("utf-8")
+    #text = text.decode("utf-8")
     date = None
     dates = []
     try:
