@@ -18,8 +18,6 @@ Wait for the instance to be provisioned (about 3/4 minutes).
 
 Then connect to: 192.168.33.15 and your instance should be up and running.
 
-Create a periodic task using the Django admin (login: admin/admin), to run the
-process. Task that needs to be run is check_all_services.
 
 ## Development mode
 
@@ -37,7 +35,7 @@ cd /webapps/hypermap/hypermap/hypermap/
 You can edit the files with your IDE from your host, as the directory
 /webapps/hypermap/hypermap on the guest is synced with your host.
 
-To run Celery in development mode run the worker process like this:
+To run Celery in development mode run the worker process like this (remember to stop the celery process with supervisor before):
 
 ```
 ./manage.py celery -A hypermap worker -B -l info
@@ -53,8 +51,8 @@ paver run_tests
 If you want to run integration tests, you need to create a solr core named 'hypermap_test', and then:
 
 ```
-cd /webapps/hypermap/hypermap/hypermap/
-./manage.py test tests.integration --settings=settings.test --failfast
+cd /webapps/hypermap/hypermap
+paver run_integration_tests
 ```
 
 ## Hypermap on AWS
@@ -85,10 +83,10 @@ Finally run the playbook:
 
 ansible-playbook aws.yml
 
-If you want to run only a part of the provisioning process:
+If you want to run only a part of the provisioning process use the --tags option:
 
 ansible-playbook aws.yml --tags "uwsgi"
 
-To make a new deployment, after committing to Git, run:
+To make a new deployment, after committing to git, run:
 
 ansible-playbook deploy.yml
