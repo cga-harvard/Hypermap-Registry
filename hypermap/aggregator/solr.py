@@ -106,23 +106,23 @@ class SolrHypermap(object):
                 originator = domain
             # now we add the index
             solr_record = {
-                            "LayerId": str(layer.id),
-                            "LayerName": layer.name,
-                            "LayerTitle": layer.title,
-                            "Originator": originator,
-                            "ServiceId": str(layer.service.id),
-                            "ServiceType": layer.service.type,
-                            "LayerCategory": category,
-                            "LayerUsername": username,
-                            "LayerUrl": layer.url,
-                            "LayerReliability": layer.reliability,
-                            "LayerRecentReliability": layer.recent_reliability,
-                            "LayerLastStatus": layer.last_status,
-                            "Is_Public": layer.is_public,
-                            "Availability": "Online",
-                            "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                            "Abstract": abstract,
-                            "DomainName": layer.service.get_domain
+                            'LayerId': str(layer.id),
+                            'LayerName': layer.name,
+                            'LayerTitle': layer.title,
+                            'Originator': originator,
+                            'ServiceId': str(layer.service.id),
+                            'ServiceType': layer.service.type,
+                            'LayerCategory': category,
+                            'LayerUsername': username,
+                            'LayerUrl': layer.url,
+                            'LayerReliability': layer.reliability,
+                            'LayerRecentReliability': layer.recent_reliability,
+                            'LayerLastStatus': layer.last_status,
+                            'Is_Public': layer.is_public,
+                            'Availability': 'Online',
+                            'Location': '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                            'Abstract': abstract,
+                            'DomainName': layer.service.get_domain
                             }
 
             solr_date, date_type = get_date(layer)
@@ -137,7 +137,7 @@ class SolrHypermap(object):
                 solr_record['Area'] = area
                 solr_record['bbox'] = wkt
                 srs_list = layer.srs.values_list('code', flat=True)
-                solr_record['SrsProjectionCode'] = '%s' % srs_list
+                solr_record['SrsProjectionCode'] = tuple(srs_list)
 
             # time to send request to solr
             url_solr_update = '%s/update/json/docs' % settings.SOLR_URL
