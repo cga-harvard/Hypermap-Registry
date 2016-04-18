@@ -32,16 +32,16 @@ class DateMinerTest(TestCase):
         self.assertEqual(mine_date(self.text_year)[0], '2003-01-01')
 
     def test_year_miner_ce(self):
-        self.assertEqual(mine_date(self.text_ce)[0], '1950-01-01')
+        self.assertEqual(mine_date(self.text_ce)[0], ['1950-01-01'])
 
     def test_year_miner_bc(self):
-        self.assertEqual(mine_date(self.text_bc)[0], '-0019-01-01')
+        self.assertEqual(mine_date(self.text_bc)[0], ['-0019-01-01'])
 
     def test_year_miner_bce_units(self):
-        self.assertEqual(mine_date(self.text_bce_three)[0], '-0160-01-01')
+        self.assertEqual(mine_date(self.text_bce_three)[0], ['-0160-01-01'])
 
     def test_year_miner_bce(self):
-        self.assertEqual(mine_date(self.text_bce)[0], '-0011-01-01')
+        self.assertEqual(mine_date(self.text_bce)[0], ['-0011-01-01'])
 
     def test_year_range_miner_range(self):
         self.assertEqual(mine_date(self.text_dynasty)[0], ['1368-01-01', '1644-01-01'])

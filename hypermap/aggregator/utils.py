@@ -233,18 +233,21 @@ def add_metadata_dates_to_layer(dates, layer):
         if date:
             date = '%s' % date
             if date != '':
-                try:
-                    dt = parse(date, default=default)
-                    if dt:
-                        iso = dt.isoformat()
-                        tokens = iso.strip().split("T")
-                        fdate = tokens[0]
-                        print 'Adding date %s to layer %s' % (fdate, layer.id)
-                        layerdate, created = LayerDate.objects.get_or_create(layer=layer, date=fdate, type=1)
-                    else:
+                if date.startswith('-'):
+                    layerdate, created = LayerDate.objects.get_or_create(layer=layer, date=date, type=1)
+                else:
+                    try:
+                        dt = parse(date, default=default)
+                        if dt:
+                            iso = dt.isoformat()
+                            tokens = iso.strip().split("T")
+                            fdate = tokens[0]
+                            print 'Adding date %s to layer %s' % (fdate, layer.id)
+                            layerdate, created = LayerDate.objects.get_or_create(layer=layer, date=fdate, type=1)
+                        else:
+                            print 'Skipping date "%s" as is invalid.' % date
+                    except:
                         print 'Skipping date "%s" as is invalid.' % date
-                except:
-                    print 'Skipping date "%s" as is invalid.' % date
 
 
 def add_mined_dates(layer):

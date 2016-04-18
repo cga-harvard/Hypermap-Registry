@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from dynasty.models import Dynasty
 import re
 
@@ -18,25 +20,38 @@ def get_mined_dates(text):
     return mined_dates
 
 
-def year_miner(text):
-    date = None
+def clean_text(text):
     try:
-        year = re.search('\d{2,4} ?B?CE', text)
-        bc_year = re.search('\d{2,4} ?BC', text)
+        text = text.decode("utf-8")
+    except UnicodeEncodeError:
+        text = text.encode("ascii", "ignore")
+    return text
+
+
+def year_miner(text):
+    dates = []
+    try:
+        years = re.findall('\d{2,4} ?B?CE', text)
+        bc_years = re.findall('\d{2,4} ?BC', text)
     except:
         pass
-    if year:
-        # we get the year numeric as a string object
-        year_str = str(int(filter(str.isdigit, str(year.group(0)))))
-        if "CE" in year.group(0):
-            date = str(year_str.zfill(4))+'-01'+'-01'
-        if "BCE" in year.group(0):
-            date = str('-'+str(year_str).zfill(4))+'-01'+'-01'
-    if bc_year:
-        bc_year_str = str(int(filter(str.isdigit, str(bc_year.group(0)))))
-        if "BC" in bc_year.group(0):
-            date = str('-'+str(bc_year_str).zfill(4))+'-01'+'-01'
-    return date
+    if bc_years:
+        for bc_year in bc_years:
+            if "BC" in bc_year:
+                bc_year = re.findall('\d+', bc_year)[0]
+                bcdate = str('-'+str(bc_year).zfill(4))+'-01'+'-01'
+                dates.append(bcdate)
+    if years:
+        for year in years:
+            if "CE" in year and "BCE" not in year:
+                year = re.findall('\d+', year)[0]
+                cedate = str(year.zfill(4))+'-01'+'-01'
+                dates.append(cedate)
+            if "BCE" in year and bc_years is None:
+                year = re.findall('\d+', year)[0]
+                bcedate = str('-'+str(year).zfill(4))+'-01'+'-01'
+                dates.append(bcedate)
+    return dates
 
 
 def dynasty_miner(text):
@@ -73,21 +88,22 @@ def valid_dates(years):
 
 
 def mine_date(text):
-    #text = text.decode("utf-8")
+    text = clean_text(text)
     date = None
     dates = []
     try:
         years = re.findall(r'\d+', text)
     except:
         pass
-    if years:
-        dates = valid_dates(years)
     if dynasty_miner(text):
         dates.append(dynasty_miner(text))
     if year_miner(text):
         if date:
             dates.remove(date)
         dates.append(year_miner(text))
+    if years and not year_miner(text):
+        for years in valid_dates(years):
+            dates.append(years)
     if dates:
         date = dates
     return date
