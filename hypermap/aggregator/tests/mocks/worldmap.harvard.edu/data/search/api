@@ -490,7 +490,7 @@
             "change":true,
             "view":true
          },
-         "abstract":"Phoenician Basic Sites",
+         "abstract":"Item Number: 26-5 Document Title: J.W. FLAVELLE, ESQ., TORONTO, ONT; PLANTING STUDY; SCALE 20'=1' Project: 00026; Flavelle, J. W.; Toronto; Ontario; Canada; 07 Private Estate & Homesteads; 6 PLANS (1901-1902) Artist/Creator: GALLAGHER, Location: Olmsted National Historic Site, Brookline, MA Category: PLAN Purpose: PLTG (Planting) Physical Characteristics: FAIR H 30, W 41 3/4\" ink --graphite draft cloth Dates: 21OCT1901 Notes: OBLA",
          "download_links":[
             [
                "zip",
@@ -569,7 +569,7 @@
             ]
          ],
          "owner_username":"jhowry",
-         "name":"geonode:Phoenician_sites_1"
+         "name":"geonode:layer_with_dates_in_abstract"
       },
       {
          "attribution":{
@@ -585,7 +585,7 @@
             "change":true,
             "view":true
          },
-         "abstract":"Mountain Peaks and Passes",
+         "abstract":"Japan Pavilion<div><img src='http://www.ndl.go.jp/site_nippon/viennae/data/img/1_0001.jpg' align='none'/></div>",
          "download_links":[
             [
                "zip",
@@ -668,7 +668,7 @@
             ]
          ],
          "owner_username":"Lex",
-         "name":"geonode:ch_peaks_passes"
+         "name":"geonode:layer_with_html_tag"
       },
       {
          "attribution":{

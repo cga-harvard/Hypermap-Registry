@@ -80,10 +80,24 @@ class TestWorldMap(unittest.TestCase):
         # from metadata: temporal_extent_start: -1900-01-01
         # from metadata: temporal_extent_end: -2000-01-01
         for date in ('-1900-01-01', '-2000-01-01', '-1600-01-01', '-2100-01-01'):
-            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 1)
+            self.assertEqual(layer_with_complex_dates.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 1)
         # check metadata dates
         for date in ('-1900-01-01', '-2000-01-01', ):
-            self.assertEqual(layer_with_few_dates.layerdate_set.filter(date=date).filter(type=DATE_FROM_METADATA).count(), 1)
+            self.assertEqual(layer_with_complex_dates.layerdate_set.filter(date=date).filter(type=DATE_FROM_METADATA).count(), 1)
+
+        # test dates #4
+        layer_with_dates_in_abstract = service.layer_set.get(name='geonode:layer_with_dates_in_abstract')
+        # this layer has the following dates
+        # in abstract: 1901, 1902
+        for date in ('1901-01-01', '1902-01-01'):
+            self.assertEqual(layer_with_dates_in_abstract.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 1)
+
+        # test dates #5
+        layer_with_html_tag = service.layer_set.get(name='geonode:layer_with_html_tag')
+        self.assertEqual(layer_with_html_tag.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 0)
+
+        # this layer has no dates
+        import ipdb; ipdb.set_trace()
 
         # check layer 1 (private)
         layer_1 = service.layer_set.all()[1]
