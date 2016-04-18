@@ -101,7 +101,9 @@ class TestWorldMap(unittest.TestCase):
         # this layer has the following dates
         # in abstract: 1901, 1902
         for date in ('1901-01-01', '1902-01-01'):
-            self.assertEqual(layer_with_dates_in_abstract.layerdate_set.filter(date=date).filter(type=DATE_DETECTED).count(), 1)
+            self.assertEqual(
+                            layer_with_dates_in_abstract.layerdate_set.filter(
+                                date=date).filter(type=DATE_DETECTED).count(), 1)
 
         # test dates #5
         layer_with_html_tag = service.layer_set.get(name='geonode:layer_with_html_tag')
