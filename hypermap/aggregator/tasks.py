@@ -169,6 +169,7 @@ def update_endpoint(self, endpoint):
     endpoint.processed = True
     endpoint.save()
 
+
 @shared_task(bind=True)
 def update_endpoints(self, endpoint_list):
     # for now we process the enpoint even if they were already processed
