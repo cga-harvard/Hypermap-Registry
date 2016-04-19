@@ -160,21 +160,26 @@ def index_all_layers(self):
 
 
 @shared_task(bind=True)
-def update_endpoints(self, endpoint_list):
+def update_endpoint(self, endpoint):
     from aggregator.utils import create_services_from_endpoint
+    print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
+    imported, message = create_services_from_endpoint(endpoint.url)
+    endpoint.imported = imported
+    endpoint.message = message
+    endpoint.processed = True
+    endpoint.save()
+
+@shared_task(bind=True)
+def update_endpoints(self, endpoint_list):
     # for now we process the enpoint even if they were already processed
-    endpoint_to_process = endpoint_list.endpoint_set.all()
+    endpoint_to_process = endpoint_list.endpoint_set.filter(processed=False)
     total = endpoint_to_process.count()
     count = 0
     for endpoint in endpoint_to_process:
-        # for now we process the enpoint even if they were already processed
-        # if not endpoint.processed:
-        print 'Processing endpoint %s' % endpoint.url
-        imported, message = create_services_from_endpoint(endpoint.url)
-        endpoint.imported = imported
-        endpoint.message = message
-        endpoint.processed = True
-        endpoint.save()
+        if not settings.SKIP_CELERY_TASK:
+            update_endpoint.delay(endpoint)
+        else:
+            update_endpoint(endpoint)
         # update state
         if not self.request.called_directly:
             self.update_state(

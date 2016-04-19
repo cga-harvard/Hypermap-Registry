@@ -112,25 +112,30 @@ def create_services_from_endpoint(url):
 
     # Esri
     # a good sample is here: https://gis.ngdc.noaa.gov/arcgis/rest/services
-    if not detected:
-        try:
-            esri = ArcFolder(endpoint)
-            services = esri.services
 
-            service_type = 'ESRI'
-            detected = True
+    # we can safely assume the following condition (at least it is true for 1170 services)
+    # we need to test this as ArcFolder can freeze with not esri url such as this one:
+    # http://hh.worldmap.harvard.edu/admin/aggregator/service/?q=%2Frest%2Fservices
+    if '/rest/services' in endpoint:
+        if not detected:
+            try:
+                esri = ArcFolder(endpoint)
+                services = esri.services
 
-            # root
-            root_services = process_esri_services(services)
-            num_created = num_created + len(root_services)
+                service_type = 'ESRI'
+                detected = True
 
-            # folders
-            for folder in esri.folders:
-                folder_services = process_esri_services(folder.services)
-                num_created = num_created + len(folder_services)
+                # root
+                root_services = process_esri_services(services)
+                num_created = num_created + len(root_services)
 
-        except Exception as e:
-            print str(e)
+                # folders
+                for folder in esri.folders:
+                    folder_services = process_esri_services(folder.services)
+                    num_created = num_created + len(folder_services)
+
+            except Exception as e:
+                print str(e)
 
     if detected:
         return True, '%s service/s created' % num_created
