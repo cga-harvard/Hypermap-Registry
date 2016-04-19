@@ -25,6 +25,8 @@ def clean_text(text):
         text = text.decode("utf-8")
     except UnicodeEncodeError:
         text = text.encode("ascii", "ignore")
+    except:
+        pass
     return text
 
 
