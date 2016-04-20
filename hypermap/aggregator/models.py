@@ -235,6 +235,16 @@ class Layer(Resource):
     def __unicode__(self):
         return self.name
 
+    def get_url_endpoint(self):
+        """
+        Return the Hypermap endpoint for a layer.
+        This endpoint will be the WMTS MapProxy endpoint, only for WM and Esri we use original endpoints.
+        """
+        endpoint = self.url
+        if self.service.type not in ('WM', 'ESRI_MapServer', 'ESRI_ImageServer'):
+            endpoint = '%slayer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL, self.id)
+        return endpoint
+
     def has_valid_bbox(self):
         if self.bbox_x0 is None or self.bbox_y0 is None or self.bbox_x1 is None or self.bbox_y1 is None:
             return False

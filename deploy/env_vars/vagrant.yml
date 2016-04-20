@@ -35,6 +35,7 @@ flower_admin_password: password
 
 
 # Application settings.
+site_url = "http://192.168.33.15:8000/"
 django_settings_file: "settings._vagrant"
 django_secret_key: "akr2icmg1n8%z^3fe3c+)5d0(t^cy-2_25rrl35a7@!scna^1#"
 

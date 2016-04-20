@@ -123,7 +123,6 @@ def service_checks(request, service_id):
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
-
     if request.method == 'POST':
         if 'check' in request.POST:
             if not settings.SKIP_CELERY_TASK:

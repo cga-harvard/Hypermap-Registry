@@ -114,7 +114,7 @@ class SolrHypermap(object):
                             'ServiceType': layer.service.type,
                             'LayerCategory': category,
                             'LayerUsername': username,
-                            'LayerUrl': layer.url,
+                            'LayerUrl': layer.get_url_endpoint(),
                             'LayerReliability': layer.reliability,
                             'LayerRecentReliability': layer.recent_reliability,
                             'LayerLastStatus': layer.last_status,
