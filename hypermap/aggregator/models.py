@@ -237,13 +237,22 @@ class Layer(Resource):
 
     def get_url_endpoint(self):
         """
-        Return the Hypermap endpoint for a layer.
+        Returns the Hypermap endpoint for a layer.
         This endpoint will be the WMTS MapProxy endpoint, only for WM and Esri we use original endpoints.
         """
         endpoint = self.url
         if self.service.type not in ('WM', 'ESRI_MapServer', 'ESRI_ImageServer'):
             endpoint = '%slayer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL, self.id)
         return endpoint
+
+    def get_tile_url(self):
+        """
+        Returns the tile url MapProxy endpoint for the layer.
+        """
+        if self.service.type not in ('WM', 'ESRI_MapServer', 'ESRI_ImageServer'):
+            return '/layers/%s/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png' % self.id
+        else:
+            return None
 
     def has_valid_bbox(self):
         if self.bbox_x0 is None or self.bbox_y0 is None or self.bbox_x1 is None or self.bbox_y1 is None:
