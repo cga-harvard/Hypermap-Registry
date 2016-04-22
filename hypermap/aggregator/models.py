@@ -48,7 +48,7 @@ class Resource(PolymorphicModel):
     is_public = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.polymorphic_ctype.name, self.title)
+        return '%s - %s' % (self.polymorphic_ctype.name, self.id)
 
     @property
     def first_check(self):
@@ -233,7 +233,7 @@ class Layer(Resource):
     keywords = TaggableManager()
 
     def __unicode__(self):
-        return self.name
+        return '%s - %s' % (self.id, self.name)
 
     def get_url_endpoint(self):
         """
