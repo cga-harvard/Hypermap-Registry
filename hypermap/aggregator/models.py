@@ -476,7 +476,7 @@ class Layer(Resource):
             message=message
         )
         check.save()
-        print 'Service checked in %s seconds, status is %s' % (response_time, success)
+        print 'Layer checked in %s seconds, status is %s' % (response_time, success)
         return success, message
 
     def get_absolute_url(self):
