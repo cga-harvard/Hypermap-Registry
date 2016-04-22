@@ -14,12 +14,18 @@ from django.core.urlresolvers import reverse
 
 from taggit.managers import TaggableManager
 from polymorphic.models import PolymorphicModel
+from lxml import etree
+from shapely.wkt import loads
+from owslib.namespaces import Namespaces
+from owslib.util import nspath_eval
+from owslib.tms import TileMapService
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import SERVICE_TYPES, DATE_TYPES
 from tasks import update_endpoints, check_service, check_layer, index_layer
+#from utils import bbox2wktpolygon
 
 
 def get_parsed_date(sdate):
@@ -39,16 +45,58 @@ class Resource(PolymorphicModel):
     """
     Resource represents basic information for a resource (service/layer).
     """
+    type = models.CharField(max_length=20, choices=SERVICE_TYPES)
     title = models.CharField(max_length=255, null=True, blank=True)
     abstract = models.TextField(null=True, blank=True)
+    keywords = TaggableManager(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
 
+    temporal_extent_start = models.CharField(max_length=255, null=True, blank=True)
+    temporal_extent_end = models.CharField(max_length=255, null=True, blank=True)
+
+    # CSW fields
+    csw_type = models.CharField(max_length=32, default='dataset', null=False)
+    csw_typename = models.CharField(max_length=32, default='csw:Record', null=False)
+
+    csw_schema = models.CharField(max_length=64,
+                                  default='http://www.opengis.net/cat/csw/2.0.2',
+                                  null=False)
+
+    anytext = models.TextField(null=True, blank=True)
+    wkt_geometry = models.TextField(null=False,
+                                    default='POLYGON((-180 -90,-180 90,180 90,180 -90,-180 -90))')
+
+    # metadata XML specific fields
+    xml = models.TextField(null=True,
+                           default='<csw:Record xmlns:csw="http://www.opengis.net/cat/2.0.2"/>',
+                           blank=True)
+
     def __unicode__(self):
         return '%s - %s' % (self.polymorphic_ctype.name, self.title)
+
+    @property
+    def id_string(self):
+        return str(self.id)
+
+    @property
+    def last_updated_iso8601(self):
+        if self.last_updated:
+            iso8601 = self.last_updated.isoformat()
+            if not self.last_updated.utcoffset:
+                return '%sZ' % iso8601
+            return iso8601
+
+    @property
+    def keywords_csv(self):
+        keywords_qs = self.keywords.all()
+        if keywords_qs:
+            return ','.join([kw.name for kw in keywords_qs])
+        else:
+            return ''
 
     @property
     def first_check(self):
@@ -116,9 +164,6 @@ class Service(Resource):
     """
     Service represents a remote geowebservice.
     """
-    type = models.CharField(max_length=20, choices=SERVICE_TYPES)
-
-    keywords = TaggableManager(blank=True)
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.title)
@@ -137,13 +182,13 @@ class Service(Resource):
                            update_layers_esri_imageserver, update_layers_wm, update_layers_warper)
         signals.post_save.disconnect(layer_post_save, sender=Layer)
         print 'Updating layers for service id %s' % self.id
-        if self.type == 'OGC_WMS':
+        if self.type == 'OGC:WMS':
             update_layers_wms(self)
-        elif self.type == 'OGC_WMTS':
+        elif self.type == 'OGC:WMTS':
             update_layers_wmts(self)
-        elif self.type == 'ESRI_MapServer':
+        elif self.type == 'ESRI:ArcGIS:MapServer':
             update_layers_esri_mapserver(self)
-        elif self.type == 'ESRI_ImageServer':
+        elif self.type == 'ESRI:ArcGIS:ImageServer':
             update_layers_esri_imageserver(self)
         elif self.type == 'WM':
             update_layers_wm(self)
@@ -159,22 +204,39 @@ class Service(Resource):
         success = True
         start_time = datetime.datetime.utcnow()
         message = ''
+
         print 'Checking service id %s' % self.id
 
         try:
             title = None
-            if self.type == 'OGC_WMS':
+            abstract = None
+            keywords = []
+            wkt_geometry = None
+            if self.type == 'OGC:WMS':
                 ows = WebMapService(self.url)
                 title = ows.identification.title
-            if self.type == 'OGC_WMTS':
+                abstract = ows.identification.abstract
+                keywords = ows.identification.keywords
+                for c in ows.contents:
+                    if ows.contents[c].parent is None:
+                        wkt_geometry = bbox2wktpolygon(ows.contents[c].boundingBoxWGS84)
+                    break
+            if self.type == 'OGC:WMTS':
                 ows = WebMapTileService(self.url)
                 title = ows.identification.title
-            if self.type == 'ESRI_MapServer':
+                abstract = ows.identification.abstract
+                keywords = ows.identification.keywords
+            if self.type == 'OGC:TMS':
+                ows = TileMapService(self.url)
+                title = ows.identification.title
+                abstract = ows.identification.abstract
+                keywords = ows.identification.keywords
+            if self.type == 'ESRI:ArcGIS:MapServer':
                 esri = ArcMapService(self.url)
                 title = esri.mapName
                 if len(title) == 0:
                     title = get_esri_service_name(self.url)
-            if self.type == 'ESRI_ImageServer':
+            if self.type == 'ESRI:ArcGIS:ImageServer':
                 esri = ArcImageService(self.url)
                 title = esri._json_struct['name']
                 if len(title) == 0:
@@ -186,8 +248,33 @@ class Service(Resource):
                 urllib2.urlopen(self.url)
             # update title without raising a signal and recursion
             if title:
+                self.title = title
                 Service.objects.filter(id=self.id).update(title=title)
-        except Exception, err:
+            if abstract:
+                self.abstract = abstract
+                Service.objects.filter(id=self.id).update(abstract=abstract)
+            if keywords:
+                for kw in keywords:
+                    # FIXME: persist keywords to Django model
+                    self.keywords.add(kw)
+            if wkt_geometry:
+                self.wkt_geometry = wkt_geometry
+                Service.objects.filter(id=self.id).update(wkt_geometry=wkt_geometry)
+            xml = create_metadata_record(
+                identifier=self.id_string,
+                source=self.url,
+                links=[[self.type, self.url]],
+                format=self.type,
+                type='service',
+                title=title,
+                abstract=abstract,
+                keywords=keywords,
+                wkt_geometry=self.wkt_geometry
+            )
+            anytexts = gen_anytext(title, abstract, keywords)
+            Service.objects.filter(id=self.id).update(anytext=anytexts, xml=xml, csw_type='service')
+        except Exception as err:
+            print(err)
             message = str(err)
             success = False
 
@@ -230,8 +317,6 @@ class Layer(Resource):
     srs = models.ManyToManyField(SpatialReferenceSystem)
     service = models.ForeignKey(Service)
 
-    keywords = TaggableManager()
-
     def __unicode__(self):
         return self.name
 
@@ -241,7 +326,7 @@ class Layer(Resource):
         This endpoint will be the WMTS MapProxy endpoint, only for WM and Esri we use original endpoints.
         """
         endpoint = self.url
-        if self.service.type not in ('WM', 'ESRI_MapServer', 'ESRI_ImageServer'):
+        if self.type not in ('WM', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
             endpoint = '%slayer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL, self.id)
         return endpoint
 
@@ -249,7 +334,7 @@ class Layer(Resource):
         """
         Returns the tile url MapProxy endpoint for the layer.
         """
-        if self.service.type not in ('WM', 'ESRI_MapServer', 'ESRI_ImageServer'):
+        if self.type not in ('WM', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
             return '/layers/%s/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png' % self.id
         else:
             return None
@@ -298,7 +383,7 @@ class Layer(Resource):
             return None
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
         img = None
-        if self.service.type == 'OGC_WMS':
+        if self.type == 'OGC:WMS':
             ows = WebMapService(self.service.url)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
@@ -323,7 +408,7 @@ class Layer(Resource):
             if 'ogc.se_xml' in img.info()['Content-Type']:
                 raise ValueError(img.read())
                 img = None
-        elif self.service.type == 'OGC_WMTS':
+        elif self.type == 'OGC:WMTS':
 
             ows = WebMapTileService(self.service.url)
             ows_layer = ows.contents[self.name]
@@ -341,7 +426,7 @@ class Layer(Resource):
                                 column='0',
                                 format=image_format
                             )
-        elif self.service.type == 'WM':
+        elif self.type == 'WM':
             ows = WebMapService(self.url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
@@ -366,7 +451,7 @@ class Layer(Resource):
             if 'ogc.se_xml' in img.info()['Content-Type']:
                 raise ValueError(img.read())
                 img = None
-        elif self.service.type == 'WARPER':
+        elif self.type == 'WARPER':
             ows = WebMapService(self.url)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
@@ -391,7 +476,7 @@ class Layer(Resource):
             if 'ogc.se_xml' in img.info()['Content-Type']:
                 raise ValueError(img.read())
                 img = None
-        elif self.service.type == 'ESRI_MapServer':
+        elif self.type == 'ESRI:ArcGIS:MapServer':
             try:
                 image = None
                 arcserver = ArcMapService(self.service.url)
@@ -416,7 +501,7 @@ class Layer(Resource):
             image.save(thumbnail_file_name)
             img = open(thumbnail_file_name, 'r')
             os.remove(thumbnail_file_name)
-        elif self.service.type == 'ESRI_ImageServer':
+        elif self.type == 'ESRI:ArcGIS:ImageServer':
             image = None
             try:
                 arcserver = ArcImageService(self.service.url)
@@ -562,6 +647,76 @@ class TaskError(models.Model):
     args = models.CharField(max_length=255)
     error_datetime = models.DateTimeField(auto_now=True)
     message = models.TextField(blank=True, null=True)
+
+
+def bbox2wktpolygon(bbox):
+    """
+    Return OGC WKT Polygon of a simple bbox list
+    """
+
+    minx = float(bbox[0])
+    miny = float(bbox[1])
+    maxx = float(bbox[2])
+    maxy = float(bbox[3])
+    return 'POLYGON((%.2f %.2f, %.2f %.2f, %.2f %.2f, %.2f %.2f, %.2f %.2f))' \
+        % (minx, miny, minx, maxy, maxx, maxy, maxx, miny, minx, miny)
+
+
+def create_metadata_record(**kwargs):
+    """
+    Create a csw:Record XML document from harvested metadata
+    """
+
+    modified = '%sZ' % datetime.datetime.utcnow().isoformat().split('.')[0]
+
+    nsmap = Namespaces().get_namespaces(['csw', 'dc', 'dct', 'ows'])
+
+    e = etree.Element(nspath_eval('csw:Record', nsmap), nsmap=nsmap)
+
+    etree.SubElement(e, nspath_eval('dc:identifier', nsmap)).text = kwargs['identifier']
+    etree.SubElement(e, nspath_eval('dc:title', nsmap)).text = kwargs['title']
+    etree.SubElement(e, nspath_eval('dct:modified', nsmap)).text = modified
+    etree.SubElement(e, nspath_eval('dct:abstract', nsmap)).text = kwargs['abstract']
+    etree.SubElement(e, nspath_eval('dc:type', nsmap)).text = kwargs['type']
+    etree.SubElement(e, nspath_eval('dc:format', nsmap)).text = kwargs['format']
+    etree.SubElement(e, nspath_eval('dc:source', nsmap)).text = kwargs['source']
+
+    if 'relation' in kwargs:
+        etree.SubElement(e, nspath_eval('dc:relation', nsmap)).text = kwargs['relation']
+
+    for keyword in kwargs['keywords']:
+        etree.SubElement(e, nspath_eval('dc:subject', nsmap)).text = keyword
+
+    for link in kwargs['links']:
+        etree.SubElement(e, nspath_eval('dct:references', nsmap), scheme=link[0]).text = link[1]
+
+    bbox2 = loads(kwargs['wkt_geometry']).bounds
+    bbox = etree.SubElement(e, nspath_eval('ows:BoundingBox', nsmap),
+                            crs='urn:x-ogc:def:crs:EPSG:6.11:4326',
+                            dimensions='2')
+
+    etree.SubElement(bbox, nspath_eval('ows:LowerCorner', nsmap)).text = '%s %s' % (bbox2[1], bbox2[0])
+    etree.SubElement(bbox, nspath_eval('ows:UpperCorner', nsmap)).text = '%s %s' % (bbox2[3], bbox2[2])
+
+    return etree.tostring(e, pretty_print=True)
+
+
+def gen_anytext(*args):
+    """
+    Convenience function to create bag of words for anytext property
+    """
+
+    bag = []
+
+    for term in args:
+        if term is not None:
+            if isinstance(term, list):
+                for term2 in term:
+                    if term is not None:
+                        bag.append(term2)
+            else:
+                bag.append(term)
+    return ' '.join(bag)
 
 
 def endpointlist_post_save(instance, *args, **kwargs):
