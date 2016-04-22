@@ -141,7 +141,6 @@ def index_layer(self, layer):
 @shared_task(bind=True)
 def index_all_layers(self):
     from aggregator.models import Layer
-    clear_solr()
     layer_to_processes = Layer.objects.all()
     total = layer_to_processes.count()
     count = 0
