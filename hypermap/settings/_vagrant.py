@@ -2,7 +2,7 @@ from settings.default import *  # noqa
 
 SITE_URL = 'http://192.168.33.15:8000/'
 
-SOLR_ENABLED = False
+SOLR_ENABLED = True
 
 DATABASES = {
     'default': {
