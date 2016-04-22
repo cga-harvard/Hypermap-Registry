@@ -4,7 +4,9 @@
 
 HHypermap (Harvard Hypermap) Supervisor is an application that manages OWS, Esri REST, and other types of map service harvesting, and maintains uptime statistics for services and layers. When possible, layers will be cached by MapProxy. It is anticipated that other types of service such as WFS, WCS, and WPS will eventually be included. The application will be used by Harvard WorldMap to collect and manage remote layers. HHypermap Supervisor will publish to HHypermap Search (based on Lucene) which provides a fast search and visualization environment for spatio-temporal materials.   
 
-## Hypermap on Vagrant
+## Installation
+
+### Running Hypermap on Vagrant
 
 Easiest way to have an HHypermap instance up and running is to use Vagrant.
 
@@ -19,7 +21,7 @@ Wait for the instance to be provisioned (about 3/4 minutes).
 Then connect to: 192.168.33.15 and your instance should be up and running.
 
 
-## Development mode
+#### Development mode on Vagrant
 
 You can use the same instance if you are a developer. Just run the Django
 server in place of nginx and uwsgi:
@@ -55,7 +57,7 @@ cd /webapps/hypermap/hypermap
 paver run_integration_tests
 ```
 
-## Hypermap on AWS
+### Running Hypermap on AWS
 
 Make sure to have the following variables correctly set:
 
@@ -90,3 +92,89 @@ ansible-playbook aws.yml --tags "uwsgi"
 To make a new deployment, after committing to git, run:
 
 ansible-playbook deploy.yml
+
+
+### Manual Installation
+
+We will assume that you are installing Hypermap on Ubuntu 14.04 LTS.
+
+First, install requirements:
+
+```
+sudo apt-get update
+sudo apt-get install python-dev postgresql postgresql-server-dev-all
+libjpeg-dev rabbitmq-server
+```
+
+Create PostgreSQL role and database:
+
+```
+sudo su postgres
+psql
+CREATE USER hypermap WITH superuser PASSWORD 'hypermap';
+CREATE DATABASE hypermap WITH OWNER hypermap;
+```
+
+Install Hypermap on a virtual environment:
+
+```
+virtualenv --no-site-packages env
+source env/bin/activate
+pip install --upgrade pip
+git clone https://github.com/cga-harvard/HHypermap.git
+pip install -r HHypermap/requirements.txt
+```
+
+You need to create a settings file named as your username:
+
+```
+cd HHypermap/hypermap
+touch settings/_yourusername.py
+```
+
+In _yourusername.py you need to add at least the first line, and then the settings specific for your environment, such as preferences about Celery and Solr:
+
+```
+from settings.default import *  # noqa
+
+SITE_URL = 'http://localhost:8000/'
+
+SOLR_URL = 'http://127.0.0.1:8983/solr/search'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'hypermap',
+        'USER': 'hypermap',
+        'PASSWORD': 'hypermap',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    }
+}
+
+SKIP_CELERY_TASK = True
+```
+
+Now synchronize the database:
+
+./manage.py syncdb # create an admin user when requested
+
+Now you should be able to start the development server:
+
+./manage.py runserver
+
+
+## Start using Hypermap
+
+Login to the home page, http://localhost:8000. It will be empty. You need to add some
+endpoints to Hypermap. So go to the administrative interface:
+
+http://localhost:8000/admin/
+
+Go to Service and add a service of WMS type. As a endpoint you can use this one:
+http://demo.geonode.org/geoserver/ows?service=wms&version=1.1.1&request=GetCapabilities
+
+After saving, Hypermap should be start harvesting the endpoint.
+
+Harvesting will be performed by the Django server if SKIP_CELERY_TASK
+= True, otherwise by Celery. Please note that harvesting operations can be time consuming, so it is better to setup a Celery process if possible.
