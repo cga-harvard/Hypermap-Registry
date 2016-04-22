@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
-                   index_service, index_all_layers, index_layer)
+                   index_service, index_all_layers, index_layer, clear_solr)
 from enums import SERVICE_TYPES
 
 from hypermap import celery_app
@@ -189,6 +189,8 @@ def celery_monitor(request):
             check_all_services.delay()
         if 'index_all' in request.POST:
             index_all_layers.delay()
+        if 'clear_solr' in request.POST:
+            clear_solr.delay()
     return render(
         request,
         'aggregator/celery_monitor.html',
