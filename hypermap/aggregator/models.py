@@ -41,14 +41,44 @@ class Resource(PolymorphicModel):
     """
     title = models.CharField(max_length=255, null=True, blank=True)
     abstract = models.TextField(null=True, blank=True)
+    keywords = TaggableManager(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
 
+    # CSW fields
+    csw_type = models.CharField(max_length=32, default='dataset', null=False)
+    csw_typename = models.CharField(max_length=32, default='gmd:MD_Metadata', null=False)
+
+    csw_schema = models.CharField(max_length=64,
+                                  default='http://www.isotc211.org/2005/gmd',
+                                  null=False)
+
+    anytext = models.TextField(null=True, blank=True)
+    wkt_geometry = models.TextField(null=False,
+                                    default='POLYGON((-180 -90,-180 90,180 90,180 -90,-180 -90))')
+
+    # metadata XML specific fields
+    xml = models.TextField(null=True,
+                           default='<gmd:MD_Metadata xmlns:gmd="http://www.isotc211.org/2005/gmd"/>',
+                           blank=True)
+
     def __unicode__(self):
         return '%s - %s' % (self.polymorphic_ctype.name, self.id)
+
+    @property
+    def id_string(self):
+        return str(self.id)
+
+    @property
+    def keywords_csv(self):
+        keywords_qs = self.keywords.all()
+        if keywords_qs:
+            return ','.join([kw.name for kw in keywords_qs])
+        else:
+            return ''
 
     @property
     def first_check(self):
@@ -117,8 +147,6 @@ class Service(Resource):
     Service represents a remote geowebservice.
     """
     type = models.CharField(max_length=20, choices=SERVICE_TYPES)
-
-    keywords = TaggableManager(blank=True)
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.title)
@@ -229,8 +257,6 @@ class Layer(Resource):
     page_url = models.URLField(max_length=255)
     srs = models.ManyToManyField(SpatialReferenceSystem)
     service = models.ForeignKey(Service)
-
-    keywords = TaggableManager()
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.name)

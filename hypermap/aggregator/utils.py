@@ -31,7 +31,8 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         if request.status_code == 200:
             print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
             service = Service(
-                 type=service_type, url=endpoint, title=title, abstract=abstract
+                 type=service_type, url=endpoint, title=title, abstract=abstract,
+                 csw_type='service'
             )
             service.save()
             return service
@@ -289,6 +290,7 @@ def update_layers_wms(service):
             layer.bbox_y0 = bbox[1]
             layer.bbox_x1 = bbox[2]
             layer.bbox_y1 = bbox[3]
+            layer.wkt_geometry = bbox2wktpolygon(bbox)
             # keywords
             for keyword in ows_layer.keywords:
                 layer.keywords.add(keyword)
@@ -322,6 +324,7 @@ def update_layers_wmts(service):
             layer.bbox_y0 = bbox[1]
             layer.bbox_x1 = bbox[2]
             layer.bbox_y1 = bbox[3]
+            layer.wkt_geometry = utils.bbox2wktpolygon(bbox)
             layer.save()
             # dates
             add_mined_dates(layer)
@@ -558,3 +561,16 @@ def update_layers_esri_imageserver(service):
         layer.srs.add(srs)
         # dates
         add_mined_dates(layer)
+
+
+def bbox2wktpolygon(bbox):
+    """
+    Return OGC WKT Polygon of a simple bbox string
+    """
+
+    minx = float(bbox[0])
+    miny = float(bbox[1])
+    maxx = float(bbox[2])
+    maxy = float(bbox[3])
+    return 'POLYGON((%.2f %.2f, %.2f %.2f, %.2f %.2f, %.2f %.2f, %.2f %.2f))' \
+        % (minx, miny, minx, maxy, maxx, maxy, maxx, miny, minx, miny)
