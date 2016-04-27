@@ -33,6 +33,7 @@ def serialize_checks(check_set):
     return check_set_list
 
 
+@login_required
 def domains(request):
     url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=DomainName,ServiceId&wt=json&indent=true&rows=0'
            % settings.SOLR_URL)

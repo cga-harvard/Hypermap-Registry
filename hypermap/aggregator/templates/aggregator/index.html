@@ -35,8 +35,8 @@ for(var i=0, l1=obj.length; i<l1; i++){
   console.log(domain);
   tr = $('<tr/>');
   tr.append("<td>" + domain.value + "</td>");
-  tr.append("<td><a href='/search?q=" + domain.value + "'>" + domain.count + "</a></td>");
-  tr.append("<td><a href='/search?q=" + domain.value + "'>" + domain.pivot.length + "</td>");
+  tr.append("<td><a href='/?q=" + domain.value + "'>" + domain.count + "</a></td>");
+  tr.append("<td><a href='/?q=" + domain.value + "'>" + domain.pivot.length + "</td>");
   $('#report').append(tr);
 }
 
