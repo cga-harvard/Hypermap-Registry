@@ -5,7 +5,6 @@ virtualenv_path: "/webapps/{{ application_name }}"
 project_path: "{{ virtualenv_path }}/{{ project_name }}"
 application_log_dir: "{{ virtualenv_path }}/logs"
 application_log_file: "{{ application_log_dir }}/{{ application_name }}.log"
-requirements_file: "{{ project_path }}/requirements.txt"
 
 
 # Gunicorn settings
