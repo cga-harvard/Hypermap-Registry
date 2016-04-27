@@ -53,7 +53,7 @@ def check_service(self, service):
         count = count + 1
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, time_limit=10)
 def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
     success, message = layer.check()
@@ -114,7 +114,10 @@ def index_service(self, service):
     for layer in layer_to_process:
         # update state
         status_update(count)
-        index_layer.delay(layer)
+        if not settings.SKIP_CELERY_TASK:
+            index_layer.delay(layer)
+        else:
+            index_layer(layer)
         count = count + 1
 
 
