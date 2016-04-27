@@ -4,9 +4,9 @@ from urlparse import urlparse
 
 def resource_urls(request):
     """Global values to pass to templates"""
-    url_parsed = urlparse(settings.SOLR_URL)
+    url_parsed = urlparse(settings.SEARCH_URL)
     defaults = dict(
-        SOLR_URL=settings.SOLR_URL,
-        SOLR_IP='%s://%s:%s' % (url_parsed.scheme, url_parsed.hostname, url_parsed.port)
+        SEARCH_URL=settings.SEARCH_URL,
+        SEARCH_IP='%s://%s:%s' % (url_parsed.scheme, url_parsed.hostname, url_parsed.port)
     )
     return defaults

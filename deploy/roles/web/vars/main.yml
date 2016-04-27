@@ -34,6 +34,6 @@ django_environment:
   EMAIL_HOST_PASSWORD: "{{ email_host_password|default(omit) }}"
   BROKER_URL: "{{ broker_url|default(omit) }}"
   SITE_URL: "{{ site_url }}"
-  SOLR_URL: "http://127.0.0.1:8983/solr/search"
+  SEARCH_URL: "http://127.0.0.1:8983/solr/search"
   WM_USERNAME: "hypermap"
   WM_PASSWORD: "secret"

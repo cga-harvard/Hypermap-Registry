@@ -48,7 +48,7 @@ class SolrTest(TestCase):
 
     @with_httmock(aggregator.tests.mocks.wms.resource_get)
     def setUp(self):
-        solr_url = settings.SOLR_URL
+        solr_url = settings.SEARCH_URL
         self.solr = pysolr.Solr(solr_url, timeout=60)
         create_wms_service()
         create_warper_service()

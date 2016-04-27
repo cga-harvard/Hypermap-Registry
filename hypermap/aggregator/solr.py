@@ -142,7 +142,7 @@ class SolrHypermap(object):
                 solr_record['tile_url'] = layer.get_tile_url()
 
             # time to send request to solr
-            url_solr_update = '%s/update/json/docs' % settings.SOLR_URL
+            url_solr_update = '%s/update/json/docs' % settings.SEARCH_URL
             headers = {"content-type": "application/json"}
             params = {"commitWithin": 1500}
             solr_json = json.dumps(solr_record)
@@ -155,7 +155,7 @@ class SolrHypermap(object):
 
     def clear_solr(self):
         """Clear all indexes in the solr core"""
-        solr_url = settings.SOLR_URL
+        solr_url = settings.SEARCH_URL
         solr = pysolr.Solr(solr_url, timeout=60)
         solr.delete(q='*:*')
         print 'Solr core cleared'
