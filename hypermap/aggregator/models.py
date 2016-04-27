@@ -453,7 +453,7 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            if settings.SOLR_ENABLED:
+            if settings.SEARCH_ENABLED:
                 if not settings.SKIP_CELERY_TASK:
                     index_layer.delay(self)
                 else:

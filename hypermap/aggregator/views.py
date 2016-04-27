@@ -36,7 +36,7 @@ def serialize_checks(check_set):
 @login_required
 def domains(request):
     url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=DomainName,ServiceId&wt=json&indent=true&rows=0'
-           % settings.SOLR_URL)
+           % settings.SEARCH_URL)
     response = urllib2.urlopen(url)
     data = response.read().replace('\n', '')
     # stats
@@ -124,6 +124,7 @@ def service_checks(request, service_id):
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
+
     if request.method == 'POST':
         if 'check' in request.POST:
             if not settings.SKIP_CELERY_TASK:
@@ -138,7 +139,9 @@ def layer_detail(request, layer_id):
             else:
                 index_layer(layer)
 
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer, })
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer,
+                                                            'SEARCH_BACKEND': settings.SEARCH_BACKEND,
+                                                            'SEARCH_URL': settings.SEARCH_URL })
 
 
 def layer_checks(request, layer_id):

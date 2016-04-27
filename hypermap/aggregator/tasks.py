@@ -74,6 +74,13 @@ def clear_solr():
     solrobject = SolrHypermap()
     solrobject.clear_solr()
 
+@shared_task(name="clear_es")
+def clear_es():
+    print 'Clearing the ES indexes'
+    from aggregator.elasticsearch import ESHypermap
+    esobject = ESHypermap()
+    esobject.clear_es()
+
 
 @shared_task(bind=True)
 def remove_service_checks(self, service):
@@ -123,11 +130,30 @@ def index_service(self, service):
 
 @shared_task(bind=True)
 def index_layer(self, layer):
-    from aggregator.solr import SolrHypermap
-    print 'Syncing layer %s to solr' % layer.name
-    try:
-        solrobject = SolrHypermap()
-        success, message = solrobject.layer_to_solr(layer)
+    # TODO: Make this function more DRY
+    # by abstracting the common bits.
+    if settings.SEARCH_TYPE == 'solr':
+        from aggregator.solr import SolrHypermap
+        print 'Syncing layer %s to solr' % layer.name
+        try:
+            solrobject = SolrHypermap()
+            success, message = solrobject.layer_to_solr(layer)
+            if not success:
+                from aggregator.models import TaskError
+                task_error = TaskError(
+                    task_name=self.name,
+                    args=layer.id,
+                    message=message
+                )
+                task_error.save()
+        except:
+            print 'There was an exception here!'
+            self.retry(layer)
+    elif settings.SEARCH_TYPE == 'elasticsearch':
+        from aggregator.elasticsearch import ESHypermap
+        print 'Syncing layer %s to es' % layer.name
+        esobject = ESHypermap()
+        success, message = esobject.layer_to_es(layer)
         if not success:
             from aggregator.models import TaskError
             task_error = TaskError(
@@ -136,14 +162,15 @@ def index_layer(self, layer):
                 message=message
             )
             task_error.save()
-    except:
-        print 'There was an exception here!'
-        self.retry(layer)
 
 
 @shared_task(bind=True)
 def index_all_layers(self):
     from aggregator.models import Layer
+
+    if settings.SERVICE_TYPE == 'elasticsearch':
+        clear_es()
+
     layer_to_processes = Layer.objects.all()
     total = layer_to_processes.count()
     count = 0
