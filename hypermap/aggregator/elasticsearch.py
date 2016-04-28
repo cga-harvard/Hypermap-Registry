@@ -1,5 +1,5 @@
 import sys
-import pyelasticsearch 
+import pyelasticsearch
 import requests
 import logging
 import math
@@ -16,7 +16,7 @@ from aggregator.solr import get_date
 
 class ESHypermap(object):
 
-    es_url = settings.ES_URL
+    es_url = settings.SEARCH_URL
     es = pyelasticsearch.ElasticSearch(es_url)
     logger = logging.getLogger("hypermap")
 
