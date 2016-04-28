@@ -3,11 +3,14 @@ import json
 import os
 from settings.default import *
 
-vcap_config = os.environ.get('VCAP_SERVICES')
-decoded_config = json.loads(vcap_config)
+vcap_service_config = os.environ.get('VCAP_SERVICES')
+decoded_config = json.loads(vcap_service_config)
 
 DEBUG = False
-SITE_URL = os.environ['application_uris'][0]
+vcap_app_config = os.environ.get('VCAP_APPLICATION')
+
+SITE_URL = 'http://hypermap-demo.cfapps.io/'
+
 ALLOWED_HOSTS = [SITE_URL, 'localhost']
 
 DATABASES = {'default': dj_database_url.config()}

@@ -1,3 +1,5 @@
+#modified pycsw
+-e git://github.com/tomkralidis/pycsw.git@HHypermap#egg=pycsw
 amqp==1.4.9
 amqplib==1.0.2
 anyjson==0.3.3
@@ -45,7 +47,5 @@ waitress==0.8.10
 WebOb==1.6.0
 WebTest==2.0.20
 pyelasticsearch==1.4
-#modified pycsw
--e git://github.com/tomkralidis/pycsw.git@HHypermap#egg=pycsw
 # actual hypermap
--e ../
+-e .
