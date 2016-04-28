@@ -3,14 +3,16 @@ applications:
 - name: hypermap-demo
   domain: cfapps.io
   buildpack: https://github.com/boundlessgeo/geonode-python-buildpack
-  command: null
+  command: python hypermap/manage.py runserver --insecure 0.0.0.0:$PORT
   instances: 1
-  memory: 512M 
+  memory: 512M
   disk_quota: 2G
   services:
     - hypermap-db-hippo
     - hypermap-rabbitmq
     - hypermap-es-small
   env:
+    #TODO: Make an env variable on the CF side with a different key.
+    # this one is exposed.
     SECRET_KEY: 'il%c@@m#*b@g%6s)!!pme9eog$j)!kq^7u8@3l(&)kprsi3$$x'
     DEBUG: 'True'
