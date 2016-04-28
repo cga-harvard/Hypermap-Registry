@@ -140,7 +140,7 @@ def layer_detail(request, layer_id):
                 index_layer(layer)
 
     return render(request, 'aggregator/layer_detail.html', {'layer': layer,
-                                                            'SEARCH_BACKEND': settings.SEARCH_BACKEND,
+                                                            'SEARCH_TYPE': settings.SEARCH_TYPE,
                                                             'SEARCH_URL': settings.SEARCH_URL })
 
 
