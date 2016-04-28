@@ -8,8 +8,8 @@ decoded_config = json.loads(vcap_service_config)
 
 DEBUG = False
 vcap_app_config = os.environ.get('VCAP_APPLICATION')
-
-SITE_URL = 'http://hypermap-demo.cfapps.io/'
+#TODO: Get from environment and don't hardcode
+SITE_URL = 'hypermap-demo.cfapps.io'
 
 ALLOWED_HOSTS = [SITE_URL, 'localhost']
 
@@ -23,4 +23,4 @@ SEARCH_URL = decoded_config['searchly'][0]['credentials']['sslUri']
 
 SKIP_CELERY_TASK = True
 
-PYCSW['server']['url'] = SITE_URL + 'csw'
+PYCSW['server']['url'] = 'http://' + SITE_URL + '/csw'
