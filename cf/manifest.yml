@@ -1,0 +1,16 @@
+---
+applications:
+- name: hypermap-demo
+  domain: cfapps.io
+  buildpack: https://github.com/boundlessgeo/geonode-python-buildpack
+  command: null
+  instances: 1
+  memory: 512M 
+  disk_quota: 2G
+  services:
+    - hypermap-db-hippo
+    - hypermap-rabbitmq
+    - hypermap-es-small
+  env:
+    SECRET_KEY: 'il%c@@m#*b@g%6s)!!pme9eog$j)!kq^7u8@3l(&)kprsi3$$x'
+    DEBUG: 'True'
