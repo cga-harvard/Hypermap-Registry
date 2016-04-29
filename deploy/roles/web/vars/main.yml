@@ -20,6 +20,7 @@ nginx_access_log_file: "{{ application_log_dir }}/nginx_access.log"
 nginx_error_log_file: "{{ application_log_dir }}/nginx_error.log"
 nginx_static_dir: "{{ virtualenv_path }}/static/"
 nginx_media_dir: "{{ virtualenv_path }}/media/"
+solr_url: "http://127.0.0.1:8983"
 
 
 # Django Environment variables
@@ -35,6 +36,6 @@ django_environment:
   EMAIL_HOST_PASSWORD: "{{ email_host_password|default(omit) }}"
   BROKER_URL: "{{ broker_url|default(omit) }}"
   SITE_URL: "{{ site_url }}"
-  SOLR_URL: "http://127.0.0.1:8983/solr/search"
+  SOLR_URL: "{{ solr_url }}/solr/search"
   WM_USERNAME: "hypermap"
   WM_PASSWORD: "secret"

@@ -1,3 +1,9 @@
+upstream solr {
+    server {{ solr_url }} fail_timeout=0;
+}
+
+uwsgi_cache_path /tmp/nginxcache levels=1:2 keys_zone=hypercache:10m max_size=10g inactive=60m;
+
 server {
     listen      80;
     server_name {{ nginx_server_name }};
@@ -6,6 +12,16 @@ server {
 
     access_log {{ nginx_access_log_file }};
     error_log {{ nginx_error_log_file }};
+
+    location /solr/hypermap/select {
+        proxy_pass http://solr;
+    }
+
+    location /solr {
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        proxy_pass http://solr;
+    }
 
     location /static/ {
         alias   {{ nginx_static_dir }};
