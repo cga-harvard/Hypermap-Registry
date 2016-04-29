@@ -3,14 +3,32 @@ applications:
 - name: hypermap-demo
   domain: cfapps.io
   buildpack: https://github.com/boundlessgeo/geonode-python-buildpack
-  command: python hypermap/manage.py runserver --insecure 0.0.0.0:$PORT
+  command: cf/init_db.sh
   instances: 1
   memory: 512M
   disk_quota: 2G
   services:
     - hypermap-db-hippo
-    - hypermap-rabbitmq
+    - panchicore-redis
     - hypermap-es-small
+    - panchicore-papertrail
+  env:
+    #TODO: Make an env variable on the CF side with a different key.
+    # this one is exposed.
+    SECRET_KEY: 'il%c@@m#*b@g%6s)!!pme9eog$j)!kq^7u8@3l(&)kprsi3$$x'
+    DEBUG: 'True'
+- name: hypermap-demo-celery
+  domain: cfapps.io
+  buildpack: https://github.com/boundlessgeo/geonode-python-buildpack
+  command: cf/init_celery.sh
+  instances: 1
+  memory: 512M
+  disk_quota: 2G
+  services:
+    - hypermap-db-hippo
+    - panchicore-redis
+    - hypermap-es-small
+    - panchicore-papertrail
   env:
     #TODO: Make an env variable on the CF side with a different key.
     # this one is exposed.
