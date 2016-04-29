@@ -69,3 +69,8 @@ ec2.py
 
 hypermap/media
 hypermap/settings/local_settings.py
+
+# IDE specific
+/hypermap/settings/_panchicore.py
+# pycharm
+.idea
