@@ -49,5 +49,6 @@ waitress==0.8.10
 WebOb==1.6.0
 WebTest==2.0.20
 pyelasticsearch==1.4
+redis==2.10.5
 # actual hypermap
 #-e .
