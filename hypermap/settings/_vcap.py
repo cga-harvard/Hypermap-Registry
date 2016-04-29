@@ -15,7 +15,13 @@ ALLOWED_HOSTS = [SITE_URL, 'localhost']
 
 DATABASES = {'default': dj_database_url.config()}
 
-BROKER_URL = decoded_config['cloudamqp'][0]['credentials']['uri']
+BROKER_DB = 0
+BROKER_URL = 'redis://:{0}@{1}:{2}/{3}'.format(
+    decoded_config['rediscloud'][0]["credentials"]["password"],
+    decoded_config['rediscloud'][0]["credentials"]["hostname"],
+    decoded_config['rediscloud'][0]["credentials"]["port"],
+    BROKER_DB
+)
 
 SEARCH_ENABLED = True
 SEARCH_TYPE = 'elasticsearch'
