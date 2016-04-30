@@ -1,6 +1,7 @@
 #!/bin/sh
 echo "------ Create database tables ------"
 python hypermap/manage.py syncdb --noinput
+python hypermap/manage.py collectstatic --noinput
 
 echo "------ create default admin user ------"
 echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'admin@admin.admin', 'admin')" | python hypermap/manage.py shell

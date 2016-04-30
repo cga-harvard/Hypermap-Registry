@@ -50,5 +50,7 @@ WebOb==1.6.0
 WebTest==2.0.20
 pyelasticsearch==1.4
 redis==2.10.5
+django-extensions==1.6.3
+pika==0.10.0
 # actual hypermap
 #-e .

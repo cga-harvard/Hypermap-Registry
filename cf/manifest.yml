@@ -2,14 +2,14 @@
 applications:
 - name: hypermap-demo
   domain: cfapps.io
-  buildpack: https://github.com/boundlessgeo/geonode-python-buildpack
+  buildpack: https://github.com/panchicore/geonode-python-buildpack
   command: cf/init_db.sh
   instances: 1
   memory: 512M
   disk_quota: 2G
   services:
     - hypermap-db-hippo
-    - panchicore-redis
+    - hypermap-rabbitmq
     - hypermap-es-small
     - panchicore-papertrail
   env:
@@ -19,14 +19,14 @@ applications:
     DEBUG: 'True'
 - name: hypermap-demo-celery
   domain: cfapps.io
-  buildpack: https://github.com/boundlessgeo/geonode-python-buildpack
+  buildpack: https://github.com/panchicore/geonode-python-buildpack
   command: cf/init_celery.sh
   instances: 1
   memory: 512M
   disk_quota: 2G
   services:
     - hypermap-db-hippo
-    - panchicore-redis
+    - hypermap-rabbitmq
     - hypermap-es-small
     - panchicore-papertrail
   env:
