@@ -1,6 +1,5 @@
 import dj_database_url
 import json
-import os
 from settings.default import *
 
 vcap_service_config = os.environ.get('VCAP_SERVICES')
@@ -15,13 +14,28 @@ ALLOWED_HOSTS = [SITE_URL, 'localhost']
 
 DATABASES = {'default': dj_database_url.config()}
 
-BROKER_DB = 0
-BROKER_URL = 'redis://:{0}@{1}:{2}/{3}'.format(
-    decoded_config['rediscloud'][0]["credentials"]["password"],
-    decoded_config['rediscloud'][0]["credentials"]["hostname"],
-    decoded_config['rediscloud'][0]["credentials"]["port"],
-    BROKER_DB
-)
+# use redis
+if 'rediscloud' in decoded_config:
+    BROKER_DB = 0
+    BROKER_URL = 'redis://:{0}@{1}:{2}/{3}'.format(
+        decoded_config['rediscloud'][0]["credentials"]["password"],
+        decoded_config['rediscloud'][0]["credentials"]["hostname"],
+        decoded_config['rediscloud'][0]["credentials"]["port"],
+        BROKER_DB
+    )
+
+# use rabbit
+if 'cloudamqp' in decoded_config:
+    BROKER_URL = decoded_config['cloudamqp'][0]['credentials']['uri']
+
+print "BROKER_URL is {0}".format(BROKER_URL)
+
+CELERYBEAT_SCHEDULE = {
+    'Check All Services': {
+        'task': 'aggregator.tasks.check_all_services',
+        'schedule': timedelta(minutes=15)
+    },
+}
 
 SEARCH_ENABLED = True
 SEARCH_TYPE = 'elasticsearch'
