@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from django.conf import settings
 
-from celery import shared_task
+from celery import shared_task, chain
 
 
 @shared_task(bind=True)
@@ -43,14 +43,20 @@ def check_service(self, service):
     service.check()
     status_update(2)
     count = 3
-    for layer in layer_to_process:
-        # update state
-        status_update(count)
-        if not settings.SKIP_CELERY_TASK:
-            check_layer.delay(layer)
-        else:
+
+    if not settings.SKIP_CELERY_TASK:
+        tasks = []
+        for layer in layer_to_process:
+            # update state
+            status_update(count)
+            tasks.append(check_layer.si(layer))
+            count += 1
+        chain(tasks)()
+    else:
+        for layer in layer_to_process:
+            status_update(count)
             check_layer(layer)
-        count = count + 1
+            count += 1
 
 
 @shared_task(bind=True, time_limit=10)
@@ -205,16 +211,24 @@ def update_endpoints(self, endpoint_list):
     endpoint_to_process = endpoint_list.endpoint_set.filter(processed=False)
     total = endpoint_to_process.count()
     count = 0
-    for endpoint in endpoint_to_process:
-        if not settings.SKIP_CELERY_TASK:
-            update_endpoint.delay(endpoint)
-        else:
-            update_endpoint(endpoint)
+
+    if not settings.SKIP_CELERY_TASK:
+        # the task workflow must be a group of serials requests to each endpoint.
+        # The celery chains links together signatures so that one is called after the other.
+        tasks = []
+        for endpoint in endpoint_to_process:
+            # use immutable signatures, we dont want the result of the previous
+            # task in the celery chain for the next task.
+            tasks.append(update_endpoint.si(endpoint))
+        chain(tasks)()
         # update state
         if not self.request.called_directly:
             self.update_state(
                 state='PROGRESS',
                 meta={'current': count, 'total': total}
             )
-        count = count + 1
+    else:
+        for endpoint in endpoint_to_process:
+            update_endpoint(endpoint)
+
     return True
