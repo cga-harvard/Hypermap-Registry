@@ -41,6 +41,6 @@ SEARCH_ENABLED = True
 SEARCH_TYPE = 'elasticsearch'
 SEARCH_URL = decoded_config['searchly'][0]['credentials']['sslUri']
 
-SKIP_CELERY_TASK = True
+SKIP_CELERY_TASK = False
 
 PYCSW['server']['url'] = 'http://' + SITE_URL + '/csw'
