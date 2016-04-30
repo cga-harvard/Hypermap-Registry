@@ -210,9 +210,6 @@ def celery_monitor(request):
 
 def get_queued_jobs_number():
     # to detect tasks in the queued the only way is to use amqplib so far
-    # TODO secure broker password
-    # TODO use the cloud foundry service
-    # amqp://gxaekmdp:RqBihhHEzxcFwSIceOKZZGTn_k8SOoes@fox.rmq.cloudamqp.com/gxaekmdp
     from amqplib import client_0_8 as amqp
 
     params = pika.URLParameters(BROKER_URL)
