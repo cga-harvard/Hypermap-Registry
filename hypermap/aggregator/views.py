@@ -1,5 +1,6 @@
 import urllib2
 import json
+import pika
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -10,6 +11,7 @@ from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
+from settings.default import BROKER_URL
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
                    index_service, index_all_layers, index_layer, clear_solr)
 from enums import SERVICE_TYPES
@@ -209,9 +211,17 @@ def celery_monitor(request):
 def get_queued_jobs_number():
     # to detect tasks in the queued the only way is to use amqplib so far
     # TODO secure broker password
+    # TODO use the cloud foundry service
+    # amqp://gxaekmdp:RqBihhHEzxcFwSIceOKZZGTn_k8SOoes@fox.rmq.cloudamqp.com/gxaekmdp
     from amqplib import client_0_8 as amqp
-    conn = amqp.Connection(host='localhost:5672', userid='hypermap',
-                           password='hypermap', virtual_host='hypermap', insist=False)
+
+    params = pika.URLParameters(BROKER_URL)
+
+    conn = amqp.Connection(host='{0}:{1}'.format(params.host, params.port),
+                           userid=params.credentials.username,
+                           password=params.credentials.password,
+                           virtual_host=params.virtual_host,
+                           insist=False)
     chan = conn.channel()
     name, jobs, consumers = chan.queue_declare(queue="celery", passive=True)
     return jobs
