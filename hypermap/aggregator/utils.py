@@ -8,6 +8,7 @@ import json
 import datetime
 from dateutil.parser import parse
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from owslib.wms import WebMapService
@@ -16,7 +17,9 @@ from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
-from models import Layer, LayerDate, LayerWM, SpatialReferenceSystem
+from models import (bbox2wktpolygon, create_metadata_record, gen_anytext, Layer,
+                    LayerDate, LayerWM, SpatialReferenceSystem)
+
 from dynasty.utils import get_mined_dates
 
 
@@ -152,7 +155,7 @@ def process_esri_services(esri_services):
             if '/ImageServer/' in esri_service.url:
                 service = create_service_from_endpoint(
                     esri_service.url,
-                    'ESRI_ImageServer',
+                    'ESRI:ArcGIS:ImageServer',
                     '',
                     esri_service.serviceDescription
                 )
@@ -161,7 +164,7 @@ def process_esri_services(esri_services):
                 if hasattr(esri_service, 'layers'):
                     service = create_service_from_endpoint(
                         esri_service.url,
-                        'ESRI_MapServer',
+                        'ESRI:ArcGIS:MapServer',
                         esri_service.mapName,
                         esri_service.description
                     )
@@ -269,7 +272,7 @@ def add_mined_dates(layer):
 
 def update_layers_wms(service):
     """
-    Update layers for an OGC_WMS service.
+    Update layers for an OGC:WMS service.
     """
     wms = WebMapService(service.url)
     layer_names = list(wms.contents)
@@ -279,11 +282,17 @@ def update_layers_wms(service):
         # get or create layer
         layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
         if layer.active:
+            links = [['OGC:WMS', service.url]]
             # update fields
+            layer.type = 'OGC:WMS'
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
             layer.url = service.url
             layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+            links.append([
+                'WWW:LINK',
+                 settings.SITE_URL.rstrip('/') + layer.page_url
+            ])
             # bbox
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
@@ -299,6 +308,19 @@ def update_layers_wms(service):
             for crs_code in ows_layer.crsOptions:
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
                 layer.srs.add(srs)
+            layer.xml = create_metadata_record(
+                identifier=layer.id_string,
+                source=service.url,
+                links=links,
+                format='OGC:WMS',
+                type=layer.csw_type,
+                relation=service.id_string,
+                title=ows_layer.title,
+                abstract=ows_layer.abstract,
+                keywords=ows_layer.keywords,
+                wkt_geometry=layer.wkt_geometry
+            )
+            layer.anytext = gen_anytext(layer.title, layer.abstract, ows_layer.keywords)
             layer.save()
             # dates
             add_mined_dates(layer)
@@ -306,7 +328,7 @@ def update_layers_wms(service):
 
 def update_layers_wmts(service):
     """
-    Update layers for an OGC_WMTS service.
+    Update layers for an OGC:WMTS service.
     """
     wmts = WebMapTileService(service.url)
     layer_names = list(wmts.contents)
@@ -315,16 +337,38 @@ def update_layers_wmts(service):
         print 'Updating layer %s' % ows_layer.name
         layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
         if layer.active:
+            links = [['OGC:WMTS', service.url]]
+            layer.type = 'OGC:WMTS'
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
+            # keywords
+            for keyword in ows_layer.keywords:
+                layer.keywords.add(keyword)
             layer.url = service.url
             layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+            links.append([
+                'WWW:LINK',
+                 settings.SITE_URL.rstrip('/') + layer.page_url
+            ])
             bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
             layer.bbox_x0 = bbox[0]
             layer.bbox_y0 = bbox[1]
             layer.bbox_x1 = bbox[2]
             layer.bbox_y1 = bbox[3]
-            layer.wkt_geometry = utils.bbox2wktpolygon(bbox)
+            layer.wkt_geometry = bbox2wktpolygon(bbox)
+            layer.xml = create_metadata_record(
+                identifier=layer.id_string,
+                source=service.url,
+                links=links,
+                format='OGC:WMS',
+                type=layer.csw_type,
+                relation=service.id_string,
+                title=ows_layer.title,
+                abstract=layer.abstract,
+                keywords=ows_layer.keywords,
+                wkt_geometry=layer.wkt_geometry
+            )
+            layer.anytext = gen_anytext(layer.title, layer.abstract, ows_layer.keywords)
             layer.save()
             # dates
             add_mined_dates(layer)
@@ -370,6 +414,7 @@ def update_layers_wm(service):
             layer, created = Layer.objects.get_or_create(name=name, service=service)
             if layer.active:
                 # update fields
+                layer.type = 'WM'
                 layer.title = title
                 layer.abstract = abstract
                 layer.is_public = is_public
@@ -441,6 +486,7 @@ def update_layers_warper(service):
             layer, created = Layer.objects.get_or_create(name=name, service=service)
             if layer.active:
                 # update fields
+                layer.type = 'WARPER'
                 layer.title = title
                 layer.abstract = abstract
                 layer.is_public = True
@@ -490,7 +536,7 @@ def update_layers_esri_mapserver(service):
             print 'This ESRI REST endpoint has an WMS interface to process: %s' % wms_url
             # import here as otherwise is circular (TODO refactor)
             from utils import create_service_from_endpoint
-            create_service_from_endpoint(wms_url, 'OGC_WMS')
+            create_service_from_endpoint(wms_url, 'OGC:WMS')
     # now process the REST interface
     for esri_layer in esri_service.layers:
         # in some case the json is invalid
@@ -502,10 +548,16 @@ def update_layers_esri_mapserver(service):
             print 'Updating layer %s' % esri_layer.name
             layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
             if layer.active:
+                layer.type = 'ESRI:ArcGIS:MapServer'
+                links = [[layer.type, service.url]]
                 layer.title = esri_layer.name
                 layer.abstract = esri_service.serviceDescription
                 layer.url = service.url
                 layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+                links.append([
+                    'WWW:LINK',
+                     settings.SITE_URL.rstrip('/') + layer.page_url
+                ])
                 # set a default srs
                 srs = 4326
                 try:
@@ -531,6 +583,20 @@ def update_layers_esri_mapserver(service):
                         srs = int(object['codes'][0]['code'])
                 except Exception:
                     pass
+                layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
+                layer.xml = create_metadata_record(
+                    identifier=layer.id_string,
+                    source=service.url,
+                    links=links,
+                    format='ESRI:ArcGIS:MapServer',
+                    type=layer.csw_type,
+                    relation=service.id_string,
+                    title=layer.title,
+                    abstract=layer.abstract,
+                    wkt_geometry=layer.wkt_geometry,
+                    srs=srs
+                )
+                layer.anytext = gen_anytext(layer.title, layer.abstract)
                 layer.save()
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
                 layer.srs.add(srs)
@@ -546,6 +612,8 @@ def update_layers_esri_imageserver(service):
     obj = json.loads(esri_service._contents)
     layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
     if layer.active:
+        layer.type = 'ESRI:ArcGIS:ImageServer'
+        links = [[layer.type, service.url]]
         layer.title = obj['name']
         layer.abstract = esri_service.serviceDescription
         layer.url = service.url
@@ -554,9 +622,27 @@ def update_layers_esri_imageserver(service):
         layer.bbox_x1 = str(obj['extent']['xmax'])
         layer.bbox_y1 = str(obj['extent']['ymax'])
         layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+        srs = obj['spatialReference']['wkid']
+        links.append([
+            'WWW:LINK',
+            settings.SITE_URL.rstrip('/') + layer.page_url
+        ])
+        layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
+        layer.xml = create_metadata_record(
+            identifier=layer.id_string,
+            source=service.url,
+            links=links,
+            format='ESRI:ArcGIS:ImageServer',
+            type=layer.csw_type,
+            relation=service.id_string,
+            title=layer.title,
+            abstract=layer.abstract,
+            wkt_geometry=layer.wkt_geometry,
+            srs=srs
+        )
+        layer.anytext = gen_anytext(layer.title, layer.abstract)
         layer.save()
         # crsOptions
-        srs = obj['spatialReference']['wkid']
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
         layer.srs.add(srs)
         # dates

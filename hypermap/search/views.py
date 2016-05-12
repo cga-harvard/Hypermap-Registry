@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from pycsw import server
 
-#@csrf_exempt
+@csrf_exempt
 def csw_global_dispatch(request):
     """pycsw wrapper"""
 

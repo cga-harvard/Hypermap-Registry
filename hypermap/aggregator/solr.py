@@ -100,7 +100,7 @@ class SolrHypermap(object):
                 abstract = strip_tags(layer.abstract)
             else:
                 abstract = ''
-            if layer.service.type == "WM":
+            if layer.type == "WM":
                 originator = username
             else:
                 originator = domain
@@ -111,7 +111,7 @@ class SolrHypermap(object):
                             'LayerTitle': layer.title,
                             'Originator': originator,
                             'ServiceId': str(layer.service.id),
-                            'ServiceType': layer.service.type,
+                            'ServiceType': layer.type,
                             'LayerCategory': category,
                             'LayerUsername': username,
                             'LayerUrl': layer.get_url_endpoint(),

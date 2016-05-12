@@ -15,7 +15,7 @@ from aggregator.tasks import index_all_layers
 @with_httmock(aggregator.tests.mocks.wms.resource_get)
 def create_wms_service():
     service = Service(
-        type='OGC_WMS',
+        type='OGC:WMS',
         url='http://wms.example.com/ows?',
     )
     service.save()

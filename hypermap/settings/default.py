@@ -199,14 +199,19 @@ WM_PASSWORD = os.getenv('WM_PASSWORD', 'secret')
 PYCSW = {
     'server': {
         # 'home': '.',
-        'url': '%s/csw' % SITE_URL.rstrip('/'),
+        'url': '%s/search/csw' % SITE_URL.rstrip('/'),
         'encoding': 'UTF-8',
         'language': LANGUAGE_CODE,
         'maxrecords': '10',
-        # 'pretty_print': 'true',
+        'pretty_print': 'true',
         # 'domainquerytype': 'range',
         'domaincounts': 'true',
         'profiles': 'apiso'
+    },
+    'manager': {
+        'transactions': 'true',
+        'allowed_ips': '127.0.0.1,192.168.0.*',
+        #'csw_harvest_pagesize=10',
     },
     'repository': {
         'source': 'HHypermap',
