@@ -1,7 +1,7 @@
 #modified pycsw
 # if you want hypermap CSW support, enable this one.
 #-e git://github.com/tomkralidis/pycsw.git@HHypermap#egg=pycsw
-pycsw-hypermap==2.0-dev
+pycsw-hypermap==3
 amqp==1.4.9
 amqplib==1.0.2
 anyjson==0.3.3
