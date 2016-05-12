@@ -8,7 +8,7 @@ decoded_config = json.loads(vcap_service_config)
 DEBUG = False
 vcap_app_config = os.environ.get('VCAP_APPLICATION')
 #TODO: Get from environment and don't hardcode
-SITE_URL = 'hypermap-demo.cfapps.io'
+SITE_URL = 'hypermap.cfapps.io'
 
 ALLOWED_HOSTS = [SITE_URL, 'localhost']
 
