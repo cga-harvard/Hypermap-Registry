@@ -45,7 +45,7 @@ class Resource(PolymorphicModel):
     """
     Resource represents basic information for a resource (service/layer).
     """
-    type = models.CharField(max_length=20, choices=SERVICE_TYPES)
+    type = models.CharField(max_length=32, choices=SERVICE_TYPES)
     title = models.CharField(max_length=255, null=True, blank=True)
     abstract = models.TextField(null=True, blank=True)
     keywords = TaggableManager(blank=True)
@@ -212,6 +212,7 @@ class Service(Resource):
             abstract = None
             keywords = []
             wkt_geometry = None
+            srs = '4326'
             if self.type == 'OGC:WMS':
                 ows = WebMapService(self.url)
                 title = ows.identification.title
@@ -236,11 +237,23 @@ class Service(Resource):
                 title = esri.mapName
                 if len(title) == 0:
                     title = get_esri_service_name(self.url)
+                srs = esri.fullExtent.spatialReference.wkid
+                wkt_geometry = bbox2wktpolygon([esri.fullExtent.xmin,
+                                                esri.fullExtent.ymin,
+                                                esri.fullExtent.xmax,
+                                                esri.fullExtent.ymax
+                                               ])
             if self.type == 'ESRI:ArcGIS:ImageServer':
                 esri = ArcImageService(self.url)
                 title = esri._json_struct['name']
                 if len(title) == 0:
                     title = get_esri_service_name(self.url)
+                srs = esri.fullExtent.spatialReference.wkid
+                wkt_geometry = bbox2wktpolygon([esri.fullExtent.xmin,
+                                                esri.fullExtent.ymin,
+                                                esri.fullExtent.xmax,
+                                                esri.fullExtent.ymax
+                                               ])
             if self.type == 'WM':
                 urllib2.urlopen(self.url)
                 title = 'Harvard WorldMap'
@@ -269,7 +282,8 @@ class Service(Resource):
                 title=title,
                 abstract=abstract,
                 keywords=keywords,
-                wkt_geometry=self.wkt_geometry
+                wkt_geometry=self.wkt_geometry,
+                srs=srs
             )
             anytexts = gen_anytext(title, abstract, keywords)
             Service.objects.filter(id=self.id).update(anytext=anytexts, xml=xml, csw_type='service')
@@ -667,6 +681,11 @@ def create_metadata_record(**kwargs):
     Create a csw:Record XML document from harvested metadata
     """
 
+    if 'srs' in kwargs:
+        srs = kwargs['srs']
+    else:
+        srs = '4326'
+
     modified = '%sZ' % datetime.datetime.utcnow().isoformat().split('.')[0]
 
     nsmap = Namespaces().get_namespaces(['csw', 'dc', 'dct', 'ows'])
@@ -684,15 +703,16 @@ def create_metadata_record(**kwargs):
     if 'relation' in kwargs:
         etree.SubElement(e, nspath_eval('dc:relation', nsmap)).text = kwargs['relation']
 
-    for keyword in kwargs['keywords']:
-        etree.SubElement(e, nspath_eval('dc:subject', nsmap)).text = keyword
+    if 'keywords' in kwargs:
+        for keyword in kwargs['keywords']:
+            etree.SubElement(e, nspath_eval('dc:subject', nsmap)).text = keyword
 
     for link in kwargs['links']:
         etree.SubElement(e, nspath_eval('dct:references', nsmap), scheme=link[0]).text = link[1]
 
     bbox2 = loads(kwargs['wkt_geometry']).bounds
     bbox = etree.SubElement(e, nspath_eval('ows:BoundingBox', nsmap),
-                            crs='urn:x-ogc:def:crs:EPSG:6.11:4326',
+                            crs='http://www.opengis.net/def/crs/EPSG/0/%s' % srs,
                             dimensions='2')
 
     etree.SubElement(bbox, nspath_eval('ows:LowerCorner', nsmap)).text = '%s %s' % (bbox2[1], bbox2[0])

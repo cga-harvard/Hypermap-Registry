@@ -549,10 +549,15 @@ def update_layers_esri_mapserver(service):
             layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
             if layer.active:
                 layer.type = 'ESRI:ArcGIS:MapServer'
+                links = [[layer.type, service.url]]
                 layer.title = esri_layer.name
                 layer.abstract = esri_service.serviceDescription
                 layer.url = service.url
                 layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+                links.append([
+                    'WWW:LINK',
+                     settings.SITE_URL.rstrip('/') + layer.page_url
+                ])
                 # set a default srs
                 srs = 4326
                 try:
@@ -578,6 +583,20 @@ def update_layers_esri_mapserver(service):
                         srs = int(object['codes'][0]['code'])
                 except Exception:
                     pass
+                layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
+                layer.xml = create_metadata_record(
+                    identifier=layer.id_string,
+                    source=service.url,
+                    links=links,
+                    format='ESRI:ArcGIS:MapServer',
+                    type=layer.csw_type,
+                    relation=service.id_string,
+                    title=layer.title,
+                    abstract=layer.abstract,
+                    wkt_geometry=layer.wkt_geometry,
+                    srs=srs
+                )
+                layer.anytext = gen_anytext(layer.title, layer.abstract)
                 layer.save()
                 srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
                 layer.srs.add(srs)
@@ -594,6 +613,7 @@ def update_layers_esri_imageserver(service):
     layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
     if layer.active:
         layer.type = 'ESRI:ArcGIS:ImageServer'
+        links = [[layer.type, service.url]]
         layer.title = obj['name']
         layer.abstract = esri_service.serviceDescription
         layer.url = service.url
@@ -602,9 +622,27 @@ def update_layers_esri_imageserver(service):
         layer.bbox_x1 = str(obj['extent']['xmax'])
         layer.bbox_y1 = str(obj['extent']['ymax'])
         layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+        srs = obj['spatialReference']['wkid']
+        links.append([
+            'WWW:LINK',
+            settings.SITE_URL.rstrip('/') + layer.page_url
+        ])
+        layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
+        layer.xml = create_metadata_record(
+            identifier=layer.id_string,
+            source=service.url,
+            links=links,
+            format='ESRI:ArcGIS:ImageServer',
+            type=layer.csw_type,
+            relation=service.id_string,
+            title=layer.title,
+            abstract=layer.abstract,
+            wkt_geometry=layer.wkt_geometry,
+            srs=srs
+        )
+        layer.anytext = gen_anytext(layer.title, layer.abstract)
         layer.save()
         # crsOptions
-        srs = obj['spatialReference']['wkid']
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs)
         layer.srs.add(srs)
         # dates
