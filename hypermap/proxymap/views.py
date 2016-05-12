@@ -50,7 +50,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
     bbox_srs = 'EPSG:4326'
     grid_srs = 'EPSG:3857'
 
-    if layer.service.type == 'ESRI_MapServer' or layer.service.type == 'ESRI_ImageServer':
+    if layer.type == 'ESRI:ArcGIS:MapServer' or layer.type == 'ESRI:ArcGIS:ImageServer':
         url = str(layer.service.url).split('?')[0] + 'WMSServer?'
 
         # blindly replace it with /arcgis/
@@ -65,11 +65,11 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         srs = 'EPSG:3857'
         bbox_srs = 'EPSG:3857'
 
-    if layer.service.type == 'WARPER':
+    if layer.type == 'WARPER':
         url = str(layer.url.replace("maps//wms", "maps/wms"))
         grid_srs = 'EPSG:900913'
 
-    if layer.service.type == 'WM':
+    if layer.type == 'WM':
         url = str(layer.url.replace("maps//wms", "maps/wms"))
 
     default_source = {
@@ -87,7 +87,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
               },
            }
 
-    if layer.service.type == 'ESRI_MapServer':
+    if layer.type == 'ESRI:ArcGIS:MapServer':
         default_source = {
                   'type': 'tile',
                   'url': str(layer.service.url).split('?')[0] + 'tile/%(z)s/%(y)s/%(x)s',

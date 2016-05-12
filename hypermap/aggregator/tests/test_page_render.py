@@ -23,7 +23,7 @@ class PageRendererTestCase(TestCase):
             service = Service(
                 url='http://%s.fakeurl.com' % s,
                 title='Title %s' % s,
-                type='OGC_WMS',
+                type='OGC:WMS',
             )
             service.save()
             for l in range(0, LAYER_PER_SERVICE_NUMBER):
