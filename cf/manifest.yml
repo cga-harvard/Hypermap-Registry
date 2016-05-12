@@ -8,10 +8,10 @@ applications:
   memory: 512M
   disk_quota: 2G
   services:
-    - hypermap-db-hippo
+    - hypermap-database
     - hypermap-rabbitmq
-    - hypermap-es-small
-    - panchicore-papertrail
+    - hypermap-elasticsearch
+    - hypermap-papertrail
   env:
     #TODO: Make an env variable on the CF side with a different key.
     # this one is exposed.
@@ -25,10 +25,10 @@ applications:
   memory: 512M
   disk_quota: 2G
   services:
-    - hypermap-db-hippo
+    - hypermap-database
     - hypermap-rabbitmq
-    - hypermap-es-small
-    - panchicore-papertrail
+    - hypermap-elasticsearch
+    - hypermap-papertrail
   env:
     #TODO: Make an env variable on the CF side with a different key.
     # this one is exposed.
