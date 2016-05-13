@@ -8,9 +8,10 @@ decoded_config = json.loads(vcap_service_config)
 DEBUG = False
 vcap_app_config = os.environ.get('VCAP_APPLICATION')
 #TODO: Get from environment and don't hardcode
-SITE_URL = 'hypermap.cfapps.io'
+BASE_URL = 'hypermap.cfapps.io'
+SITE_URL = 'http://%s' % BASE_URL
 
-ALLOWED_HOSTS = [SITE_URL, 'localhost']
+ALLOWED_HOSTS = [BASE_URL, 'localhost']
 
 DATABASES = {'default': dj_database_url.config()}
 
@@ -41,6 +42,5 @@ SEARCH_ENABLED = True
 SEARCH_TYPE = 'elasticsearch'
 SEARCH_URL = decoded_config['searchly'][0]['credentials']['sslUri']
 
-SKIP_CELERY_TASK = False
-
-PYCSW['server']['url'] = 'http://' + SITE_URL + '/csw'
+SKIP_CELERY_TASK = True
+PYCSW['server']['url'] = '%s/search/csw' % SITE_URL.rstrip('/')
