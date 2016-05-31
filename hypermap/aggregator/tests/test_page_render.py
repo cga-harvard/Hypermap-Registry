@@ -3,8 +3,8 @@ from django.core.urlresolvers import reverse
 
 from django.db.models import signals
 
-from aggregator.models import Service, Layer
-from aggregator.models import layer_post_save, service_post_save
+from hypermap.aggregator.models import Service, Layer
+from hypermap.aggregator.models import layer_post_save, service_post_save
 
 
 SERVICE_NUMBER = 2

@@ -5,11 +5,11 @@ import time
 from django.conf import settings
 from django.test import LiveServerTestCase as TestCase
 
-from aggregator.models import Service, Layer
-import aggregator.tests.mocks.wms
-import aggregator.tests.mocks.warper
-import aggregator.tests.mocks.worldmap
-from aggregator.tasks import index_all_layers
+from hypermap.aggregator.models import Service, Layer
+import hypermap.aggregator.tests.mocks.wms
+import hypermap.aggregator.tests.mocks.warper
+import hypermap.aggregator.tests.mocks.worldmap
+from hypermap.aggregator.tasks import index_all_layers
 
 
 @with_httmock(aggregator.tests.mocks.wms.resource_get)

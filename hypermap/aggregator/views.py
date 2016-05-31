@@ -11,13 +11,11 @@ from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from models import Service, Layer
-from settings.default import BROKER_URL
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
                    index_service, index_all_layers, index_layer, clear_solr)
 from enums import SERVICE_TYPES
 
-from hypermap import celery_app
-
+from hypermap import celeryapp
 
 def serialize_checks(check_set):
     """
@@ -158,7 +156,7 @@ def celery_monitor(request):
     """
     A raw celery monitor to figure out which processes are active and reserved.
     """
-    inspect = celery_app.control.inspect()
+    inspect = celeryapp.control.inspect()
     active_json = inspect.active()
     reserved_json = inspect.reserved()
     active_tasks = []
@@ -170,7 +168,7 @@ def celery_monitor(request):
                 name = task['name']
                 time_start = task['time_start']
                 args = task['args']
-                active_task = celery_app.AsyncResult(id)
+                active_task = celeryapp.AsyncResult(id)
                 active_task.name = name
                 active_task.args = args
                 active_task.worker = '%s, pid: %s' % (worker, task['worker_pid'])
@@ -185,7 +183,7 @@ def celery_monitor(request):
                 id = task['id']
                 name = task['name']
                 args = task['args']
-                reserved_task = celery_app.AsyncResult(id)
+                reserved_task = celeryapp.AsyncResult(id)
                 reserved_task.name = name
                 reserved_task.args = args
                 reserved_tasks.append(reserved_task)
@@ -212,7 +210,7 @@ def get_queued_jobs_number():
     # to detect tasks in the queued the only way is to use amqplib so far
     from amqplib import client_0_8 as amqp
 
-    params = pika.URLParameters(BROKER_URL)
+    params = pika.URLParameters(settings.BROKER_URL)
 
     conn = amqp.Connection(host='{0}:{1}'.format(params.host, params.port),
                            userid=params.credentials.username,
@@ -235,7 +233,7 @@ def update_jobs_number(request):
 @login_required
 def update_progressbar(request, task_id):
     response_data = {}
-    active_task = celery_app.AsyncResult(task_id)
+    active_task = celeryapp.AsyncResult(task_id)
     progressbar = 100
     status = '100%'
     state = 'COMPLETED'

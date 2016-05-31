@@ -9,7 +9,7 @@ from urlparse import urlparse
 from django.conf import settings
 from django.utils.html import strip_tags
 
-from aggregator.utils import mercator_to_llbbox
+from hypermap.aggregator.utils import mercator_to_llbbox
 
 
 def get_date(layer):

@@ -10,9 +10,9 @@ from urlparse import urlparse
 from django.conf import settings
 from django.utils.html import strip_tags
 
-from aggregator.utils import mercator_to_llbbox
+from hypermap.aggregator.utils import mercator_to_llbbox
 
-from aggregator.solr import get_date
+from hypermap.aggregator.solr import get_date
 
 class ESHypermap(object):
 

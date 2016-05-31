@@ -1,5 +1,5 @@
 # from django.shortcuts import render
-from aggregator.models import Layer
+from hypermap.aggregator.models import Layer
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 

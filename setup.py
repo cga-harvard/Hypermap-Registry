@@ -27,7 +27,6 @@ setup(
         'arcrest==10.3',
         'celery==3.1.19',
         'Django==1.6.11',
-        'django-celery==3.1.17',
         'django-debug-toolbar==1.2',
         'django-pagination==1.0.7',
         'django-polymorphic==0.8.1',

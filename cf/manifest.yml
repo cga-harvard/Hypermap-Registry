@@ -17,10 +17,13 @@ applications:
     # this one is exposed.
     SECRET_KEY: 'il%c@@m#*b@g%6s)!!pme9eog$j)!kq^7u8@3l(&)kprsi3$$x'
     DEBUG: 'True'
+    DJANGO_SETTINGS_MODULE: 'hypermap.settings'
 - name: hypermap-celery
   domain: cfapps.io
   buildpack: https://github.com/panchicore/geonode-python-buildpack
   command: cf/init_celery.sh
+  health-check-type: none
+  no-route: true
   instances: 1
   memory: 512M
   disk_quota: 2G
@@ -34,3 +37,4 @@ applications:
     # this one is exposed.
     SECRET_KEY: 'il%c@@m#*b@g%6s)!!pme9eog$j)!kq^7u8@3l(&)kprsi3$$x'
     DEBUG: 'True'
+    DJANGO_SETTINGS_MODULE: 'hypermap.settings'

@@ -7,7 +7,7 @@ from celery import shared_task, chain
 
 @shared_task(bind=True)
 def check_all_services(self):
-    from aggregator.models import Service
+    from hypermap.aggregator.models import Service
     service_to_processes = Service.objects.filter(active=True)
     total = service_to_processes.count()
     count = 0
@@ -64,7 +64,7 @@ def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
     success, message = layer.check()
     if not success:
-        from aggregator.models import TaskError
+        from hypermap.aggregator.models import TaskError
         task_error = TaskError(
             task_name=self.name,
             args=layer.id,
@@ -76,14 +76,14 @@ def check_layer(self, layer):
 @shared_task(name="clear_solr")
 def clear_solr():
     print 'Clearing the solr core and indexes'
-    from aggregator.solr import SolrHypermap
+    from hypermap.aggregator.solr import SolrHypermap
     solrobject = SolrHypermap()
     solrobject.clear_solr()
 
 @shared_task(name="clear_es")
 def clear_es():
     print 'Clearing the ES indexes'
-    from aggregator.elasticsearch import ESHypermap
+    from hypermap.aggregator.elasticsearch import ESHypermap
     esobject = ESHypermap()
     esobject.clear_es()
 
@@ -139,13 +139,13 @@ def index_layer(self, layer):
     # TODO: Make this function more DRY
     # by abstracting the common bits.
     if settings.SEARCH_TYPE == 'solr':
-        from aggregator.solr import SolrHypermap
+        from hypermap.aggregator.solr import SolrHypermap
         print 'Syncing layer %s to solr' % layer.name
         try:
             solrobject = SolrHypermap()
             success, message = solrobject.layer_to_solr(layer)
             if not success:
-                from aggregator.models import TaskError
+                from hypermap.aggregator.models import TaskError
                 task_error = TaskError(
                     task_name=self.name,
                     args=layer.id,
@@ -156,12 +156,12 @@ def index_layer(self, layer):
             print 'There was an exception here!'
             self.retry(layer)
     elif settings.SEARCH_TYPE == 'elasticsearch':
-        from aggregator.elasticsearch import ESHypermap
+        from hypermap.aggregator.elasticsearch import ESHypermap
         print 'Syncing layer %s to es' % layer.name
         esobject = ESHypermap()
         success, message = esobject.layer_to_es(layer)
         if not success:
-            from aggregator.models import TaskError
+            from hypermap.aggregator.models import TaskError
             task_error = TaskError(
                 task_name=self.name,
                 args=layer.id,
@@ -172,7 +172,7 @@ def index_layer(self, layer):
 
 @shared_task(bind=True)
 def index_all_layers(self):
-    from aggregator.models import Layer
+    from hypermap.aggregator.models import Layer
 
     if settings.SERVICE_TYPE == 'elasticsearch':
         clear_es()
@@ -196,7 +196,7 @@ def index_all_layers(self):
 
 @shared_task(bind=True)
 def update_endpoint(self, endpoint):
-    from aggregator.utils import create_services_from_endpoint
+    from hypermap.aggregator.utils import create_services_from_endpoint
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
     imported, message = create_services_from_endpoint(endpoint.url)
     endpoint.imported = imported

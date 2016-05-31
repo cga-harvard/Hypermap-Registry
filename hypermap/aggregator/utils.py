@@ -17,10 +17,10 @@ from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
-from models import (bbox2wktpolygon, create_metadata_record, gen_anytext, Layer,
+from .models import (bbox2wktpolygon, create_metadata_record, gen_anytext, Layer,
                     LayerDate, LayerWM, SpatialReferenceSystem)
 
-from dynasty.utils import get_mined_dates
+from hypermap.dynasty.utils import get_mined_dates
 
 
 def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None):
