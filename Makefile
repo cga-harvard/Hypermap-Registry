@@ -1,7 +1,7 @@
 .PHONY: hypermap
 hypermap:
 	cf create-service elephantsql hippo hypermap-database
-	cf create-service searchly small hypermap-elasticsearch
+	cf create-service searchly small hypermap-elasticsearch -c '{"syslog_drain_url":"syslog://logs4.papertrailapp.com:11296"}'
 	cf create-service cloudamqp tiger hypermap-rabbitmq
 	cf cups hypermap-papertrail -l syslog://logs4.papertrailapp.com:11296
 	cf push -f cf/manifest.yml

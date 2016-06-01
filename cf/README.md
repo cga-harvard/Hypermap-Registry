@@ -2,7 +2,7 @@
 
 ```
 export LD_LIBRARY_PATH=/app/.heroku/python/lib/
-export PATH=/bin:/usr/bin:/app/.heroku/python/bin
+export PATH=/app/.heroku/python/bin:/bin:/usr/bin
 ```
 
 # if restart app changes in site packages will be lost
