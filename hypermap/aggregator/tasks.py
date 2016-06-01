@@ -83,7 +83,7 @@ def clear_solr():
 @shared_task(name="clear_es")
 def clear_es():
     print 'Clearing the ES indexes'
-    from hypermap.aggregator.elasticsearch import ESHypermap
+    from hypermap.aggregator.elasticsearch_client import ESHypermap
     esobject = ESHypermap()
     esobject.clear_es()
 
@@ -156,7 +156,7 @@ def index_layer(self, layer):
             print 'There was an exception here!'
             self.retry(layer)
     elif settings.SEARCH_TYPE == 'elasticsearch':
-        from hypermap.aggregator.elasticsearch import ESHypermap
+        from hypermap.aggregator.elasticsearch_client import ESHypermap
         print 'Syncing layer %s to es' % layer.name
         esobject = ESHypermap()
         success, message = esobject.layer_to_es(layer)

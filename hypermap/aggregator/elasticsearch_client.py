@@ -10,6 +10,8 @@ from urlparse import urlparse
 from django.conf import settings
 from django.utils.html import strip_tags
 
+from elasticsearch import Elasticsearch
+
 from hypermap.aggregator.utils import mercator_to_llbbox
 
 from hypermap.aggregator.solr import get_date
@@ -17,8 +19,13 @@ from hypermap.aggregator.solr import get_date
 class ESHypermap(object):
 
     es_url = settings.SEARCH_URL
-    es = pyelasticsearch.ElasticSearch(es_url)
+    es = Elasticsearch(hosts=[es_url])
+    index_name = 'hypermap'
     logger = logging.getLogger("hypermap")
+
+    def __init__(self):
+        self.create_indices()
+        super(ESHypermap, self).__init__()
 
     @staticmethod
     def good_coords(coords):
@@ -48,14 +55,17 @@ class ESHypermap(object):
     def layer_to_es(layer):
         category = None
         username = None
+
+        ESHypermap.logger.info("Elasticsearch: record to save: %s" % layer.id)
+
         try:
             bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
             for proj in layer.srs.values():
                 if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
             if (ESHypermap.good_coords(bbox)) is False:
-                print 'There are not valid coordinates for this layer ', layer.title
-                ESHypermap.logger.error('There are not valid coordinates for layer id: %s' % layer.id)
+                print 'Elasticsearch: There are not valid coordinates for this layer ', layer.title
+                ESHypermap.logger.error('Elasticsearch: There are not valid coordinates for layer id: %s' % layer.id)
                 return False
             if (ESHypermap.good_coords(bbox)):
                 minX = bbox[0]
@@ -134,17 +144,27 @@ class ESHypermap(object):
                     es_record['LayerDate'] = es_date
                     es_record['LayerDateType'] = type
                 ESHypermap.logger.info(es_record)
-                ESHypermap.es.index('hypermap', 'layer', json.dumps(es_record), id=layer.id)
-                ESHypermap.logger.info("Elasticsearch record saved for layer with id: %s" % layer.id)
+                ESHypermap.es.index(ESHypermap.index_name, 'layer', json.dumps(es_record), id=layer.id)
+                ESHypermap.logger.info("Elasticsearch: record saved for layer with id: %s" % layer.id)
                 return True, None
         except Exception:
             ESHypermap.logger.error(sys.exc_info())
-            ESHypermap.logger.error("Error saving elasticsearch record for layer with id: %s - %s"
+            ESHypermap.logger.error("Elasticsearch: Error saving record for layer with id: %s - %s"
                                       % (layer.id, sys.exc_info()[1]))
             return False, sys.exc_info()[1]
 
     @staticmethod
     def clear_es():
         """Clear all indexes in the es core"""
-        ESHypermap.es.delete_index('hypermap')
-        print 'ES Index cleared'
+        ESHypermap.es.delete(ESHypermap.index_name)
+        print 'Elasticsearch: Index cleared'
+
+    @staticmethod
+    def create_indices():
+        """Create ES core indices """
+        # TODO: enable auto_create_index in the ES nodes to make this implicit.
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html#index-creation
+        # http://support.searchly.com/customer/en/portal/questions/16312889-is-automatic-index-creation-disabled-?new=16312889
+        ESHypermap.es.indices.create(ESHypermap.index_name, ignore=[400, 404])
+
+
