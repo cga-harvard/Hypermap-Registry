@@ -11,6 +11,7 @@ from django.db.models import Avg, Min, Max
 from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
+from django_extensions.db.fields import AutoSlugField
 
 from taggit.managers import TaggableManager
 from polymorphic.models import PolymorphicModel
@@ -316,6 +317,20 @@ class SpatialReferenceSystem(models.Model):
         return self.code
 
 
+class Catalog(models.Model):
+    """
+    Represents a collection of layers to be searched.
+    """
+    name = models.CharField(
+        max_length=255
+    )
+    slug = AutoSlugField(
+        populate_from='name'
+    )
+
+    def __unicode__(self):
+        return self.name
+
 class Layer(Resource):
     """
     Service represents a remote layer.
@@ -330,6 +345,7 @@ class Layer(Resource):
     page_url = models.URLField(max_length=255)
     srs = models.ManyToManyField(SpatialReferenceSystem)
     service = models.ForeignKey(Service)
+    catalogs = models.ManyToManyField(Catalog)
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.name)
@@ -580,6 +596,11 @@ class Layer(Resource):
 
     def get_absolute_url(self):
         return reverse('layer_detail', args=(self.id,))
+
+    def get_catalogs_slugs(self):
+        return list(
+            self.catalogs.all().values_list("slug", flat=True)
+        )
 
 
 class LayerDate(models.Model):

@@ -51,6 +51,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'pagination',
     'taggit',
+    'django_extensions',
     'hypermap.aggregator',
     'hypermap.proxymap',
     'hypermap.dynasty',

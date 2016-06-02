@@ -139,6 +139,10 @@ class ESHypermap(object):
                                 "DomainName": layer.service.get_domain,
                                 }
 
+                slugs = layer.get_catalogs_slugs()
+                if slugs:
+                    es_record["Catalogs"] = slugs
+
                 es_date, type = get_date(layer)
                 if es_date is not None:
                     es_record['LayerDate'] = es_date
