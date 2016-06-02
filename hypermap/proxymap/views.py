@@ -159,6 +159,11 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
       'demo': None,
     }
 
+    global_config = {
+      'http': { 'ssl_no_cert_checks': True},
+    }
+ 
+
     # Start with a sane configuration using MapProxy's defaults
     conf_options = load_default_config()
 
@@ -169,6 +174,7 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         'layers': layers,
         'services': services,
         'sources': sources,
+        'globals': global_config,
     }
 
     yaml_config = yaml.dump(extra_config, default_flow_style=False)
