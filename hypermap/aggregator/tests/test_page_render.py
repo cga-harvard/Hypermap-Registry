@@ -40,9 +40,9 @@ class PageRendererTestCase(TestCase):
         for c in range(0, TIMES_TO_CHECK):
             for s in range(0, SERVICE_NUMBER):
                 service = Service.objects.all()[s]
-                service.check()
+                service.check_available()
                 for layer in service.layer_set.all():
-                    layer.check()
+                    layer.check_available()
 
     def tearDown(self):
         signals.post_save.connect(layer_post_save, sender=Layer)

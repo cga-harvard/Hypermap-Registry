@@ -197,7 +197,7 @@ class Service(Resource):
             update_layers_warper(self)
         signals.post_save.connect(layer_post_save, sender=Layer)
 
-    def check(self):
+    def check_available(self):
         """
         Check for availability of a service and provide run metrics.
         """
@@ -557,7 +557,7 @@ class Layer(Resource):
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             print 'Thumbnail updated for layer %s' % self.name
 
-    def check(self):
+    def check_available(self):
         """
         Check for availability of a layer and provide run metrics.
         """

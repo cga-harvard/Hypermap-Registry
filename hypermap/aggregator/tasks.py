@@ -40,7 +40,7 @@ def check_service(self, service):
     layer_to_process = service.layer_set.all()
     total = layer_to_process.count() + 2
     status_update(1)
-    service.check()
+    service.check_available()
     status_update(2)
     count = 3
 
@@ -62,7 +62,7 @@ def check_service(self, service):
 @shared_task(bind=True, time_limit=10)
 def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
-    success, message = layer.check()
+    success, message = layer.check_available()
     if not success:
         from hypermap.aggregator.models import TaskError
         task_error = TaskError(
