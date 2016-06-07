@@ -5,7 +5,6 @@ virtualenv_path: "/webapps/{{ application_name }}"
 project_path: "{{ virtualenv_path }}/{{ project_name }}"
 application_log_dir: "{{ virtualenv_path }}/logs"
 application_log_file: "{{ application_log_dir }}/{{ application_name }}.log"
-requirements_file: "{{ project_path }}/requirements.txt"
 
 
 # Gunicorn settings
@@ -36,6 +35,6 @@ django_environment:
   EMAIL_HOST_PASSWORD: "{{ email_host_password|default(omit) }}"
   BROKER_URL: "{{ broker_url|default(omit) }}"
   SITE_URL: "{{ site_url }}"
-  SOLR_URL: "{{ solr_url }}/solr/search"
+  SEARCH_URL: "{{ solr_url }}/solr/search"
   WM_USERNAME: "hypermap"
   WM_PASSWORD: "secret"

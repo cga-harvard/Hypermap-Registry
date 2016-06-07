@@ -9,7 +9,7 @@ import unittest
 from httmock import with_httmock
 import mocks.wms
 
-from aggregator.models import Service
+from hypermap.aggregator.models import Service
 
 
 class TestWMS(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestWMS(unittest.TestCase):
     def test_create_wms_service(self):
         # create the service
         service = Service(
-            type='OGC_WMS',
+            type='OGC:WMS',
             url='http://wms.example.com/ows?',
         )
         service.save()
@@ -40,7 +40,7 @@ class TestWMS(unittest.TestCase):
         # create the service
         def create_duplicated_service():
             duplicated_service = Service(
-                type='OGC_WMS',
+                type='OGC:WMS',
                 url='http://wms.example.com/ows?',
             )
             duplicated_service.save()

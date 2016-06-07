@@ -3,7 +3,7 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
-from aggregator.utils import create_services_from_endpoint, get_sanitized_endpoint
+from hypermap.aggregator.utils import create_services_from_endpoint, get_sanitized_endpoint
 
 
 class Command(BaseCommand):

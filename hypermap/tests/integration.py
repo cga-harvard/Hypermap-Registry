@@ -5,17 +5,17 @@ import time
 from django.conf import settings
 from django.test import LiveServerTestCase as TestCase
 
-from aggregator.models import Service, Layer
-import aggregator.tests.mocks.wms
-import aggregator.tests.mocks.warper
-import aggregator.tests.mocks.worldmap
-from aggregator.tasks import index_all_layers
+from hypermap.aggregator.models import Service, Layer
+import hypermap.aggregator.tests.mocks.wms
+import hypermap.aggregator.tests.mocks.warper
+import hypermap.aggregator.tests.mocks.worldmap
+from hypermap.aggregator.tasks import index_all_layers
 
 
 @with_httmock(aggregator.tests.mocks.wms.resource_get)
 def create_wms_service():
     service = Service(
-        type='OGC_WMS',
+        type='OGC:WMS',
         url='http://wms.example.com/ows?',
     )
     service.save()
@@ -48,7 +48,7 @@ class SolrTest(TestCase):
 
     @with_httmock(aggregator.tests.mocks.wms.resource_get)
     def setUp(self):
-        solr_url = settings.SOLR_URL
+        solr_url = settings.SEARCH_URL
         self.solr = pysolr.Solr(solr_url, timeout=60)
         create_wms_service()
         create_warper_service()

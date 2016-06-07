@@ -2,12 +2,12 @@ from __future__ import absolute_import
 
 from django.conf import settings
 
-from celery import shared_task
+from celery import shared_task, chain
 
 
 @shared_task(bind=True)
 def check_all_services(self):
-    from aggregator.models import Service
+    from hypermap.aggregator.models import Service
     service_to_processes = Service.objects.filter(active=True)
     total = service_to_processes.count()
     count = 0
@@ -40,25 +40,31 @@ def check_service(self, service):
     layer_to_process = service.layer_set.all()
     total = layer_to_process.count() + 2
     status_update(1)
-    service.check()
+    service.check_available()
     status_update(2)
     count = 3
-    for layer in layer_to_process:
-        # update state
-        status_update(count)
-        if not settings.SKIP_CELERY_TASK:
-            check_layer.delay(layer)
-        else:
+
+    if not settings.SKIP_CELERY_TASK:
+        tasks = []
+        for layer in layer_to_process:
+            # update state
+            status_update(count)
+            tasks.append(check_layer.si(layer))
+            count += 1
+        chain(tasks)()
+    else:
+        for layer in layer_to_process:
+            status_update(count)
             check_layer(layer)
-        count = count + 1
+            count += 1
 
 
 @shared_task(bind=True, time_limit=10)
 def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
-    success, message = layer.check()
+    success, message = layer.check_available()
     if not success:
-        from aggregator.models import TaskError
+        from hypermap.aggregator.models import TaskError
         task_error = TaskError(
             task_name=self.name,
             args=layer.id,
@@ -70,9 +76,16 @@ def check_layer(self, layer):
 @shared_task(name="clear_solr")
 def clear_solr():
     print 'Clearing the solr core and indexes'
-    from aggregator.solr import SolrHypermap
+    from hypermap.aggregator.solr import SolrHypermap
     solrobject = SolrHypermap()
     solrobject.clear_solr()
+
+@shared_task(name="clear_es")
+def clear_es():
+    print 'Clearing the ES indexes'
+    from hypermap.aggregator.elasticsearch_client import ESHypermap
+    esobject = ESHypermap()
+    esobject.clear_es()
 
 
 @shared_task(bind=True)
@@ -123,27 +136,47 @@ def index_service(self, service):
 
 @shared_task(bind=True)
 def index_layer(self, layer):
-    from aggregator.solr import SolrHypermap
-    print 'Syncing layer %s to solr' % layer.name
-    try:
-        solrobject = SolrHypermap()
-        success, message = solrobject.layer_to_solr(layer)
+    # TODO: Make this function more DRY
+    # by abstracting the common bits.
+    if settings.SEARCH_TYPE == 'solr':
+        from hypermap.aggregator.solr import SolrHypermap
+        print 'Syncing layer %s to solr' % layer.name
+        try:
+            solrobject = SolrHypermap()
+            success, message = solrobject.layer_to_solr(layer)
+            if not success:
+                from hypermap.aggregator.models import TaskError
+                task_error = TaskError(
+                    task_name=self.name,
+                    args=layer.id,
+                    message=message
+                )
+                task_error.save()
+        except:
+            print 'There was an exception here!'
+            self.retry(layer)
+    elif settings.SEARCH_TYPE == 'elasticsearch':
+        from hypermap.aggregator.elasticsearch_client import ESHypermap
+        print 'Syncing layer %s to es' % layer.name
+        esobject = ESHypermap()
+        success, message = esobject.layer_to_es(layer)
         if not success:
-            from aggregator.models import TaskError
+            from hypermap.aggregator.models import TaskError
             task_error = TaskError(
                 task_name=self.name,
                 args=layer.id,
                 message=message
             )
             task_error.save()
-    except:
-        print 'There was an exception here!'
-        self.retry(layer)
 
 
 @shared_task(bind=True)
 def index_all_layers(self):
-    from aggregator.models import Layer
+    from hypermap.aggregator.models import Layer
+
+    if settings.SERVICE_TYPE == 'elasticsearch':
+        clear_es()
+
     layer_to_processes = Layer.objects.all()
     total = layer_to_processes.count()
     count = 0
@@ -163,7 +196,7 @@ def index_all_layers(self):
 
 @shared_task(bind=True)
 def update_endpoint(self, endpoint):
-    from aggregator.utils import create_services_from_endpoint
+    from hypermap.aggregator.utils import create_services_from_endpoint
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
     imported, message = create_services_from_endpoint(endpoint.url)
     endpoint.imported = imported
@@ -178,16 +211,24 @@ def update_endpoints(self, endpoint_list):
     endpoint_to_process = endpoint_list.endpoint_set.filter(processed=False)
     total = endpoint_to_process.count()
     count = 0
-    for endpoint in endpoint_to_process:
-        if not settings.SKIP_CELERY_TASK:
-            update_endpoint.delay(endpoint)
-        else:
-            update_endpoint(endpoint)
+
+    if not settings.SKIP_CELERY_TASK:
+        # the task workflow must be a group of serials requests to each endpoint.
+        # The celery chains links together signatures so that one is called after the other.
+        tasks = []
+        for endpoint in endpoint_to_process:
+            # use immutable signatures, we dont want the result of the previous
+            # task in the celery chain for the next task.
+            tasks.append(update_endpoint.si(endpoint))
+        chain(tasks)()
         # update state
         if not self.request.called_directly:
             self.update_state(
                 state='PROGRESS',
                 meta={'current': count, 'total': total}
             )
-        count = count + 1
+    else:
+        for endpoint in endpoint_to_process:
+            update_endpoint(endpoint)
+
     return True

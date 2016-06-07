@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from dynasty.models import Dynasty
+from hypermap.dynasty.models import Dynasty
 import re
 
 

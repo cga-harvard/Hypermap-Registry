@@ -9,7 +9,7 @@ from urlparse import urlparse
 from django.conf import settings
 from django.utils.html import strip_tags
 
-from aggregator.utils import mercator_to_llbbox
+from hypermap.aggregator.utils import mercator_to_llbbox
 
 
 def get_date(layer):
@@ -100,7 +100,7 @@ class SolrHypermap(object):
                 abstract = strip_tags(layer.abstract)
             else:
                 abstract = ''
-            if layer.service.type == "WM":
+            if layer.type == "WM":
                 originator = username
             else:
                 originator = domain
@@ -111,7 +111,7 @@ class SolrHypermap(object):
                             'LayerTitle': layer.title,
                             'Originator': originator,
                             'ServiceId': str(layer.service.id),
-                            'ServiceType': layer.service.type,
+                            'ServiceType': layer.type,
                             'LayerCategory': category,
                             'LayerUsername': username,
                             'LayerUrl': layer.get_url_endpoint(),
@@ -142,7 +142,7 @@ class SolrHypermap(object):
                 solr_record['tile_url'] = layer.get_tile_url()
 
             # time to send request to solr
-            url_solr_update = '%s/update/json/docs' % settings.SOLR_URL
+            url_solr_update = '%s/update/json/docs' % settings.SEARCH_URL
             headers = {"content-type": "application/json"}
             params = {"commitWithin": 1500}
             solr_json = json.dumps(solr_record)
@@ -155,7 +155,7 @@ class SolrHypermap(object):
 
     def clear_solr(self):
         """Clear all indexes in the solr core"""
-        solr_url = settings.SOLR_URL
+        solr_url = settings.SEARCH_URL
         solr = pysolr.Solr(solr_url, timeout=60)
         solr.delete(q='*:*')
         print 'Solr core cleared'

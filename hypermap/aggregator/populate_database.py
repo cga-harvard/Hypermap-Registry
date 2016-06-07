@@ -36,13 +36,13 @@ def populate_initial_services():
         (
             'WFP GeoNode',
             'World Food Programme GeoNode',
-            'OGC_WMS',
+            'OGC:WMS',
             'http://geonode.wfp.org/geoserver/ows?'
         ),
         (
             'NASA EARTHDATA',
             'NASA EARTHDATA, powered by EOSDIS',
-            'OGC_WMTS',
+            'OGC:WMTS',
             'http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml'
         ),
     )

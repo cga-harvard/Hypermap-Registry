@@ -9,7 +9,7 @@ import unittest
 from httmock import with_httmock
 import mocks.warper
 
-from aggregator.models import Service
+from hypermap.aggregator.models import Service
 
 
 class TestWarper(unittest.TestCase):
