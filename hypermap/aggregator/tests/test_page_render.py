@@ -3,8 +3,8 @@ from django.core.urlresolvers import reverse
 
 from django.db.models import signals
 
-from aggregator.models import Service, Layer
-from aggregator.models import layer_post_save, service_post_save
+from hypermap.aggregator.models import Service, Layer
+from hypermap.aggregator.models import layer_post_save, service_post_save
 
 
 SERVICE_NUMBER = 2
@@ -23,7 +23,7 @@ class PageRendererTestCase(TestCase):
             service = Service(
                 url='http://%s.fakeurl.com' % s,
                 title='Title %s' % s,
-                type='OGC_WMS',
+                type='OGC:WMS',
             )
             service.save()
             for l in range(0, LAYER_PER_SERVICE_NUMBER):
@@ -40,9 +40,9 @@ class PageRendererTestCase(TestCase):
         for c in range(0, TIMES_TO_CHECK):
             for s in range(0, SERVICE_NUMBER):
                 service = Service.objects.all()[s]
-                service.check()
+                service.check_available()
                 for layer in service.layer_set.all():
-                    layer.check()
+                    layer.check_available()
 
     def tearDown(self):
         signals.post_save.connect(layer_post_save, sender=Layer)

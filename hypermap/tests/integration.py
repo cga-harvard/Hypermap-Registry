@@ -5,23 +5,25 @@ import time
 from django.conf import settings
 from django.test import LiveServerTestCase as TestCase
 
-from aggregator.models import Service, Layer
-import aggregator.tests.mocks.wms
-import aggregator.tests.mocks.warper
-import aggregator.tests.mocks.worldmap
-from aggregator.tasks import index_all_layers
+from owslib.csw import CatalogueServiceWeb
+
+from hypermap.aggregator.models import Service, Layer
+import hypermap.aggregator.tests.mocks.wms
+import hypermap.aggregator.tests.mocks.warper
+import hypermap.aggregator.tests.mocks.worldmap
+from hypermap.aggregator.tasks import index_all_layers
 
 
-@with_httmock(aggregator.tests.mocks.wms.resource_get)
+@with_httmock(hypermap.aggregator.tests.mocks.wms.resource_get)
 def create_wms_service():
     service = Service(
-        type='OGC_WMS',
+        type='OGC:WMS',
         url='http://wms.example.com/ows?',
     )
     service.save()
 
 
-@with_httmock(aggregator.tests.mocks.warper.resource_get)
+@with_httmock(hypermap.aggregator.tests.mocks.warper.resource_get)
 def create_warper_service():
     service = Service(
         type='WARPER',
@@ -30,7 +32,7 @@ def create_warper_service():
     service.save()
 
 
-@with_httmock(aggregator.tests.mocks.worldmap.resource_get)
+@with_httmock(hypermap.aggregator.tests.mocks.worldmap.resource_get)
 def create_wm_service():
     service = Service(
         type='WM',
@@ -46,9 +48,9 @@ class SolrTest(TestCase):
     Later we will programmatically create it and destroy it after testing.
     """
 
-    @with_httmock(aggregator.tests.mocks.wms.resource_get)
+    @with_httmock(hypermap.aggregator.tests.mocks.wms.resource_get)
     def setUp(self):
-        solr_url = settings.SOLR_URL
+        solr_url = settings.SEARCH_URL
         self.solr = pysolr.Solr(solr_url, timeout=60)
         create_wms_service()
         create_warper_service()
@@ -70,3 +72,40 @@ class SolrTest(TestCase):
         nlayers_valid_coordinates = sum(layer.has_valid_bbox() for layer in Layer.objects.all())
         results = self.solr.search(q='bbox:*')
         self.assertEqual(results.hits, nlayers_valid_coordinates)
+
+
+class CSWTest(TestCase):
+    """
+    Test CSW endpoint
+    """
+
+    def setUp(self):
+        """setup records and CSW"""
+
+        self.csw = CatalogueServiceWeb(settings.PYCSW['server']['url'])
+
+    def tearDown(self):
+        """shutdown endpoint and clean out records"""
+
+        Service.objects.all().delete()
+
+    def test_capabilities(self):
+        """verify that HHypermap's CSW works properly"""
+
+        # test that OGC:CSW URLs are identical to what is defined in settings
+        for op in self.csw.operations:
+            for method in op.methods:
+                self.assertEqual(settings.PYCSW['server']['url'], method['url'], 'Expected URL equality')
+
+        # test that OGC:CSW 2.0.2 is supported
+        self.assertEqual(self.csw.version, '2.0.2', 'Expected "2.0.2" as a supported version')
+
+        # test that transactions are supported
+        transaction = self.csw.get_operation_by_name('Transaction')
+        harvest = self.csw.get_operation_by_name('Harvest')
+
+        # test that HHypermap Service types are Harvestable
+        for restype in ['http://www.opengis.net/wms', 'http://www.opengis.net/wmts/1.0',
+                        'urn:x-esri:serviceType:ArcGIS:MapServer', 'urn:x-esri:serviceType:ArcGIS:ImageServer']:
+            self.assertIn(restype, harvest.parameters['ResourceType']['values'])
+            self.assertIn(restype, transaction.parameters['TransactionSchemas']['values'])

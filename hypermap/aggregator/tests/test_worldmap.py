@@ -9,8 +9,8 @@ import unittest
 from httmock import with_httmock
 import mocks.worldmap
 
-from aggregator.models import Service
-from aggregator.enums import DATE_DETECTED, DATE_FROM_METADATA
+from hypermap.aggregator.models import Service
+from hypermap.aggregator.enums import DATE_DETECTED, DATE_FROM_METADATA
 
 
 class TestWorldMap(unittest.TestCase):

@@ -34,8 +34,9 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-SOLR_ENABLED = True
-SOLR_URL = os.getenv('SOLR_URL', 'http://127.0.0.1:8983/solr/search')
+SEARCH_ENABLED = False
+SEARCH_TYPE = 'solr'
+SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
 
 # Application definition
 
@@ -51,9 +52,11 @@ INSTALLED_APPS = (
     'polymorphic',
     'pagination',
     'taggit',
-    'aggregator',
-    'proxymap',
-    'dynasty',
+    'django_extensions',
+    'hypermap.aggregator',
+    'hypermap.proxymap',
+    'hypermap.dynasty',
+    'hypermap.search',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -179,6 +182,8 @@ LOGGING = {
             "handlers": ["console"], "level": "ERROR", },
         "celery": {
             "handlers": ["console"], "level": "DEBUG", },
+        "pycsw": {
+            "handlers": ["console"], "level": "ERROR", },
         }
     }
 
@@ -191,3 +196,54 @@ TAGGIT_CASE_INSENSITIVE = True
 # WorldMap Service credentials (override this in local_settings or _ubuntu in production)
 WM_USERNAME = os.getenv('WM_USERNAME', 'hypermap')
 WM_PASSWORD = os.getenv('WM_PASSWORD', 'secret')
+
+# pycsw settings
+PYCSW = {
+    'server': {
+        # 'home': '.',
+        'url': '%s/search/csw' % SITE_URL.rstrip('/'),
+        'encoding': 'UTF-8',
+        'language': LANGUAGE_CODE,
+        'maxrecords': '10',
+        'pretty_print': 'true',
+        # 'domainquerytype': 'range',
+        'domaincounts': 'true',
+        'profiles': 'apiso'
+    },
+    'manager': {
+        # authentication/authorization is handled by Django
+        'transactions': 'false',
+        'allowed_ips': '*',
+        # 'csw_harvest_pagesize=10',
+    },
+    'repository': {
+        'source': 'HHypermap',
+        'mappings': os.path.join(os.path.dirname(__file__), '..', 'search', 'pycsw_local_mappings.py')
+    },
+    'metadata:main': {
+        'identification_title': 'HHypermap Catalogue',
+        'identification_abstract': 'HHypermap (Harvard Hypermap) Supervisor is an application that manages ' \
+        'OWS, Esri REST, and other types of map service harvesting, and maintains uptime statistics for ' \
+        'services and layers.',
+        'identification_keywords': 'sdi,catalogue,discovery,metadata,HHypermap',
+        'identification_keywords_type': 'theme',
+        'identification_fees': 'None',
+        'identification_accessconstraints': 'None',
+        'provider_name': 'Organization Name',
+        'provider_url': SITE_URL,
+        'contact_name': 'Lastname, Firstname',
+        'contact_position': 'Position Title',
+        'contact_address': 'Mailing Address',
+        'contact_city': 'City',
+        'contact_stateorprovince': 'Administrative Area',
+        'contact_postalcode': 'Zip or Postal Code',
+        'contact_country': 'Country',
+        'contact_phone': '+xx-xxx-xxx-xxxx',
+        'contact_fax': '+xx-xxx-xxx-xxxx',
+        'contact_email': 'Email Address',
+        'contact_url': 'Contact URL',
+        'contact_hours': 'Hours of Service',
+        'contact_instructions': 'During hours of service. Off on weekends.',
+        'contact_role': 'pointOfContact'
+    }
+}

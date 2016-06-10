@@ -1,5 +1,6 @@
 import urllib2
 import json
+import pika
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -14,7 +15,7 @@ from tasks import (check_all_services, check_service, check_layer, remove_servic
                    index_service, index_all_layers, index_layer, clear_solr)
 from enums import SERVICE_TYPES
 
-from hypermap import celery_app
+from hypermap import celeryapp
 
 
 def serialize_checks(check_set):
@@ -36,7 +37,7 @@ def serialize_checks(check_set):
 @login_required
 def domains(request):
     url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=DomainName,ServiceId&wt=json&indent=true&rows=0'
-           % settings.SOLR_URL)
+           % settings.SEARCH_URL)
     response = urllib2.urlopen(url)
     data = response.read().replace('\n', '')
     # stats
@@ -124,6 +125,7 @@ def service_checks(request, service_id):
 
 def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
+
     if request.method == 'POST':
         if 'check' in request.POST:
             if not settings.SKIP_CELERY_TASK:
@@ -138,7 +140,9 @@ def layer_detail(request, layer_id):
             else:
                 index_layer(layer)
 
-    return render(request, 'aggregator/layer_detail.html', {'layer': layer, })
+    return render(request, 'aggregator/layer_detail.html', {'layer': layer,
+                                                            'SEARCH_TYPE': settings.SEARCH_TYPE,
+                                                            'SEARCH_URL': settings.SEARCH_URL})
 
 
 def layer_checks(request, layer_id):
@@ -153,7 +157,7 @@ def celery_monitor(request):
     """
     A raw celery monitor to figure out which processes are active and reserved.
     """
-    inspect = celery_app.control.inspect()
+    inspect = celeryapp.app.control.inspect()
     active_json = inspect.active()
     reserved_json = inspect.reserved()
     active_tasks = []
@@ -165,7 +169,7 @@ def celery_monitor(request):
                 name = task['name']
                 time_start = task['time_start']
                 args = task['args']
-                active_task = celery_app.AsyncResult(id)
+                active_task = celeryapp.AsyncResult(id)
                 active_task.name = name
                 active_task.args = args
                 active_task.worker = '%s, pid: %s' % (worker, task['worker_pid'])
@@ -180,7 +184,7 @@ def celery_monitor(request):
                 id = task['id']
                 name = task['name']
                 args = task['args']
-                reserved_task = celery_app.AsyncResult(id)
+                reserved_task = celeryapp.AsyncResult(id)
                 reserved_task.name = name
                 reserved_task.args = args
                 reserved_tasks.append(reserved_task)
@@ -205,10 +209,15 @@ def celery_monitor(request):
 
 def get_queued_jobs_number():
     # to detect tasks in the queued the only way is to use amqplib so far
-    # TODO secure broker password
     from amqplib import client_0_8 as amqp
-    conn = amqp.Connection(host='localhost:5672', userid='hypermap',
-                           password='hypermap', virtual_host='hypermap', insist=False)
+
+    params = pika.URLParameters(settings.BROKER_URL)
+
+    conn = amqp.Connection(host='{0}:{1}'.format(params.host, params.port),
+                           userid=params.credentials.username,
+                           password=params.credentials.password,
+                           virtual_host=params.virtual_host,
+                           insist=False)
     chan = conn.channel()
     name, jobs, consumers = chan.queue_declare(queue="celery", passive=True)
     return jobs
@@ -225,7 +234,7 @@ def update_jobs_number(request):
 @login_required
 def update_progressbar(request, task_id):
     response_data = {}
-    active_task = celery_app.AsyncResult(task_id)
+    active_task = celeryapp.AsyncResult(task_id)
     progressbar = 100
     status = '100%'
     state = 'COMPLETED'

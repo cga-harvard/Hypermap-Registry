@@ -122,7 +122,7 @@ virtualenv --no-site-packages env
 source env/bin/activate
 pip install --upgrade pip
 git clone https://github.com/cga-harvard/HHypermap.git
-pip install -r HHypermap/requirements.txt
+pip install -e HHypermap
 ```
 
 You need to create a settings file named as your username:
@@ -139,7 +139,9 @@ from settings.default import *  # noqa
 
 SITE_URL = 'http://localhost:8000/'
 
-SOLR_URL = 'http://127.0.0.1:8983/solr/search'
+SEARCH_ENABLED = True
+SEARCH_TYPE = 'solr'
+SEARCH_URL = 'http://127.0.0.1:8983/solr/search'
 
 DATABASES = {
     'default': {
