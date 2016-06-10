@@ -3,7 +3,7 @@ from django.contrib import admin
 from djcelery.models import TaskMeta
 
 from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
-                    Endpoint, LayerDate, LayerWM, TaskError)
+                    Endpoint, LayerDate, LayerWM, TaskError, Catalog)
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -33,6 +33,7 @@ class LayerAdmin(admin.ModelAdmin):
     list_display = ('name', 'title', 'service', )
     search_fields = ['name', 'title', ]
     list_filter = ('is_public', )
+    filter_horizontal = ('catalogs', )
 
 
 class LayerWMAdmin(admin.ModelAdmin):
@@ -66,6 +67,11 @@ class TaskErrorAdmin(admin.ModelAdmin):
     date_hierarchy = 'error_datetime'
 
 
+class CatalogAdmin(admin.ModelAdmin):
+    model = Catalog
+    list_display = ('name', 'slug')
+
+
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
@@ -75,6 +81,7 @@ admin.site.register(LayerDate, LayerDateAdmin)
 admin.site.register(EndpointList, EndpointListAdmin)
 admin.site.register(Endpoint, EndpointAdmin)
 admin.site.register(TaskError, TaskErrorAdmin)
+admin.site.register(Catalog, CatalogAdmin)
 
 
 # we like to see celery results using the admin

@@ -1,4 +1,4 @@
-from settings.default import *  # noqa
+from .default import *  # noqa
 
 SKIP_CELERY_TASK = True
 

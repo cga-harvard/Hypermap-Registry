@@ -1,12 +1,20 @@
 SERVICE_TYPES = (
     ('WM', 'Harvard WorldMap'),
-    ('OGC_WMS', 'Web Map Service (WMS)'),
-    ('OGC_WMTS', 'Web Map Tile Service (WMTS)'),
-    ('OGC_TMS', 'Tile Map Service (TMS)'),
-    ('ESRI_MapServer', 'ArcGIS REST MapServer'),
-    ('ESRI_ImageServer', 'ArcGIS REST ImageServer'),
-    ('WARPER', 'Mapwarper'),
+    ('OGC:WMS', 'Web Map Service (WMS)'),
+    ('OGC:WMTS', 'Web Map Tile Service (WMTS)'),
+    ('OSGeo:TMS', 'Tile Map Service (TMS)'),
+    ('ESRI:ArcGIS:MapServer', 'ArcGIS REST MapServer'),
+    ('ESRI:ArcGIS:ImageServer', 'ArcGIS REST ImageServer'),
+    ('WARPER', 'Mapwarper')
 )
+
+CSW_RESOURCE_TYPES = {
+    'OGC:WMS': 'http://www.opengis.net/wms',
+    'OGC:WMTS': 'http://www.opengis.net/wmts/1.0',
+    'OSGeo:TMS': 'https://wiki.osgeo.org/wiki/TMS',
+    'ESRI:ArcGIS:MapServer': 'urn:x-esri:serviceType:ArcGIS:MapServer',
+    'ESRI:ArcGIS:ImageServer': 'urn:x-esri:serviceType:ArcGIS:ImageServer'
+}
 
 DATE_DETECTED = 0
 DATE_FROM_METADATA = 1

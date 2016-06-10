@@ -13,7 +13,7 @@ branches:
 install:
   - sudo apt-get -qq -y update
   - sudo apt-get install -y python-virtualenv python-imaging
-  - pip install -r requirements.txt
+  - pip install -e .
 
 script:
   - paver run_tests

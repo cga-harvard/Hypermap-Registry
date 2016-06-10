@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from django.test import TestCase
-from dynasty.utils import mine_date
+from hypermap.dynasty.utils import mine_date
 
 
 class DateMinerTest(TestCase):

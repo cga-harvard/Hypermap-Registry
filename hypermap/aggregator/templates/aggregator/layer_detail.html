@@ -8,8 +8,17 @@
   <h1>Layer details for: {{ layer.title }}</h1>
 </div>
 
+{% if user.is_superuser %}
+  {% include "aggregator/publish.html" with csw_resourcetype=layer.csw_resourcetype csw_source=layer.url publish_type='Layer' csw_xml=layer.xml %}
+{% endif %}
+
 <div class="row">
   <div class="col-md-6">
+    {% if user.is_superuser %}
+    <ul>
+      <button type="button" class="btn btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
+    </ul>
+    {% endif %}
     <ul>
       <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
       <li><a href="map/demo/">Go to demo page</a></li>
@@ -22,7 +31,7 @@
       {% csrf_token %}
       <input type="submit" name="check" value="Check now">
       <input type="submit" name="remove" value="Remove checks">
-      <input type="submit" name="index" value="Index in Solr">
+      <input type="submit" name="index" value="Index in Search Backend">
     </form>
     {% endif %}
   </div>
@@ -45,8 +54,14 @@
             <li>Layer Hypermap EndPoint: <a href="{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
             {% if user.is_superuser %}
               <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
-              <li>Solr: <a href="{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true" target="new">{{SOLR_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true</a></li>
               <li>Layer EndPoint: <a href="{{ layer.url }}">{{ layer.url|truncatechars:80 }}</a></li>
+              <li>Search EndPoint:
+              {% if SEARCH_TYPE == 'elasticsearch' %}
+              <a href="{{SEARCH_URL}}/hypermap/layer/_search?q=LayerId={{ layer.id }}">{{SEARCH_URL}}/hypermap/layer/_search?q=LayerId={{ layer.id }}</a>
+              {% elif SEARCH_TYPE == 'solr' %}
+              <a href="{{SEARCH_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true</a>
+              {% endif %}
+              </li>
             {% endif %}
           </ul>
           </td>
@@ -77,7 +92,7 @@
           <td><strong>Is Public?</strong></td>
           <td>{{ layer.is_public }}</td>
         </tr>
-        {% if layer.service.type = 'WM' %}
+        {% if layer.type = 'WM' %}
           <tr>
             <td><strong>Username</strong></td>
             <td>{{ layer.layerwm.username }}</td>
@@ -92,7 +107,7 @@
         <td>
           {% if layer.layerdate_set.count > 0 %}
           <ul>
-            {% if layer.service.type = 'WM' %}
+            {% if layer.type = 'WM' %}
               <li>Start Date: {{ layer.layerwm.temporal_extent_start }}</li>
               <li>End Date: {{ layer.layerwm.temporal_extent_end }}</li>
             {% endif %}

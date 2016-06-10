@@ -28,6 +28,8 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <link rel="search" type="application/opensearchdescription+xml" href="{% url 'opensearch_dispatch' %}" title="HHypermap Search"/>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
 
@@ -59,7 +61,7 @@
               <li><a href="{% url 'domains' %}">Domains</a></li>
               <li><a href="{% url 'celery_monitor' %}">Monitor</a></li>
               <li><a href="{% url 'admin:index' %}">Admin</a></li>
-              <li><a href="{{ SOLR_IP }}/#/hypermap" target="new">Solr</a></li>
+              <li><a href="{{ SEARCH_IP }}/#/hypermap" target="new">Solr</a></li>
             {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
@@ -80,6 +82,7 @@
     <!-- Raphael javascript core -->
     <script src="{{ STATIC_URL }}js/raphael-min.js"></script>
     <script src="{{ STATIC_URL }}js/morris.min.js"></script>
+    <script src="{{ STATIC_URL }}js/publish.js"></script>
     {% block extrafoot %}{% endblock %}
   </body>
 </html>

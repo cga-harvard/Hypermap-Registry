@@ -8,8 +8,17 @@
   <h1>Service details for: {{ service.title|truncatechars:40 }}</h1>
 </div>
 
+{% if user.is_superuser %}
+  {% include "aggregator/publish.html" with csw_resourcetype=service.csw_resourcetype csw_source=service.url publish_type='Service' %}
+{% endif %}
+
 <div class="row">
   <div class="col-md-6">
+    {% if user.is_superuser %}
+    <ul>
+      <button type="button" class="btn btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
+    </ul>
+    {% endif %}
     <ul>
       <li><a href="{% url 'service_checks' service.id %}">See full check stats</a></li>
     </ul>
@@ -48,8 +57,9 @@
             <td><strong>URL</strong></td>
             <td>
               <ul>
-                <li>EndPoint: <a href="{{ service.url }}">{{ service.url|truncatechars:80 }}</a></li>
-                <li>Solr: <a href="{{SOLR_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true" target="new">{{SOLR_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true</a></li>
+                <li>EndPoint: <a id="resource-url" href="{{ service.url }}">{{ service.url|truncatechars:80 }}</a></li>
+                <li>Search: <a href="{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true" target="new">{{SOLR_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true</a></li>
+                <li>Metadata: <a href="{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}" target="new">{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}</a></li>
               </ul>
             </td>
           </tr>
