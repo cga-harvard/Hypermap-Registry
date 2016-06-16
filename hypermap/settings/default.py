@@ -57,6 +57,7 @@ INSTALLED_APPS = (
     'hypermap.proxymap',
     'hypermap.dynasty',
     'hypermap.search',
+    'maploom_registry',
 )
 
 MIDDLEWARE_CLASSES = (

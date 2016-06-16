@@ -50,5 +50,6 @@ setup(
         'pyelasticsearch==1.4',
         'requests==2.9.1',
         'webtest==2.0.20',
+        'django-maploom-registry',
     ]
 )

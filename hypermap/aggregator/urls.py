@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.conf.urls import include, patterns, url
 
+# TODO: Correct configuration of maploom urls
+# from maploom_registry.geonode.urls import urlpatterns as maploom_urls
 from hypermap.aggregator import views
 
 
@@ -15,6 +17,8 @@ urlpatterns = [
     url(r'^update_progressbar/(?P<task_id>[^/]*)$', views.update_progressbar, name='update_progressbar'),
     url(r'^update_jobs_number/$', views.update_jobs_number, name='update_jobs_number'),
 ]
+
+# urlpatterns += maploom_urls
 
 if settings.DEBUG:
     import debug_toolbar
