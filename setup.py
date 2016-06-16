@@ -35,6 +35,8 @@ setup(
         'pycsw==2.0.0-alpha1',
         'flake8==2.5.1',
         'httmock==1.2.5',
+        # For ArcGIS support we need to install the latest from Github.
+        # once the new MapProxy is release we will update here and remove this notice.
         'MapProxy==1.8.1',
         'pyelasticsearch==1.4',
         'django-celery==3.1.17',
