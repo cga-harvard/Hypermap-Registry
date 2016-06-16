@@ -169,7 +169,7 @@ def celery_monitor(request):
                 name = task['name']
                 time_start = task['time_start']
                 args = task['args']
-                active_task = celeryapp.AsyncResult(id)
+                active_task = celeryapp.app.AsyncResult(id)
                 active_task.name = name
                 active_task.args = args
                 active_task.worker = '%s, pid: %s' % (worker, task['worker_pid'])
@@ -184,7 +184,7 @@ def celery_monitor(request):
                 id = task['id']
                 name = task['name']
                 args = task['args']
-                reserved_task = celeryapp.AsyncResult(id)
+                reserved_task = celeryapp.app.AsyncResult(id)
                 reserved_task.name = name
                 reserved_task.args = args
                 reserved_tasks.append(reserved_task)
@@ -234,7 +234,7 @@ def update_jobs_number(request):
 @login_required
 def update_progressbar(request, task_id):
     response_data = {}
-    active_task = celeryapp.AsyncResult(task_id)
+    active_task = celeryapp.app.AsyncResult(task_id)
     progressbar = 100
     status = '100%'
     state = 'COMPLETED'
