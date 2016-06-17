@@ -19,7 +19,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DJANGO_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 PROJECT_DIR = os.path.abspath(os.path.join(DJANGO_DIR, os.pardir))
 
-SITE_URL = 'http://localhost:8000/'
+BASE_URL = os.getenv('BASE_URL', 'localhost')
+BASE_PORT = os.getenv('BASE_PORT', '8000')
+
+SITE_URL = 'http://%s:%s' % (BASE_URL, BASE_PORT)
+
+ALLOWED_HOSTS = [BASE_URL, ]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
