@@ -247,3 +247,9 @@ PYCSW = {
         'contact_role': 'pointOfContact'
     }
 }
+
+# Load more settings from a file called local_settings.py if it exists
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    pass
