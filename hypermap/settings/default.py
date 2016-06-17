@@ -34,7 +34,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-SEARCH_ENABLED = False
+SEARCH_ENABLED = os.getenv('SEARCH_ENABLED', False)
 SEARCH_TYPE = 'solr'
 SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
 
@@ -188,7 +188,7 @@ LOGGING = {
     }
 
 # we need to get rid of this once we figure out how to bypass the broker in tests
-SKIP_CELERY_TASK = False
+SKIP_CELERY_TASK = os.getenv('SKIP_CELERY_TASK', 'False')
 
 # taggit
 TAGGIT_CASE_INSENSITIVE = True
@@ -247,9 +247,3 @@ PYCSW = {
         'contact_role': 'pointOfContact'
     }
 }
-
-# Load more settings from a file called local_settings.py if it exists
-try:
-    from local_settings import *  # noqa
-except ImportError:
-    pass
