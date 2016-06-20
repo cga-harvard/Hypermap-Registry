@@ -13,7 +13,8 @@ CSW_RESOURCE_TYPES = {
     'OGC:WMTS': 'http://www.opengis.net/wmts/1.0',
     'OSGeo:TMS': 'https://wiki.osgeo.org/wiki/TMS',
     'ESRI:ArcGIS:MapServer': 'urn:x-esri:serviceType:ArcGIS:MapServer',
-    'ESRI:ArcGIS:ImageServer': 'urn:x-esri:serviceType:ArcGIS:ImageServer'
+    'ESRI:ArcGIS:ImageServer': 'urn:x-esri:serviceType:ArcGIS:ImageServer',
+    'WM': 'http://worldmap.harvard.edu/',
 }
 
 DATE_DETECTED = 0
