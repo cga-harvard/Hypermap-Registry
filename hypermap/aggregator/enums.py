@@ -1,11 +1,11 @@
 SERVICE_TYPES = (
-    ('WM', 'Harvard WorldMap'),
     ('OGC:WMS', 'Web Map Service (WMS)'),
     ('OGC:WMTS', 'Web Map Tile Service (WMTS)'),
     ('OSGeo:TMS', 'Tile Map Service (TMS)'),
     ('ESRI:ArcGIS:MapServer', 'ArcGIS REST MapServer'),
     ('ESRI:ArcGIS:ImageServer', 'ArcGIS REST ImageServer'),
-    ('WARPER', 'Mapwarper')
+    ('Hypermap:WorldMap', 'Harvard WorldMap'),
+    ('Hypermap:WARPER', 'Mapwarper'),
 )
 
 CSW_RESOURCE_TYPES = {
@@ -14,7 +14,8 @@ CSW_RESOURCE_TYPES = {
     'OSGeo:TMS': 'https://wiki.osgeo.org/wiki/TMS',
     'ESRI:ArcGIS:MapServer': 'urn:x-esri:serviceType:ArcGIS:MapServer',
     'ESRI:ArcGIS:ImageServer': 'urn:x-esri:serviceType:ArcGIS:ImageServer',
-    'WM': 'http://worldmap.harvard.edu/',
+    'Hypermap:WorldMap': 'http://worldmap.harvard.edu/',
+    'Hypermap:WARPER': 'https://github.com/timwaters/mapwarper',
 }
 
 DATE_DETECTED = 0
