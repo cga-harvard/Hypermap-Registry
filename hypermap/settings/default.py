@@ -43,7 +43,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-SEARCH_ENABLED = str2bool(os.getenv('SEARCH_ENABLED', False))
+SEARCH_ENABLED = os.getenv(str2bool('SEARCH_ENABLED'), False)
 SEARCH_TYPE = 'solr'
 SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
 
@@ -197,7 +197,7 @@ LOGGING = {
     }
 
 # we need to get rid of this once we figure out how to bypass the broker in tests
-SKIP_CELERY_TASK = str2bool(os.getenv('SKIP_CELERY_TASK', 'False'))
+SKIP_CELERY_TASK = os.getenv(str2bool('SKIP_CELERY_TASK'), False)
 
 # taggit
 TAGGIT_CASE_INSENSITIVE = True
