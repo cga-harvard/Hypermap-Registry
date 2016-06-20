@@ -65,11 +65,11 @@ def get_mapproxy(layer, seed=False, ignore_warnings=True, renderd=False):
         srs = 'EPSG:3857'
         bbox_srs = 'EPSG:3857'
 
-    if layer.type == 'WARPER':
+    if layer.type == 'Hypermap:WARPER':
         url = str(layer.url.replace("maps//wms", "maps/wms"))
         grid_srs = 'EPSG:900913'
 
-    if layer.type == 'WM':
+    if layer.type == 'Hypermap:WorldMap':
         url = str(layer.url.replace("maps//wms", "maps/wms"))
 
     default_source = {

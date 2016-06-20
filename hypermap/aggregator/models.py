@@ -231,9 +231,9 @@ class Service(Resource):
             update_layers_esri_mapserver(self)
         elif self.type == 'ESRI:ArcGIS:ImageServer':
             update_layers_esri_imageserver(self)
-        elif self.type == 'WM':
+        elif self.type == 'Hypermap:WorldMap':
             update_layers_wm(self)
-        elif self.type == 'WARPER':
+        elif self.type == 'Hypermap:WARPER':
             update_layers_warper(self)
         signals.post_save.connect(layer_post_save, sender=Layer)
 
@@ -296,10 +296,10 @@ class Service(Resource):
                     extent['xmax'],
                     extent['ymax']
                 ])
-            if self.type == 'WM':
+            if self.type == 'Hypermap:WorldMap':
                 urllib2.urlopen(self.url)
                 title = 'Harvard WorldMap'
-            if self.type == 'WARPER':
+            if self.type == 'Hypermap:WARPER':
                 urllib2.urlopen(self.url)
             # update title without raising a signal and recursion
             if title:
@@ -398,7 +398,7 @@ class Layer(Resource):
         This endpoint will be the WMTS MapProxy endpoint, only for WM and Esri we use original endpoints.
         """
         endpoint = self.url
-        if self.type not in ('WM', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
+        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
             endpoint = '%s/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL, self.id)
         return endpoint
 
@@ -406,7 +406,7 @@ class Layer(Resource):
         """
         Returns the tile url MapProxy endpoint for the layer.
         """
-        if self.type not in ('WM', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
+        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
             return '/layers/%s/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png' % self.id
         else:
             return None
@@ -498,7 +498,7 @@ class Layer(Resource):
                                 column='0',
                                 format=image_format
                             )
-        elif self.type == 'WM':
+        elif self.type == 'Hypermap:WorldMap':
             ows = WebMapService(self.url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
@@ -523,7 +523,7 @@ class Layer(Resource):
             if 'ogc.se_xml' in img.info()['Content-Type']:
                 raise ValueError(img.read())
                 img = None
-        elif self.type == 'WARPER':
+        elif self.type == 'Hypermap:WARPER':
             ows = WebMapService(self.url)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
@@ -952,7 +952,7 @@ def update_layers_wm(service):
             layer, created = Layer.objects.get_or_create(name=name, service=service)
             if layer.active:
                 # update fields
-                layer.type = 'WM'
+                layer.type = 'Hypermap:WorldMap'
                 layer.title = title
                 layer.abstract = abstract
                 layer.is_public = is_public
@@ -1024,7 +1024,7 @@ def update_layers_warper(service):
             layer, created = Layer.objects.get_or_create(name=name, service=service)
             if layer.active:
                 # update fields
-                layer.type = 'WARPER'
+                layer.type = 'Hypermap:WARPER'
                 layer.title = title
                 layer.abstract = abstract
                 layer.is_public = True
@@ -1217,7 +1217,7 @@ def service_pre_save(instance, *args, **kwargs):
     Used to do a service full check when saving it.
     """
     # for some service we need to constraint some default values
-    if instance.type == 'WM':
+    if instance.type == 'Hypermap:WorldMap':
         instance.title = 'Harvard WorldMap'
         instance.url = 'http://worldmap.harvard.edu/'
     # check if service is unique

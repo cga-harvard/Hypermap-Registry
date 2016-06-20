@@ -12,25 +12,25 @@ def populate_initial_services():
         (
             'Harvard WorldMap',
             'Harvard WorldMap open source web geospatial platform',
-            'WM',
+            'Hypermap:WorldMap',
             'http://worldmap.harvard.edu'
         ),
         (
             'NYPL MapWarper',
             'The New York Public Library (NYPL) MapWarper web site',
-            'WARPER',
+            'Hypermap:WARPER',
             'http://maps.nypl.org/warper/maps'
         ),
         (
             'Map Warper',
             'The MapWarper web site developed, hosted and maintained by Tim Waters',
-            'WARPER',
+            'Hypermap:WARPER',
             'http://mapwarper.net/maps'
         ),
         (
             'WorldMap Warp',
             'The MapWarper instance part of the Harvard WorldMap project',
-            'WARPER',
+            'Hypermap:WARPER',
             'http://warp.worldmap.harvard.edu/maps'
         ),
         (

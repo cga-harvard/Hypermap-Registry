@@ -92,7 +92,7 @@
           <td><strong>Is Public?</strong></td>
           <td>{{ layer.is_public }}</td>
         </tr>
-        {% if layer.type = 'WM' %}
+        {% if layer.type = 'Hypermap:WorldMap' %}
           <tr>
             <td><strong>Username</strong></td>
             <td>{{ layer.layerwm.username }}</td>
@@ -107,7 +107,7 @@
         <td>
           {% if layer.layerdate_set.count > 0 %}
           <ul>
-            {% if layer.type = 'WM' %}
+            {% if layer.type = 'Hypermap:WorldMap' %}
               <li>Start Date: {{ layer.layerwm.temporal_extent_start }}</li>
               <li>End Date: {{ layer.layerwm.temporal_extent_end }}</li>
             {% endif %}
