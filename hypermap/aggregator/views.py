@@ -127,7 +127,6 @@ def layer_detail(request, layer_id):
     layer = get_object_or_404(Layer, pk=layer_id)
 
     if request.method == 'POST':
-        import ipdb;ipdb.set_trace()
         if 'check' in request.POST:
             if settings.SKIP_CELERY_TASK:
                 check_layer(layer)
