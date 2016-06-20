@@ -8,15 +8,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
-def str2bool(v):
-  return v.lower() in ("yes", "true", "t", "1")
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import os.path
 import sys
 from datetime import timedelta
+
+
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
+
+
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
