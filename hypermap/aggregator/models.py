@@ -571,7 +571,7 @@ class Layer(Resource):
             name = re.sub('[^\w\-_\. ]', '_', self.name)
             thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
             image.save(thumbnail_file_name)
-            img = open(thumbnail_file_name, 'r')
+            img = open(thumbnail_file_name)
             os.remove(thumbnail_file_name)
         elif self.type == 'ESRI:ArcGIS:ImageServer':
             image = None
@@ -589,7 +589,7 @@ class Layer(Resource):
             name = re.sub('[^\w\-_\. ]', '_', self.name)
             thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
             image.save(thumbnail_file_name)
-            img = open(thumbnail_file_name, 'r')
+            img = open(thumbnail_file_name)
             os.remove(thumbnail_file_name)
 
         # update thumb in model
@@ -598,6 +598,7 @@ class Layer(Resource):
             upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             print 'Thumbnail updated for layer %s' % self.name
+            img.close()
 
     def check_available(self):
         """

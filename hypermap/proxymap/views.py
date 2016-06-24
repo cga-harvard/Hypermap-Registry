@@ -233,7 +233,7 @@ def layer_mapproxy(request,  layer_id, path_info):
 
     # Create a Django response from the MapProxy WSGI response.
     response = HttpResponse(mp_response.body, status=mp_response.status_int)
-    for header, value in mp_response.headers.iteritems():
+    for header, value in mp_response.headers.items():
         response[header] = value
 
     return response
