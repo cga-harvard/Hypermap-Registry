@@ -3,7 +3,8 @@ from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 
 def read(*rnames):
-    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
+    with open(os.path.join(os.path.dirname(__file__), *rnames)) as ff:
+        return ff.read()
 
 def fullsplit(path, result=None):
     """
@@ -38,18 +39,18 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
         data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
 setup(
-    name="HHyperMap",
+    name="HHypermap",
     version="0.1",
     author="",
     author_email="",
-    description="HHyperMap",
+    description="HHypermap",
     long_description=(read('README.md')),
     classifiers=[
         'Development Status :: 1 - Planning',
     ],
     license="BSD",
     keywords="hypermap django",
-    url='https://github.com/cga-harvard/HHyperMap',
+    url='https://github.com/cga-harvard/HHypermap',
     packages=packages,
     data_files=data_files,
     zip_safe=False,
