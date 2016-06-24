@@ -97,8 +97,8 @@ WSGI_APPLICATION = 'hypermap.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(PROJECT_DIR, 'development.db'),
+        'ENGINE': os.getenv('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('DATABASE_NAME', 'development.db'),
         'USER': os.getenv('DATABASE_USER', 'hypermap'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'hypermap'),
         'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
