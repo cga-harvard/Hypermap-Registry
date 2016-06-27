@@ -7,9 +7,13 @@ def reset_db():
     """
     Reset the Django db, keeping the admin user
     """
-    sh("python manage.py sqlclear aggregator | python manage.py dbshell")
-    sh("python manage.py syncdb")
-    sh("python manage.py loaddata hypermap/aggregator/fixtures/aggregator.json")
+    # TODO read stuff from settings instead than hardcoding
+    sh('export PGPASSWORD=hypermap')
+    sh('psql -U hypermap -h localhost -c "drop database hypermap;" postgres')
+    sh('psql -U hypermap -h localhost -c "create database hypermap with owner hypermap;" postgres')
+    sh("python manage.py makemigrations aggregator")
+    sh("python manage.py migrate")
+    sh("echo \"from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'admin@example.com', 'admin')\" | python manage.py shell")
 
 
 @task
