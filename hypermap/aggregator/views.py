@@ -100,20 +100,20 @@ def service_detail(request, service_id):
 
     if request.method == 'POST':
         if 'check' in request.POST:
-            if not settings.SKIP_CELERY_TASK:
-                check_service.delay(service)
-            else:
+            if settings.SKIP_CELERY_TASK:
                 check_service(service)
+            else:
+                check_service.delay(service)
         if 'remove' in request.POST:
-            if not settings.SKIP_CELERY_TASK:
-                remove_service_checks.delay(service)
-            else:
+            if settings.SKIP_CELERY_TASK:
                 remove_service_checks(service)
-        if 'index' in request.POST:
-            if not settings.SKIP_CELERY_TASK:
-                index_service.delay(service)
             else:
+                remove_service_checks.delay(service)
+        if 'index' in request.POST:
+            if settings.SKIP_CELERY_TASK:
                 index_service(service)
+            else:
+                index_service.delay(service)
 
     return render(request, 'aggregator/service_detail.html', {'service': service})
 
@@ -130,17 +130,17 @@ def layer_detail(request, layer_id):
 
     if request.method == 'POST':
         if 'check' in request.POST:
-            if not settings.SKIP_CELERY_TASK:
-                check_layer.delay(layer)
-            else:
+            if settings.SKIP_CELERY_TASK:
                 check_layer(layer)
+            else:
+                check_layer.delay(layer)
         if 'remove' in request.POST:
             layer.check_set.all().delete()
         if 'index' in request.POST:
-            if not settings.SKIP_CELERY_TASK:
-                index_layer.delay(layer)
-            else:
+            if settings.SKIP_CELERY_TASK:
                 index_layer(layer)
+            else:
+                index_layer.delay(layer)
 
     return render(request, 'aggregator/layer_detail.html', {'layer': layer,
                                                             'SEARCH_TYPE': settings.SEARCH_TYPE,
@@ -193,11 +193,20 @@ def celery_monitor(request):
 
     if request.method == 'POST':
         if 'check_all' in request.POST:
-            check_all_services.delay()
+            if settings.SKIP_CELERY_TASK:
+                check_all_services()
+            else:
+                check_all_services.delay()
         if 'index_all' in request.POST:
-            index_all_layers.delay()
+            if settings.SKIP_CELERY_TASK:
+                index_all_layers()
+            else:
+                index_all_layers.delay()
         if 'clear_solr' in request.POST:
-            clear_solr.delay()
+            if settings.SKIP_CELERY_TASK:
+                clear_solr()
+            else:
+                clear_solr.delay()
     return render(
         request,
         'aggregator/celery_monitor.html',

@@ -3,19 +3,6 @@ import json
 from .default import *  # noqa
 
 #####
-BASE_URL = os.getenv('BASE_URL', 'localhost')
-BASE_PORT = os.getenv('BASE_PORT', '8000')
-
-SITE_URL = 'http://%s:%s' % (BASE_URL, BASE_PORT)
-
-ALLOWED_HOSTS = [BASE_URL, ]
-
-CELERYBEAT_SCHEDULE = {
-    'Check All Services': {
-        'task': 'aggregator.tasks.check_all_services',
-        'schedule': timedelta(minutes=15)
-    },
-}
 
 CLOUD_FOUNDRY = os.getenv('CLOUD_FOUNDRY', None)
 

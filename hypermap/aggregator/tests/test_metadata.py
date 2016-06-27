@@ -29,7 +29,7 @@ def create_wms_service():
 @with_httmock(hypermap.aggregator.tests.mocks.warper.resource_get)
 def create_warper_service():
     service = Service(
-        type='WARPER',
+        type='Hypermap:WARPER',
         url='http://warper.example.com/warper/maps',
     )
     service.save()
@@ -38,7 +38,7 @@ def create_warper_service():
 @with_httmock(hypermap.aggregator.tests.mocks.worldmap.resource_get)
 def create_wm_service():
     service = Service(
-        type='WM',
+        type='Hypermap:WorldMap',
     )
     service.save()
 

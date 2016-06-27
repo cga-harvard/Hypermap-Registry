@@ -27,7 +27,7 @@ vacuum = true
 
 env = DJANGO_SETTINGS_MODULE={{ django_settings_file }}
 
-{% for variable_name, value in django_environment.iteritems() %}
+{% for variable_name, value in django_environment.items() %}
 env = {{ variable_name }}={{ value }}
 {% endfor %}
 

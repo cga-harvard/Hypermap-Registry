@@ -20,7 +20,7 @@ class TestWorldMap(unittest.TestCase):
 
         # create the service
         service = Service(
-            type='WM',
+            type='Hypermap:WorldMap',
         )
         service.save()
         # check url is correct
@@ -117,7 +117,7 @@ class TestWorldMap(unittest.TestCase):
         # create the service
         def create_duplicated_service():
             duplicated_service = Service(
-                type='WM',
+                type='Hypermap:WorldMap',
             )
             duplicated_service.save()
 

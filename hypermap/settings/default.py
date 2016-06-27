@@ -8,18 +8,30 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import os.path
 import sys
 from datetime import timedelta
+
+
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
+
+
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DJANGO_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 PROJECT_DIR = os.path.abspath(os.path.join(DJANGO_DIR, os.pardir))
 
-SITE_URL = 'http://localhost:8000/'
+BASE_URL = os.getenv('BASE_URL', 'localhost')
+BASE_PORT = os.getenv('BASE_PORT', '8000')
+
+SITE_URL = 'http://%s:%s' % (BASE_URL, BASE_PORT)
+
+ALLOWED_HOSTS = [BASE_URL, ]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -34,7 +46,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-SEARCH_ENABLED = False
+SEARCH_ENABLED = os.getenv(str2bool('SEARCH_ENABLED'), False)
 SEARCH_TYPE = 'solr'
 SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
 
@@ -86,8 +98,8 @@ WSGI_APPLICATION = 'hypermap.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('DATABASE_NAME', 'hypermap'),
+        'ENGINE': os.getenv('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('DATABASE_NAME', 'development.db'),
         'USER': os.getenv('DATABASE_USER', 'hypermap'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'hypermap'),
         'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
@@ -189,7 +201,7 @@ LOGGING = {
     }
 
 # we need to get rid of this once we figure out how to bypass the broker in tests
-SKIP_CELERY_TASK = False
+SKIP_CELERY_TASK = os.getenv(str2bool('SKIP_CELERY_TASK'), False)
 
 # taggit
 TAGGIT_CASE_INSENSITIVE = True

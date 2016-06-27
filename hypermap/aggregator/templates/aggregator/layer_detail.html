@@ -57,9 +57,9 @@
               <li>Layer EndPoint: <a href="{{ layer.url }}">{{ layer.url|truncatechars:80 }}</a></li>
               <li>Search EndPoint:
               {% if SEARCH_TYPE == 'elasticsearch' %}
-              <a href="{{SEARCH_URL}}/hypermap/layer/_search?q=LayerId={{ layer.id }}">{{SEARCH_URL}}/hypermap/layer/_search?q=LayerId={{ layer.id }}</a>
+              <a href="{{SEARCH_URL}}/hypermap/layer/_search?q=layer_id={{ layer.id }}">{{SEARCH_URL}}/hypermap/layer/_search?q=layer_id={{ layer.id }}</a>
               {% elif SEARCH_TYPE == 'solr' %}
-              <a href="{{SEARCH_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=LayerId:{{layer.id}}&wt=json&indent=true</a>
+              <a href="{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true</a>
               {% endif %}
               </li>
             {% endif %}
@@ -92,7 +92,7 @@
           <td><strong>Is Public?</strong></td>
           <td>{{ layer.is_public }}</td>
         </tr>
-        {% if layer.type = 'WM' %}
+        {% if layer.type = 'Hypermap:WorldMap' %}
           <tr>
             <td><strong>Username</strong></td>
             <td>{{ layer.layerwm.username }}</td>
@@ -107,7 +107,7 @@
         <td>
           {% if layer.layerdate_set.count > 0 %}
           <ul>
-            {% if layer.type = 'WM' %}
+            {% if layer.type = 'Hypermap:WorldMap' %}
               <li>Start Date: {{ layer.layerwm.temporal_extent_start }}</li>
               <li>End Date: {{ layer.layerwm.temporal_extent_end }}</li>
             {% endif %}

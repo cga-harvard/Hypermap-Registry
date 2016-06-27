@@ -106,38 +106,41 @@ class SolrHypermap(object):
                 originator = domain
             # now we add the index
             solr_record = {
-                            'LayerId': str(layer.id),
-                            'LayerName': layer.name,
-                            'LayerTitle': layer.title,
-                            'Originator': originator,
-                            'ServiceId': str(layer.service.id),
-                            'ServiceType': layer.service.type,
-                            'LayerCategory': category,
-                            'LayerUsername': username,
-                            'LayerUrl': layer.get_url_endpoint(),
-                            'LayerReliability': layer.reliability,
-                            'LayerRecentReliability': layer.recent_reliability,
-                            'LayerLastStatus': layer.last_status,
-                            'Is_Public': layer.is_public,
-                            'Availability': 'Online',
-                            'Location': '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                            'Abstract': abstract,
-                            'DomainName': layer.service.get_domain
+                            'id': layer.resource_ptr.id,
+                            'type': 'Layer',
+                            'layer_id': layer.id,
+                            'name': layer.name,
+                            'title': layer.title,
+                            'layer_originator': originator,
+                            'service_id': layer.service.id,
+                            'service_type': layer.service.type,
+                            'layer_category': category,
+                            'layer_username': username,
+                            'url': layer.get_url_endpoint(),
+                            'reliability': layer.reliability,
+                            'recent_reliability': layer.recent_reliability,
+                            'last_status': layer.last_status,
+                            'is_public': layer.is_public,
+                            'availability': 'Online',
+                            'location': '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                            'abstract': abstract,
+                            'domain_name': layer.service.get_domain
                             }
 
             solr_date, date_type = get_date(layer)
             if solr_date is not None:
-                solr_record['LayerDate'] = solr_date
-                solr_record['LayerDateType'] = date_type
+                solr_record['layer_date'] = solr_date
+                solr_record['layer_datetype'] = date_type
             if bbox is not None:
-                solr_record['MinX'] = minX
-                solr_record['MinY'] = minY
-                solr_record['MaxX'] = maxX
-                solr_record['MaxY'] = maxY
-                solr_record['Area'] = area
+                solr_record['min_x'] = minX
+                solr_record['min_y'] = minY
+                solr_record['max_x'] = maxX
+                solr_record['max_y'] = maxY
+                solr_record['area'] = area
                 solr_record['bbox'] = wkt
                 srs_list = [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)]
-                solr_record['SrsProjectionCode'] = ', '.join(srs_list)
+                # solr_record['srs'] = ', '.join(srs_list)
+                solr_record['srs'] = srs_list
             if layer.get_tile_url():
                 solr_record['tile_url'] = layer.get_tile_url()
 

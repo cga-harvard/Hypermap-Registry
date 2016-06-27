@@ -18,7 +18,7 @@ class TestWarper(unittest.TestCase):
     def test_create_wms_service(self):
         # create the service
         service = Service(
-            type='WARPER',
+            type='Hypermap:WARPER',
             url='http://warper.example.com/warper/maps',
         )
         service.save()
@@ -47,7 +47,7 @@ class TestWarper(unittest.TestCase):
         # create the service
         def create_duplicated_service():
             duplicated_service = Service(
-                type='WARPER',
+                type='Hypermap:WARPER',
                 url='http://warper.example.com/warper/maps',
             )
             duplicated_service.save()
