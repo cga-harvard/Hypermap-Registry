@@ -69,7 +69,7 @@ INSTALLED_APPS = (
     'maploom_registry',
     'hypermap.aggregator',
     'hypermap.dynasty',
-    'hypermap.search', 
+    'hypermap.search',
 )
 
 MIDDLEWARE_CLASSES = (

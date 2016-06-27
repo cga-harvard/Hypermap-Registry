@@ -1,5 +1,6 @@
 import os
-from setuptools import setup, find_packages
+from distutils.core import setup
+from distutils.command.install import INSTALL_SCHEMES
 
 def read(*rnames):
     with open(os.path.join(os.path.dirname(__file__), *rnames)) as ff:
@@ -41,7 +42,7 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
 
 setup(
     name='django-registry',
-    version='0.2',
+    version='0.2.1',
     author='',
     author_email='',
     url='https://github.com/cga-harvard/HHypermap',
@@ -53,7 +54,6 @@ setup(
     ],
     license="BSD",
     keywords="hypermap django",
-    url='https://github.com/cga-harvard/HHypermap',
     packages=packages,
     data_files=data_files,
     zip_safe=False,
