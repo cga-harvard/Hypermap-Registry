@@ -4,13 +4,13 @@ from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 
 setup(
-    name='django-hhypermap',
+    name='django-registry',
     version='0.2',
     author='',
     author_email='',
     url='https://github.com/cga-harvard/HHypermap',
     download_url='https://github.com/cga-harvard/HHypermap',
-    description='Use Registry in your django projects.',
+    description='Django Registry by Harvard CGA',
     long_description=open(os.path.join(here, 'README.md')).read(),
     license='See LICENSE file.',
     packages=find_packages(),
