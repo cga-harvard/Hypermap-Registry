@@ -53,11 +53,13 @@ INSTALLED_APPS = (
     'pagination',
     'taggit',
     'django_extensions',
+    'djmp',
+    'maploom_registry',
     'hypermap.aggregator',
     'hypermap.proxymap',
     'hypermap.dynasty',
     'hypermap.search',
-    'maploom_registry',
+ 
 )
 
 MIDDLEWARE_CLASSES = (

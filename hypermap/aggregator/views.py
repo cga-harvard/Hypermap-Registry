@@ -9,6 +9,8 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
+from djmp.views import get_mapproxy
+
 
 from models import Service, Layer
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
@@ -250,3 +252,38 @@ def update_progressbar(request, task_id):
     response_data['state'] = state
     json_data = json.dumps(response_data)
     return HttpResponse(json_data, content_type="application/json")
+
+
+def layer_mapproxy(request,  layer_id, path_info):
+    # Get Layer with matching primary key
+    layer = get_object_or_404(Layer, pk=layer_id)
+
+    # Set up a mapproxy app for this particular layer
+    mp, yaml_config = get_mapproxy(layer)
+
+    query = request.META['QUERY_STRING']
+
+    if len(query) > 0:
+        path_info = path_info + '?' + query
+
+    params = {}
+    headers = {
+       'X-Script-Name': '/layer/%s/map' % layer.id,
+       'X-Forwarded-Host': request.META['HTTP_HOST'],
+       'HTTP_HOST': request.META['HTTP_HOST'],
+       'SERVER_NAME': request.META['SERVER_NAME'],
+    }
+
+    if path_info == '/config':
+        response = HttpResponse(yaml_config, content_type='text/plain')
+        return response
+
+    # Get a response from MapProxy as if it was running standalone.
+    mp_response = mp.get(path_info, params, headers)
+
+    # Create a Django response from the MapProxy WSGI response.
+    response = HttpResponse(mp_response.body, status=mp_response.status_int)
+    for header, value in mp_response.headers.iteritems():
+        response[header] = value
+
+    return response
