@@ -9,13 +9,14 @@ from dateutil.parser import parse
 
 from django.conf import settings
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 from django.db.models import Avg, Min, Max
 from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django_extensions.db.fields import AutoSlugField
 
-from polymorphic.models import PolymorphicModel
 from taggit.managers import TaggableManager
 from lxml import etree
 from shapely.wkt import loads
@@ -80,11 +81,26 @@ def add_mined_dates(layer):
         layer.layerdate_set.get_or_create(date=date, type=0)
 
 
-class Resource(PolymorphicModel):
+class Check(models.Model):
+    """
+    Check represents the measurement of resource (service/layer) state.
+    """
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    checked_datetime = models.DateTimeField(auto_now=True)
+    success = models.BooleanField(default=False)
+    response_time = models.FloatField()
+    message = models.TextField(default='OK')
+
+    def __unicode__(self):
+        return 'Check %s' % self.id
+
+
+class Resource(models.Model):
     """
     Resource represents basic information for a resource (service/layer).
     """
-    type = models.CharField(max_length=32, choices=SERVICE_TYPES)
     title = models.CharField(max_length=255, null=True, blank=True)
     abstract = models.TextField(null=True, blank=True)
     keywords = TaggableManager(blank=True)
@@ -93,6 +109,9 @@ class Resource(PolymorphicModel):
     active = models.BooleanField(default=True)
     url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
+    type = models.CharField(max_length=32, choices=SERVICE_TYPES)
+
+    check_set = generic.GenericRelation(Check, object_id_field='object_id')
 
     temporal_extent_start = models.CharField(max_length=255, null=True, blank=True)
     temporal_extent_end = models.CharField(max_length=255, null=True, blank=True)
@@ -115,7 +134,10 @@ class Resource(PolymorphicModel):
                            blank=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.polymorphic_ctype.name, self.id)
+        return str(self.id)
+
+    class Meta:
+        abstract = True
 
     @property
     def id_string(self):
@@ -207,9 +229,6 @@ class Service(Resource):
     """
     Service represents a remote geowebservice.
     """
-
-    def __unicode__(self):
-        return '%s - %s' % (self.id, self.title)
 
     @property
     def get_domain(self):
@@ -339,7 +358,7 @@ class Service(Resource):
         response_time = '%s.%s' % (delta.seconds, delta.microseconds)
 
         check = Check(
-            resource=self,
+            content_object=self,
             success=success,
             response_time=response_time,
             message=message
@@ -628,7 +647,7 @@ class Layer(Resource):
         response_time = '%s.%s' % (delta.seconds, delta.microseconds)
 
         check = Check(
-            resource=self,
+            content_object=self,
             success=success,
             response_time=response_time,
             message=message
@@ -674,20 +693,6 @@ class LayerWM(models.Model):
     class Meta:
         verbose_name = 'WorldMap Layer Attributes'
         verbose_name_plural = 'WorldMap Layers Attributes'
-
-
-class Check(models.Model):
-    """
-    Check represents the measurement of resource (service/layer) state.
-    """
-    resource = models.ForeignKey(Resource)
-    checked_datetime = models.DateTimeField(auto_now=True)
-    success = models.BooleanField(default=False)
-    response_time = models.FloatField()
-    message = models.TextField(default='OK')
-
-    def __unicode__(self):
-        return 'Check %s' % self.id
 
 
 class EndpointList(models.Model):

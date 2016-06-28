@@ -106,7 +106,7 @@ class SolrHypermap(object):
                 originator = domain
             # now we add the index
             solr_record = {
-                            'id': layer.resource_ptr.id,
+                            'id': layer.id,
                             'type': 'Layer',
                             'layer_id': layer.id,
                             'name': layer.name,

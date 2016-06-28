@@ -61,7 +61,6 @@ setup(
         'Django==1.8.7',
         'django-debug-toolbar==1.4',
         'django-pagination==1.0.7',
-        'django-polymorphic==0.8.1',
         'django-taggit==0.18.0',
         'django-wsgi==1.0b1',
         'django-extensions==1.6.7',
