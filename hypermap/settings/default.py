@@ -61,7 +61,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'djcelery',
-    'polymorphic',
     'pagination',
     'taggit',
     'django_extensions',
