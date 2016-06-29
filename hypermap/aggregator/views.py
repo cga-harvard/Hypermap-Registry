@@ -14,7 +14,7 @@ from djmp.views import get_mapproxy
 
 from models import Service, Layer
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
-                   index_service, index_all_layers, index_layer, clear_solr)
+                   index_service, index_all_layers, index_layer, clear_index)
 from enums import SERVICE_TYPES
 
 from hypermap import celeryapp
@@ -202,11 +202,11 @@ def celery_monitor(request):
                 index_all_layers()
             else:
                 index_all_layers.delay()
-        if 'clear_solr' in request.POST:
+        if 'clear_index' in request.POST:
             if settings.SKIP_CELERY_TASK:
-                clear_solr()
+                clear_index()
             else:
-                clear_solr.delay()
+                clear_index.delay()
     return render(
         request,
         'aggregator/celery_monitor.html',
