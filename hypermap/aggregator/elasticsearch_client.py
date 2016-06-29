@@ -165,7 +165,7 @@ class ESHypermap(object):
     @staticmethod
     def clear_es():
         """Clear all indexes in the es core"""
-        ESHypermap.es.delete(ESHypermap.index_name)
+        ESHypermap.es.indices.delete(ESHypermap.index_name, ignore=[400, 404])
         print 'Elasticsearch: Index cleared'
 
     @staticmethod

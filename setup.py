@@ -69,6 +69,7 @@ setup(
         'django-wsgi==1.0b1',
         'django-extensions==1.6.7',
         'dj-database-url==0.4.0',
+        'elasticsearch==1.9.0',
         'pika==0.10.0',
         'pycsw==2.0.0-alpha1',
         'flake8==2.5.1',
@@ -80,7 +81,6 @@ setup(
         # For ArcGIS support we need to install the latest from Github.
         # once the new MapProxy is release we will update here and remove this notice.
         'MapProxy',
-        'pyelasticsearch==1.4',
         'django-celery==3.1.17',
         'nose==1.3.7',
         'OWSLib==0.10.3',
@@ -89,7 +89,6 @@ setup(
         'python-memcached==1.57',
         'psycopg2==2.6.1',
         'pysolr==3.3.3',
-        'pyelasticsearch==1.4',
         'requests==2.9.1',
         'webtest==2.0.20',
         'django-maploom-registry',

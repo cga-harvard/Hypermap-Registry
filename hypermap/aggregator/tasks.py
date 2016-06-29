@@ -73,20 +73,18 @@ def check_layer(self, layer):
         task_error.save()
 
 
-@shared_task(name="clear_solr")
-def clear_solr():
-    print 'Clearing the solr core and indexes'
-    from hypermap.aggregator.solr import SolrHypermap
-    solrobject = SolrHypermap()
-    solrobject.clear_solr()
-
-
-@shared_task(name="clear_es")
-def clear_es():
-    print 'Clearing the ES indexes'
-    from hypermap.aggregator.elasticsearch_client import ESHypermap
-    esobject = ESHypermap()
-    esobject.clear_es()
+@shared_task(name="clear_index")
+def clear_index():
+    if settings.SEARCH_TYPE == 'solr':
+        print 'Clearing the solr core and indexes'
+        from hypermap.aggregator.solr import SolrHypermap
+        solrobject = SolrHypermap()
+        solrobject.clear_solr()
+    elif  settings.SEARCH_TYPE == 'elasticsearch':
+        print 'Clearing the ES indexes'
+        from hypermap.aggregator.elasticsearch_client import ESHypermap
+        esobject = ESHypermap()
+        esobject.clear_es()
 
 
 @shared_task(bind=True)
@@ -175,7 +173,7 @@ def index_layer(self, layer):
 def index_all_layers(self):
     from hypermap.aggregator.models import Layer
 
-    if settings.SERVICE_TYPE == 'elasticsearch':
+    if settings.SEARCH_TYPE == 'elasticsearch':
         clear_es()
 
     layer_to_processes = Layer.objects.all()
