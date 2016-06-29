@@ -174,7 +174,7 @@ def index_all_layers(self):
     from hypermap.aggregator.models import Layer
 
     if settings.SEARCH_TYPE == 'elasticsearch':
-        clear_es()
+        clear_index()
 
     layer_to_processes = Layer.objects.all()
     total = layer_to_processes.count()
