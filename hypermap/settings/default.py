@@ -135,6 +135,8 @@ MEDIA_URL = '/media/'
 
 MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 
+CELERY_ALWAYS_EAGER = False
+
 # Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERY_RESULT_BACKEND = 'cache+memcached://127.0.0.1:11211/'
@@ -142,7 +144,7 @@ CELERYD_PREFETCH_MULTIPLIER = 25
 
 CELERYBEAT_SCHEDULE = {
     'Check All Services': {
-        'task': 'check_all_services',
+        'task': 'hypermap.aggregator.tasks.check_all_services',
         'schedule': timedelta(minutes=15)
     },
 }
