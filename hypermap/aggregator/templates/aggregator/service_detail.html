@@ -58,7 +58,13 @@
             <td>
               <ul>
                 <li>EndPoint: <a id="resource-url" href="{{ service.url }}">{{ service.url|truncatechars:80 }}</a></li>
-                <li>Search: <a href="{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true" target="new">{{SOLR_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true</a></li>
+                <li>Search:
+                    {% if SEARCH_TYPE == 'elasticsearch' %}
+                    <a href="{{SEARCH_URL}}/hypermap/_search?q=ServiceId:{{service.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=ServiceId:{{ service.id }}</a>
+                    {% elif SEARCH_TYPE == 'solr' %}
+                    <a href="{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true</a>
+                    {% endif %}
+                </li>
                 <li>Metadata: <a href="{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}" target="new">{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}</a></li>
               </ul>
             </td>
