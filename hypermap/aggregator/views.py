@@ -115,7 +115,9 @@ def service_detail(request, service_id):
             else:
                 index_service.delay(service)
 
-    return render(request, 'aggregator/service_detail.html', {'service': service})
+    return render(request, 'aggregator/service_detail.html', {'service': service,
+                                                              'SEARCH_TYPE': settings.SEARCH_TYPE,
+                                                              'SEARCH_URL': settings.SEARCH_URL.rstrip('/')})
 
 
 def service_checks(request, service_id):
@@ -144,7 +146,7 @@ def layer_detail(request, layer_id):
 
     return render(request, 'aggregator/layer_detail.html', {'layer': layer,
                                                             'SEARCH_TYPE': settings.SEARCH_TYPE,
-                                                            'SEARCH_URL': settings.SEARCH_URL})
+                                                            'SEARCH_URL': settings.SEARCH_URL.rstrip('/')})
 
 
 def layer_checks(request, layer_id):
