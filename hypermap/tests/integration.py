@@ -82,7 +82,7 @@ class CSWTest(TestCase):
     def setUp(self):
         """setup records and CSW"""
 
-        self.csw = CatalogueServiceWeb(settings.PYCSW['server']['url'])
+        self.csw = CatalogueServiceWeb(settings.HYPERMAP_PYCSW['server']['url'])
 
     def tearDown(self):
         """shutdown endpoint and clean out records"""
@@ -95,7 +95,7 @@ class CSWTest(TestCase):
         # test that OGC:CSW URLs are identical to what is defined in settings
         for op in self.csw.operations:
             for method in op.methods:
-                self.assertEqual(settings.PYCSW['server']['url'], method['url'], 'Expected URL equality')
+                self.assertEqual(settings.HYPERMAP_PYCSW['server']['url'], method['url'], 'Expected URL equality')
 
         # test that OGC:CSW 2.0.2 is supported
         self.assertEqual(self.csw.version, '2.0.2', 'Expected "2.0.2" as a supported version')
