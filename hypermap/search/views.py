@@ -40,7 +40,7 @@ def csw_global_dispatch(request):
     env.update({'local.app_root': os.path.dirname(__file__),
                 'REQUEST_URI': request.build_absolute_uri()})
 
-    csw = server.Csw(settings.PYCSW, env, version='2.0.2')
+    csw = server.Csw(settings.REGISTRY_PYCSW, env, version='2.0.2')
 
     content = csw.dispatch_wsgi()
 
@@ -72,7 +72,7 @@ def csw_global_dispatch_by_catalog(request, catalog_slug):
     env.update({'local.app_root': os.path.dirname(__file__),
                 'REQUEST_URI': request.build_absolute_uri()})
 
-    csw = server.Csw(settings.PYCSW, env, version='2.0.2')
+    csw = server.Csw(settings.REGISTRY_PYCSW, env, version='2.0.2')
 
     content = csw.dispatch_wsgi()
 
@@ -94,12 +94,12 @@ def opensearch_dispatch(request):
     """OpenSearch wrapper"""
 
     ctx = {
-        'shortname': settings.PYCSW['metadata:main']['identification_title'],
-        'description': settings.PYCSW['metadata:main']['identification_abstract'],
-        'developer': settings.PYCSW['metadata:main']['contact_name'],
-        'contact': settings.PYCSW['metadata:main']['contact_email'],
-        'attribution': settings.PYCSW['metadata:main']['provider_name'],
-        'tags': settings.PYCSW['metadata:main']['identification_keywords'].replace(',', ' '),
+        'shortname': settings.REGISTRY_PYCSW['metadata:main']['identification_title'],
+        'description': settings.REGISTRY_PYCSW['metadata:main']['identification_abstract'],
+        'developer': settings.REGISTRY_PYCSW['metadata:main']['contact_name'],
+        'contact': settings.REGISTRY_PYCSW['metadata:main']['contact_email'],
+        'attribution': settings.REGISTRY_PYCSW['metadata:main']['provider_name'],
+        'tags': settings.REGISTRY_PYCSW['metadata:main']['identification_keywords'].replace(',', ' '),
         'url': settings.SITE_URL.rstrip('/')
     }
 
