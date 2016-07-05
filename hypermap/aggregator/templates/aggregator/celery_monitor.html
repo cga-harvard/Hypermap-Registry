@@ -33,7 +33,7 @@
           <script>
           function update_progressbar_{{ task.task_id_sanitized }}() {
               $.ajax({ dataType:"json",
-                  url: "/update_progressbar/{{ task.task_id }}",
+                  url: "/registry/update_progressbar/{{ task.task_id }}",
                       success: function(data){
                           $("#status_{{ task.task_id_sanitized }}").html(data.status);
                           $("#state_{{ task.task_id_sanitized }}").html(data.state);
@@ -73,7 +73,7 @@
 <script>
 function update_jobs_number() {
     $.ajax({ dataType:"json",
-        url: "/update_jobs_number",
+        url: "/registry/update_jobs_number",
             success: function(data){
                 $("#jobs_number").text(data.jobs);
             }

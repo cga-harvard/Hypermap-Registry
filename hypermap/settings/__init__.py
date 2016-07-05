@@ -35,5 +35,5 @@ if CLOUD_FOUNDRY is not None:
     SEARCH_URL = decoded_config['searchly'][0]['credentials']['sslUri']
 
     SKIP_CELERY_TASK = False
-    PYCSW['server']['url'] = '%s/search/csw' % SITE_URL.rstrip('/')
-    PYCSW['metadata:main']['provider_url'] = SITE_URL
+    REGISTRY_PYCSW['server']['url'] = '%s/search/csw' % SITE_URL.rstrip('/')
+    REGISTRY_PYCSW['metadata:main']['provider_url'] = SITE_URL

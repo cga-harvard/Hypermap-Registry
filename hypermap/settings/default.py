@@ -211,7 +211,7 @@ WM_USERNAME = os.getenv('WM_USERNAME', 'hypermap')
 WM_PASSWORD = os.getenv('WM_PASSWORD', 'secret')
 
 # pycsw settings
-HYPERMAP_PYCSW = {
+REGISTRY_PYCSW = {
     'server': {
         # 'home': '.',
         'url': '%s/search/csw' % SITE_URL.rstrip('/'),
