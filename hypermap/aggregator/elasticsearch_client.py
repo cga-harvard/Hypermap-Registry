@@ -109,49 +109,50 @@ class ESHypermap(object):
                 # ESHypermap.es.delete('hypermap', 'layer', layer.id)
                 # now we add the index
                 es_record = {
-                                "LayerId": str(layer.id),
-                                "LayerName": layer.name,
-                                "LayerTitle": layer.title,
-                                "Originator": originator,
-                                "ServiceId": str(layer.service.id),
-                                "ServiceType": layer.service.type,
-                                "LayerCategory": category,
-                                "LayerUsername": username,
-                                "LayerUrl": layer.url,
-                                "LayerReliability": layer.reliability,
-                                "Is_Public": layer.is_public,
-                                "Availability": "Online",
-                                "Location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                "Abstract": abstract,
+                                "id": str(layer.id),
+                                "type": 'Layer',
+                                "layer_id": str(layer.id),
+                                "name": layer.name,
+                                "title": layer.title,
+                                "layer_originator": originator,
+                                "service_id": str(layer.service.id),
+                                "service_type": layer.service.type,
+                                "layer_category": category,
+                                "layer_username": username,
+                                "url": layer.url,
+                                "reliability": layer.reliability,
+                                "recent_reliability": layer.recent_reliability,
+                                "last_status": layer.last_status,
+                                "is_public": layer.is_public,
+                                "availability": "Online",
+                                "location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                                "abstract": abstract,
+                                "domain_name": layer.service.get_domain,
                                 # "SrsProjectionCode": layer.srs.values_list('code', flat=True),
-                                "MinY": minY,
-                                "MinX": minX,
-                                "MaxY": maxY,
-                                "MaxX": maxX,
-                                "CenterY": centerY,
-                                "CenterX": centerX,
-                                "HalfWidth": halfWidth,
-                                "HalfHeight": halfHeight,
-                                "Area": area,
+                                "min_y": minY,
+                                "min_x": minX,
+                                "max_x": maxY,
+                                "max_y": maxX,
+                                "area": area,
                                 "bbox": wkt,
-                                "GeoShape": {
+                                "srs": [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)],
+                                "geoshape": {
                                   "type": "polygon",
                                   "orientation": "clockwise",
                                   "coordinates": [
                                     [[minX, minY], [minX, maxY], [maxX, maxY], [maxX, minY], [minX, minY]]
                                   ]
                                 },
-                                "DomainName": layer.service.get_domain,
                                 }
 
                 slugs = layer.get_catalogs_slugs()
                 if slugs:
-                    es_record["Catalogs"] = slugs
+                    es_record["catalogs"] = slugs
 
                 es_date, type = get_date(layer)
                 if es_date is not None:
-                    es_record['LayerDate'] = es_date
-                    es_record['LayerDateType'] = type
+                    es_record['layer_date'] = es_date
+                    es_record['layer_datetype'] = type
                 ESHypermap.logger.info(es_record)
                 ESHypermap.es.index(ESHypermap.index_name, 'layer', json.dumps(es_record), id=layer.id)
                 ESHypermap.logger.info("Elasticsearch: record saved for layer with id: %s" % layer.id)
@@ -178,7 +179,7 @@ class ESHypermap(object):
             "mappings": {
                 "layers": {
                     "properties": {
-                        "GeoShape": {
+                        "geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
                             "precision": "1m"
