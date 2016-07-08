@@ -68,6 +68,7 @@ setup(
         'django-taggit==0.18.0',
         'django-wsgi==1.0b1',
         'django-extensions==1.6.7',
+        'django_basic_auth==0.9',
         'dj-database-url==0.4.0',
         'elasticsearch==1.9.0',
         'pika==0.10.0',

@@ -14,8 +14,9 @@ from django.views.decorators.csrf import csrf_exempt
 from pycsw import server
 
 from hypermap.aggregator.models import Catalog
+from django_basic_auth import logged_in_or_basicauth
 
-
+@logged_in_or_basicauth()
 @csrf_exempt
 def csw_global_dispatch(request):
     """pycsw wrapper"""
