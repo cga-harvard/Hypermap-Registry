@@ -135,6 +135,7 @@ MEDIA_URL = '/media/'
 MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 
 CELERY_ALWAYS_EAGER = False
+CELERY_DEFAULT_EXCHANGE = 'hypermap'
 
 # Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
