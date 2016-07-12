@@ -43,8 +43,6 @@ class LayerWMAdmin(admin.ModelAdmin):
 
 class CheckAdmin(admin.ModelAdmin):
     model = Check
-    list_display = ('content_type', 'content_object', 'checked_datetime', 'success', 'response_time', )
-    search_fields = ['resource__title', ]
 
 
 class EndpointListAdmin(admin.ModelAdmin):
