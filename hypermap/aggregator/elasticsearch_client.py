@@ -71,13 +71,9 @@ class ESHypermap(object):
                 maxX = bbox[2]
                 maxY = bbox[3]
                 if (minY > maxY):
-                    tmp = minY
-                    minY = maxY
-                    maxY = tmp
+                    minY, maxY = maxY, minY
                 if (minX > maxX):
-                    tmp = minX
-                    minX = maxX
-                    maxX = tmp
+                    minX, maxX = maxX, minX
                 centerY = (maxY + minY) / 2.0
                 centerX = (maxX + minX) / 2.0
                 halfWidth = (maxX - minX) / 2.0
