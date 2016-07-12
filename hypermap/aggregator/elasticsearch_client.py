@@ -109,41 +109,41 @@ class ESHypermap(object):
                 # ESHypermap.es.delete('hypermap', 'layer', layer.id)
                 # now we add the index
                 es_record = {
-                                "id": str(layer.id),
-                                "type": 'Layer',
-                                "layer_id": str(layer.id),
-                                "name": layer.name,
-                                "title": layer.title,
-                                "layer_originator": originator,
-                                "service_id": str(layer.service.id),
-                                "service_type": layer.service.type,
-                                "layer_category": category,
-                                "layer_username": username,
-                                "url": layer.url,
-                                "reliability": layer.reliability,
-                                "recent_reliability": layer.recent_reliability,
-                                "last_status": layer.last_status,
-                                "is_public": layer.is_public,
-                                "availability": "Online",
-                                "location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
-                                "abstract": abstract,
-                                "domain_name": layer.service.get_domain,
-                                # "SrsProjectionCode": layer.srs.values_list('code', flat=True),
-                                "min_y": minY,
-                                "min_x": minX,
-                                "max_x": maxY,
-                                "max_y": maxX,
-                                "area": area,
-                                "bbox": wkt,
-                                "srs": [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)],
-                                "geoshape": {
-                                  "type": "polygon",
-                                  "orientation": "clockwise",
-                                  "coordinates": [
-                                    [[minX, minY], [minX, maxY], [maxX, maxY], [maxX, minY], [minX, minY]]
-                                  ]
-                                },
-                                }
+                    "id": str(layer.id),
+                    "type": 'Layer',
+                    "layer_id": str(layer.id),
+                    "name": layer.name,
+                    "title": layer.title,
+                    "layer_originator": originator,
+                    "service_id": str(layer.service.id),
+                    "service_type": layer.service.type,
+                    "layer_category": category,
+                    "layer_username": username,
+                    "url": layer.url,
+                    "reliability": layer.reliability,
+                    "recent_reliability": layer.recent_reliability,
+                    "last_status": layer.last_status,
+                    "is_public": layer.is_public,
+                    "availability": "Online",
+                    "location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                    "abstract": abstract,
+                    "domain_name": layer.service.get_domain,
+                    # "SrsProjectionCode": layer.srs.values_list('code', flat=True),
+                    "min_y": minY,
+                    "min_x": minX,
+                    "max_x": maxY,
+                    "max_y": maxX,
+                    "area": area,
+                    "bbox": wkt,
+                    "srs": [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)],
+                    "layer_geoshape": {
+                        "type": "polygon",
+                        "orientation": "clockwise",
+                        "coordinates": [
+                            [[minX, minY], [minX, maxY], [maxX, maxY], [maxX, minY], [minX, minY]]
+                        ]
+                    },
+                }
 
                 slugs = layer.get_catalogs_slugs()
                 if slugs:

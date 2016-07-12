@@ -69,6 +69,7 @@ INSTALLED_APPS = (
     'hypermap.aggregator',
     'hypermap.dynasty',
     'hypermap.search',
+    'rest_framework'
 )
 
 MIDDLEWARE_CLASSES = (
