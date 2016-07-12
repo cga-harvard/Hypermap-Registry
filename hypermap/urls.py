@@ -9,6 +9,7 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     (r'^registry/', include('hypermap.aggregator.urls')),
     (r'^registry/search/', include('hypermap.search.urls')),
+    (r'^registry/api/', include('hypermap.api.urls')),
 )
 
 urlpatterns += patterns(
