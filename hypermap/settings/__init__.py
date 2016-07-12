@@ -1,6 +1,7 @@
 import dj_database_url
 import json
-from _panchicore import *
+# from _panchicore import *
+from .default import * 
 #####
 
 CLOUD_FOUNDRY = os.getenv('CLOUD_FOUNDRY', None)
