@@ -52,5 +52,7 @@ pyelasticsearch==1.4
 redis==2.10.5
 django-extensions==1.6.7
 pika==0.10.0
+isodate==0.5.4
+djangorestframework==3.3.3
 # actual hypermap
 #-e .
