@@ -1,0 +1,56 @@
+# Example YAML to get you started quickly.
+# Be aware that YAML has indentation based scoping.
+# Code completion support is available so start typing for available options.
+swagger: '2.0'
+
+# This is your document metadata
+info:
+  version: "0.0.1"
+  title: HHypermap Search
+  description: Search everything
+
+host: "52.53.174.77:8000"
+basePath: /api
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+
+# Describe your paths here
+paths:
+  # This is a path endpoint. Change it.
+  /search/:
+    # This is a HTTP operation
+    get:
+      # Describe this verb here. Note: you can use markdown
+      description: OK
+      # This is array of GET operation parameters:
+      parameters:
+        # An example parameter that is in query and is required
+        -
+          name: search_engine
+          in: query
+          description: Where will be running the search.
+          required: true
+          type: string
+          default: "solr"
+          enum: [ "solr", "elasticsearch" ]
+        -
+          name: search_engine_endpoint
+          description: "Endpoint url (test in ES http://52.41.158.6:9200/hypermap/_search)"
+          in: query
+          required: true
+          type: string
+          default: "http://54.221.223.91:8983/solr/hypermap2/select"
+        -
+          name: q_text
+          in: query
+          description: Constrains docs by keyword search query.
+          type: string
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+          description: Successful response
