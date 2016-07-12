@@ -1,7 +1,6 @@
 import dj_database_url
 import json
-from .default import *  # noqa
-
+from _panchicore import *
 #####
 
 CLOUD_FOUNDRY = os.getenv('CLOUD_FOUNDRY', None)

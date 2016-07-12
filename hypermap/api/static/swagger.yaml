@@ -9,8 +9,8 @@ info:
   title: HHypermap Search
   description: Search everything
 
-host: "52.53.174.77:8000"
-basePath: /api
+host: "localhost:8000"
+basePath: /registry/api/
 schemes:
   - http
 consumes:
