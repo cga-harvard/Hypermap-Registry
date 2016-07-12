@@ -25,7 +25,7 @@ def elasticsearch(serializer):
     """
     search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
     q_text = serializer.validated_data.get("q_text")
-    return_solr_original_response = serializer.validated_data.get("return_search_engine_original_response")
+    return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
 
     params = {
         "q": q_text
@@ -33,7 +33,7 @@ def elasticsearch(serializer):
     res = requests.get(search_engine_endpoint, params=params)
     es_response = res.json()
 
-    if return_solr_original_response:
+    if return_search_engine_original_response:
         return es_response
 
     data = {}
@@ -204,143 +204,12 @@ def solr(serializer):
 
 
 class Search(APIView):
+    """
+    Swagger docs located in hypermap/api/static/swagger.yaml
+    edit in http://editor.swagger.io/#/
+    """
 
     def get(self, request):
-        """
-        The q. parameters qre query/constraints that limit the matching documents.
-        The d. params control returning the documents. The a. params are faceting/aggregations on a field of the documents.
-        The .limit params limit how many top values/docs to return. Some of the formatting and response structure
-        has strong similarities with Apache Solr, unsurprisingly.
-        ---
-        parameters:
-        - name: search_engine
-          description: Where will be running the search.
-          in: query
-          required: true
-          type: string
-          paramType: query
-          defaultValue: "solr"
-          enum: [ "solr", "elasticsearch" ]
-        - name: search_engine_endpoint
-          description: "Endpoint url (test in ES http://52.41.158.6:9200/hypermap/_search)"
-          in: query
-          required: true
-          type: string
-          paramType: query
-          defaultValue: "http://54.221.223.91:8983/solr/hypermap2/select"
-        - name: q_time
-          description: Constrains docs by time range. Either side can be '*' to signify open-ended. Otherwise it must be in either format as given in the example. UTC time zone is implied.
-          in: query
-          required: false
-          type: string
-          paramType: query
-          defaultValue: "[1900-01-01 TO 2016-01-01T00:00:00]"
-        - name: q_geo
-          description: A rectangular geospatial filter in decimal degrees going from the lower-left to the upper-right. The coordinates are in lat,lon format.
-          in: query
-          required: false
-          type: string
-          paramType: query
-          defaultValue: "[-90,-180 TO 90,180]"
-        - name: q_text
-          in: query
-          description: Constrains docs by keyword search query.
-          required: false
-          type: string
-          paramType: query
-        - name: q_user
-          in: query
-          description: Constrains docs by matching exactly a certain user
-          required: false
-          type: string
-          paramType: query
-        - name: d_docs_limit
-          description: How many documents to return.
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "0"
-        - name: d_docs_sort
-          description: How to order the documents before returning the top X. 'score' is keyword search relevancy. 'time' is time descending. 'distance' is the distance between the doc and the middle of q.geo.
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "score"
-          enum: [ "score", "time", "distance" ]
-        - name: a_time_limit
-          description: Non-0 triggers time/date range faceting. This value is the maximum number of time ranges to return when a.time.gap is unspecified. This is a soft maximum; less will usually be returned. A suggested value is 100. Note that a.time.gap effectively ignores this value. See Solr docs for more details on the query/response format.
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "0"
-        - name: a_time_gap
-          description: The consecutive time interval/gap for each time range. Ignores a.time.limit.The format is based on a subset of the ISO-8601 duration format.
-          in: query
-          required: false
-          type: string
-          paramType: query
-          defaultValue: "P1D"
-        - name: a_time_filter
-          description: From what time range to divide by a.time.gap into intervals. Defaults to q.time and otherwise 90 days.
-          in: query
-          required: false
-          type: string
-          paramType: query
-        - name: a_hm_limit
-          description: Non-0 triggers heatmap/grid faceting. This number is a soft maximum on thenumber of cells it should have. There may be as few as 1/4th this number in return. Note that a.hm.gridLevel can effectively ignore this value. The response heatmap contains a counts grid that can be null or contain null rows when all its values would be 0. See Solr docs for more details on the response format.
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "0"
-          maximun: 10000
-          minimun: 0
-        - name: a_hm_gridlevel
-          description: "To explicitly specify the grid level, e.g. to let a user ask for greater or courser resolution than the most recent request.  Ignores a.hm.limit."
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "0"
-          maximun: 100
-          minimun: 1
-        - name: a_hm_filter
-          description: From what region to plot the heatmap. Defaults to q.geo or otherwise the world.
-          in: query
-          required: false
-          type: string
-          paramType: query
-        - name: a_text_limit
-          description: "Returns the most frequently occurring words. WARNING: There is usually a significant performance hit in this due to the extremely high cardinality."
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "0"
-        - name: a_user_limit
-          description: Returns the most frequently occurring users.
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "0"
-        - name: return_search_engine_original_response
-          description: Just for debugging purposes when 1 will return the original solr response.
-          in: query
-          required: false
-          type: integer
-          paramType: query
-          defaultValue: "0"
-
-        responseMessages:
-          - code: 200
-            message: Search completed.
-          - code: 400
-            message: Validation errors.
-        """
 
         serializer = SearchSerializer(data=request.GET)
         if serializer.is_valid(raise_exception=True):
