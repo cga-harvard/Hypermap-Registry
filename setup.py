@@ -80,7 +80,9 @@ setup(
         # For ArcGIS support we need to install the latest from Github.
         # once the new MapProxy is release we will update here and remove this notice.
         'MapProxy',
+        'djangorestframework==3.3.3',
         'django-celery==3.1.17',
+        'isodate==0.5.4',
         'nose==1.3.7',
         'OWSLib==0.10.3',
         'Paver==1.2.4',
@@ -90,6 +92,5 @@ setup(
         'pysolr==3.3.3',
         'requests==2.9.1',
         'webtest==2.0.20',
-        'django-maploom-registry',
     ]
 )
