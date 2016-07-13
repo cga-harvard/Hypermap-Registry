@@ -221,6 +221,3 @@ class Search(APIView):
             else:
                 data = elasticsearch(serializer)
             return Response(data, headers={'Access-Control-Allow-Origin': '*'})
-
-
-

@@ -1,5 +1,4 @@
 import re
-import urllib
 
 import datetime
 import isodate
