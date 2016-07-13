@@ -130,9 +130,12 @@ def solr(serializer):
         params["facet.field"].append("{{! ex={0}}}{0}".format(USER_FIELD))
         params["f.{}.facet.limit".format(USER_FIELD)] = a_user_limit
 
-    res = requests.get(
-        search_engine_endpoint, params=params
-    )
+    try:
+        res = requests.get(
+            search_engine_endpoint, params=params
+        )
+    except Exception as e:
+        return 500, {"error": {"msg": str(e)}}
 
     print '>', res.url
 
@@ -140,14 +143,14 @@ def solr(serializer):
     solr_response["solr_request"] = res.url
 
     if return_search_engine_original_response > 0:
-        return Response(solr_response)
+        return solr_response
 
     # create the response dict following the swagger model:
     data = {}
 
     if 'error' in solr_response:
         data["error"] = solr_response["error"]
-        return data
+        return 400, data
 
     response = solr_response["response"]
     data["a.matchDocs"] = response.get("numFound")
@@ -235,4 +238,12 @@ class Search(APIView):
                 data = solr(serializer)
             else:
                 data = elasticsearch(serializer)
-            return Response(data, headers={'Access-Control-Allow-Origin': '*'})
+
+            status = 200
+            if type(data) is tuple:
+                status = data[0]
+                data = data[1]
+
+            return Response(data,
+                            headers={'Access-Control-Allow-Origin': '*'},
+                            status=status)

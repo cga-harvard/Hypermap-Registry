@@ -40,7 +40,7 @@ paths:
           enum: [ "solr", "elasticsearch" ]
         -
           name: search_engine_endpoint
-          description: "Endpoint url (test in ES http://52.41.158.6:9200/hypermap/_search)"
+          description: "Endpoint url (ES http://localhost:9200/hypermap/_search)"
           in: query
           required: true
           type: string
@@ -154,9 +154,15 @@ paths:
       responses:
         # Response code
         200:
-          description: Successful response
+          description: Search Completed
           schema:
             $ref: '#/definitions/SearchResponse'
+        400:
+          description: Validation Errors
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 definitions:
   HeatmapFacet:
     type: object
@@ -250,3 +256,12 @@ definitions:
           $ref: '#/definitions/FacetValue'
       timing:
         $ref: '#/definitions/Timing'
+  ErrorResponse:
+    type: object
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+      additionalProperties:
+        type: object
