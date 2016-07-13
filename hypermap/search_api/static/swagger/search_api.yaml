@@ -155,46 +155,98 @@ paths:
         # Response code
         200:
           description: Successful response
-#          schema:
-#            $ref: '#/definitions/SearchResponse'
-#definitions:
-#  HeatmapFacet:
-#    type: object
-#    required:
-#      - name
-#    properties:
-#      name:
-#        type: string
-#  FacetValue:
-#    type: object
-#    required:
-#      - name
-#    properties:
-#      name:
-#        type: string
-#  TimeFacet:
-#    type: object
-#    required:
-#      - name
-#    properties:
-#      name:
-#        type: string
-#  Timing:
-#    type: object
-#    required:
-#      - name
-#    properties:
-#      name:
-#        type: string
-#  SearchResponse:
-#    type: object
-#    properties:
-#      a.matchDocs:
-#        type: integer
-#        format: int64
-#      d.docs:
-#        type: array
-#        items:
-#          type: object
-#          additionalProperties:
-#            type: object
+          schema:
+            $ref: '#/definitions/SearchResponse'
+definitions:
+  HeatmapFacet:
+    type: object
+    properties:
+      gridLevel:
+        type: string
+        format: int32
+      rows:
+        type: integer
+        format: int32
+      columns:
+        type: integer
+        format: int32
+      minX:
+        type: number
+        format: double
+      maxX:
+        type: number
+        format: double
+      minY:
+        type: number
+        format: double
+      maxY:
+        type: number
+        format: double
+      counts_ints2D:
+        type: array
+        items:
+          type: array
+          items:
+            type: integer
+            format: int32
+      projection:
+        type: string
+  FacetValue:
+    type: object
+    properties:
+      value:
+        type: string
+      count:
+        type: integer
+        format: int64
+  TimeFacet:
+    type: object
+    properties:
+      start:
+        type: string
+      end:
+        type: string
+      gap:
+        type: string
+      counts:
+        type: array
+        items:
+          $ref: '#/definitions/FacetValue'
+  Timing:
+    type: object
+    properties:
+      label:
+        type: string
+      millis:
+        type: integer
+        format: int64
+      subs:
+        type: array
+        items:
+          $ref: '#/definitions/Timing'
+  SearchResponse:
+    type: object
+    properties:
+      a.matchDocs:
+        type: integer
+        format: int64
+      d.docs:
+        type: array
+        items:
+          type: object
+          additionalProperties:
+            type: object
+      a.time:
+        $ref: '#/definitions/TimeFacet'
+      a.hm:
+        $ref: '#/definitions/HeatmapFacet'
+      a.user:
+        type: array
+        items:
+          $ref: '#/definitions/FacetValue'
+      a.text:
+        type: array
+        items:
+          $ref: '#/definitions/FacetValue'
+      timing:
+        $ref: '#/definitions/Timing'
