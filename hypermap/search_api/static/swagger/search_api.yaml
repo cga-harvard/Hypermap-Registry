@@ -9,7 +9,7 @@ info:
   title: HHypermap Search
   description: Happy searching :)
 
-host: "localhost:8000"
+#host: "localhost:8000" If the host is not included, the host serving the documentation is to be used (including the port).
 basePath: /registry/api
 schemes:
   - http
