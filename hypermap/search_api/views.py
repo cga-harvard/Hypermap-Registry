@@ -144,6 +144,11 @@ def solr(serializer):
 
     # create the response dict following the swagger model:
     data = {}
+
+    if 'error' in solr_response:
+        data["error"] = solr_response["error"]
+        return data
+
     response = solr_response["response"]
     data["a.matchDocs"] = response.get("numFound")
 
