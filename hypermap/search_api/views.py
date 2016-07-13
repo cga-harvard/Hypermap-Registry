@@ -166,8 +166,17 @@ def solr(serializer):
         data["a.time"] = a_time
 
     if a_hm_limit > 0:
-        # TODO: organize this
-        hm_facet = solr_response["facet_counts"]["facet_heatmaps"][GEO_HEATMAP_FIELD]
+        hm_facet_raw = solr_response["facet_counts"]["facet_heatmaps"][GEO_HEATMAP_FIELD]
+        hm_facet = {
+            'gridLevel': hm_facet_raw[1],
+            'columns': hm_facet_raw[3],
+            'rows': hm_facet_raw[5],
+            'minX': hm_facet_raw[7],
+            'maxX': hm_facet_raw[9],
+            'minY': hm_facet_raw[11],
+            'maxY': hm_facet_raw[13],
+            'counts_ints2D': hm_facet_raw[15]
+        }
         data["a.hm"] = hm_facet
 
     if a_user_limit > 0:
