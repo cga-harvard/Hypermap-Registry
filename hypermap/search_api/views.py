@@ -175,7 +175,8 @@ def solr(serializer):
             'maxX': hm_facet_raw[9],
             'minY': hm_facet_raw[11],
             'maxY': hm_facet_raw[13],
-            'counts_ints2D': hm_facet_raw[15]
+            'counts_ints2D': hm_facet_raw[15],
+            'projection': 'EPSG:4326'
         }
         data["a.hm"] = hm_facet
 
