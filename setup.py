@@ -75,8 +75,8 @@ setup(
         'httmock==1.2.5',
         # django-maploom-registry is a temporary package while Registry support is added to main MapLoom
         'django-maploom-registry==1.5.1',
-        # Get django-mapproxt from the registry branch on terranodo/django-mapproxy
-        'django-mapproxy',
+        # Get djmp from the registry branch on terranodo/django-mapproxy
+        'djmp',
         # For ArcGIS support we need to install the latest from Github.
         # once the new MapProxy is release we will update here and remove this notice.
         'MapProxy',
