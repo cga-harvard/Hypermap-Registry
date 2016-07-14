@@ -81,8 +81,8 @@ def create_services_from_endpoint(url):
         try:
             service = WebMapService(endpoint, timeout=10)
             service_type = 'OGC:WMS'
-            title=service.identification.title,
-            abstract=service.identification.abstract
+            title = service.identification.title,
+            abstract = service.identification.abstract
             detected = True
         except Exception as e:
             print str(e)
@@ -92,8 +92,8 @@ def create_services_from_endpoint(url):
         try:
             service = TileMapService(endpoint, timeout=10)
             service_type = 'OSGeo:TMS'
-            title=service.identification.title,
-            abstract=service.identification.abstract
+            title = service.identification.title,
+            abstract = service.identification.abstract
             detected = True
         except Exception as e:
             print str(e)
@@ -103,8 +103,8 @@ def create_services_from_endpoint(url):
         try:
             service = WebMapTileService(endpoint, timeout=10)
             service_type = 'OGC:WMTS'
-            title=service.identification.title,
-            abstract=service.identification.abstract
+            title = service.identification.title,
+            abstract = service.identification.abstract
             detected = True
         except Exception as e:
             print str(e)

@@ -181,7 +181,7 @@ def index_layer(self, layer):
 def index_all_layers(self):
     from hypermap.aggregator.models import Layer
 
-    #if settings.SERVICE_TYPE == 'elasticsearch':
+    # if settings.SERVICE_TYPE == 'elasticsearch':
     #    clear_es()
 
     layer_to_processes = Layer.objects.all()
