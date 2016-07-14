@@ -75,3 +75,5 @@ development.db
 /hypermap/settings/_panchicore.py
 # pycharm
 .idea
+
+env_vars

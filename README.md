@@ -24,13 +24,15 @@ Then connect to: 192.168.33.15 and your instance should be up and running.
 #### Development mode on Vagrant
 
 You can use the same instance if you are a developer. Just run the Django
-server in place of nginx and uwsgi:
+server in place of nginx and uwsgi (after sourcing env_vars)
 
 ```
 cd hypermap/deploy
 vagrant ssh
 . /webapps/hypermap/bin/activate
 cd /webapps/hypermap/hypermap/hypermap/
+cp env_vars.tmpl env_vars # edit env_vars accordingly
+source env_vars
 ./manage.py runserver 0.0.0.0:8000
 ```
 
