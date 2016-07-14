@@ -63,6 +63,12 @@ def check_service(self, service):
 def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
     success, message = layer.check_available()
+    # every time a layer is checked it should be indexed
+    if success and settings.SEARCH_ENABLED:
+        if not settings.SKIP_CELERY_TASK:
+            index_layer.delay(layer)
+        else:
+            index_layer(layer)
     if not success:
         from hypermap.aggregator.models import TaskError
         task_error = TaskError(
@@ -175,8 +181,8 @@ def index_layer(self, layer):
 def index_all_layers(self):
     from hypermap.aggregator.models import Layer
 
-    if settings.SERVICE_TYPE == 'elasticsearch':
-        clear_es()
+    #if settings.SERVICE_TYPE == 'elasticsearch':
+    #    clear_es()
 
     layer_to_processes = Layer.objects.all()
     total = layer_to_processes.count()
