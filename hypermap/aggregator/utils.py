@@ -5,6 +5,7 @@ import re
 import sys
 import math
 import traceback
+from urlparse import urlparse
 
 from owslib.wms import WebMapService
 from owslib.tms import TileMapService
@@ -55,37 +56,45 @@ def create_services_from_endpoint(url):
 
     detected = False
 
+    # handle specific service types for some domains (WorldMap, Wrapper...)
+    parsed_uri = urlparse(endpoint)
+    domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    if domain == 'http://worldmap.harvard.edu/':
+        service_type = 'Hypermap:WorldMap'
+        title = 'Harvard WorldMap'
+        abstract = 'Harvard WorldMap'
+        endpoint = domain
+        detected = True
+    if domain in [
+        'http://maps.nypl.org/',
+        'http://mapwarper.net/',
+        'http://warp.worldmap.harvard.edu/',
+    ]:
+        service_type = 'Hypermap:WARPER'
+        title = 'Warper at %s' % domain
+        abstract = 'Warper at %s' % domain
+        detected = True
+
     # test if it is WMS, TMS, WMTS or Esri
     # WMS
-    try:
-        service = WebMapService(endpoint, timeout=10)
-        service_type = 'OGC:WMS'
-        detected = True
-        service = create_service_from_endpoint(
-            endpoint,
-            service_type,
+    if not detected:
+        try:
+            service = WebMapService(endpoint, timeout=10)
+            service_type = 'OGC:WMS'
             title=service.identification.title,
             abstract=service.identification.abstract
-        )
-        if service is not None:
-            num_created = num_created + 1
-    except Exception as e:
-        print str(e)
+            detected = True
+        except Exception as e:
+            print str(e)
 
     # TMS
     if not detected:
         try:
             service = TileMapService(endpoint, timeout=10)
             service_type = 'OSGeo:TMS'
+            title=service.identification.title,
+            abstract=service.identification.abstract
             detected = True
-            create_service_from_endpoint(
-                endpoint,
-                service_type,
-                title=service.identification.title,
-                abstract=service.identification.abstract
-            )
-            if service is not None:
-                num_created = num_created + 1
         except Exception as e:
             print str(e)
 
@@ -94,12 +103,20 @@ def create_services_from_endpoint(url):
         try:
             service = WebMapTileService(endpoint, timeout=10)
             service_type = 'OGC:WMTS'
+            title=service.identification.title,
+            abstract=service.identification.abstract
             detected = True
-            create_service_from_endpoint(
+        except Exception as e:
+            print str(e)
+
+    # if detected, let's create the service
+    if detected:
+        try:
+            service = create_service_from_endpoint(
                 endpoint,
                 service_type,
-                title=service.identification.title,
-                abstract=service.identification.abstract
+                title,
+                abstract=abstract
             )
             if service is not None:
                 num_created = num_created + 1
@@ -186,7 +203,7 @@ def get_sanitized_endpoint(url):
     Sanitize an endpoint, as removing unneeded parameters
     """
     # sanitize esri
-    sanitized_url = url
+    sanitized_url = url.rstrip()
     esri_string = '/rest/services'
     if esri_string in url:
         match = re.search(esri_string, sanitized_url)

@@ -1222,10 +1222,6 @@ def service_pre_save(instance, *args, **kwargs):
     """
     Used to do a service full check when saving it.
     """
-    # for some service we need to constraint some default values
-    if instance.type == 'Hypermap:WorldMap':
-        instance.title = 'Harvard WorldMap'
-        instance.url = 'http://worldmap.harvard.edu/'
     # check if service is unique
     # we cannot use unique_together as it relies on a combination of fields
     # from different models (service, resource)
