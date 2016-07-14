@@ -402,7 +402,7 @@
   <field name="abstract" type="string" multiValued="false" indexed="true"/>
   <field name="area" type="tdoubles" multiValued="false"/>
   <field name="availability" type="string" multiValued="false" indexed="true"/>
-  <field name="bbox" type="string" multiValued="false" indexed="true"/>
+  <field name="bbox" type="location_rpt" multiValued="false" indexed="true" stored="true" />
   <field name="domain_name" type="string" multiValued="false" indexed="true"/>
   <field name="id" type="tlongs" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="is_public" type="booleans" multiValued="false"/>
