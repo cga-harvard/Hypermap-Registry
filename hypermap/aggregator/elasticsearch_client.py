@@ -133,10 +133,9 @@ class ESHypermap(object):
                     "bbox": wkt,
                     "srs": [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)],
                     "layer_geoshape": {
-                        "type": "polygon",
-                        "orientation": "clockwise",
+                        "type": "envelope",
                         "coordinates": [
-                            [[minX, minY], [minX, maxY], [maxX, maxY], [maxX, minY], [minX, minY]]
+                            [minX, maxY], [maxX, minY]
                         ]
                     },
                 }
@@ -173,9 +172,9 @@ class ESHypermap(object):
         # http://support.searchly.com/customer/en/portal/questions/16312889-is-automatic-index-creation-disabled-?new=16312889
         mapping = {
             "mappings": {
-                "layers": {
+                "layer": {
                     "properties": {
-                        "geoshape": {
+                        "layer_geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
                             "precision": "1m"
