@@ -160,11 +160,18 @@ def solr(serializer):
 
     if a_time_limit > 0:
         date_facet = solr_response["facet_counts"]["facet_ranges"][TIME_FILTER_FIELD]
+        counts = []
+        value_count = iter(date_facet.get("counts"))
+        for value, count in zip(value_count, value_count):
+            counts.append({
+                "value": value,
+                "count": count
+            })
         a_time = {
             "start": date_facet.get("start"),
             "end": date_facet.get("end"),
             "gap": date_facet.get("gap"),
-            "counts": date_facet.get("counts")
+            "counts": counts
         }
         data["a.time"] = a_time
 
@@ -185,11 +192,27 @@ def solr(serializer):
 
     if a_user_limit > 0:
         user_facet = solr_response["facet_counts"]["facet_fields"][USER_FIELD]
-        data["a.user"] = user_facet
+
+        counts = []
+        value_count = iter(user_facet)
+        for value, count in zip(value_count, value_count):
+            counts.append({
+                "value": value,
+                "count": count
+            })
+        data["a.user"] = counts
 
     if a_text_limit > 0:
         text_facet = solr_response["facet_counts"]["facet_fields"][TEXT_FIELD]
-        data["a.text"] = text_facet
+
+        counts = []
+        value_count = iter(text_facet)
+        for value, count in zip(value_count, value_count):
+            counts.append({
+                "value": value,
+                "count": count
+            })
+        data["a.text"] = counts
 
     subs = []
     for label, values in solr_response["debug"]["timing"].iteritems():
