@@ -101,7 +101,8 @@ def create_services_from_endpoint(url):
     # WMTS
     if not detected:
         try:
-            service = WebMapTileService(endpoint, timeout=10)
+            # @tomkralidis timeout is not implemented for WebMapTileService?
+            service = WebMapTileService(endpoint)
             service_type = 'OGC:WMTS'
             title = service.identification.title,
             abstract = service.identification.abstract
