@@ -1188,7 +1188,6 @@ def update_layers_esri_imageserver(service):
     srs_code = obj['spatialReference']['wkid']
     srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
     service.srs.add(srs)
-    #service.save()
     layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
     if layer.active:
         layer.type = 'ESRI:ArcGIS:ImageServer'
