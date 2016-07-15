@@ -618,7 +618,6 @@ class Layer(Resource):
             upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             print 'Thumbnail updated for layer %s' % self.name
-            img.close()
 
     def check_available(self):
         """
