@@ -70,7 +70,7 @@ setup(
         'dj-database-url==0.4.0',
         'elasticsearch==1.9.0',
         'pika==0.10.0',
-        'pycsw==2.0.0-alpha1',
+        'pycsw==2.0.0',
         'flake8==2.5.1',
         'httmock==1.2.5',
         # django-maploom-registry is a temporary package while Registry support is added to main MapLoom
