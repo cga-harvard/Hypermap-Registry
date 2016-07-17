@@ -1228,9 +1228,8 @@ def endpointlist_post_save(instance, *args, **kwargs):
     """
     Used to process the lines of the endpoint list.
     """
-    f = instance.upload
-    f.open(mode='rb')
-    lines = f.readlines()
+    with open(instance.upload, mode='rb') as f:
+        lines = f.readlines()
     for url in lines:
         if len(url) > 255:
             print 'Skipping this enpoint, as it is more than 255 characters: %s' % url
@@ -1238,7 +1237,6 @@ def endpointlist_post_save(instance, *args, **kwargs):
             if Endpoint.objects.filter(url=url).count() == 0:
                 endpoint = Endpoint(url=url, endpoint_list=instance)
                 endpoint.save()
-    f.close()
     if not settings.SKIP_CELERY_TASK:
         update_endpoints.delay(instance)
     else:
