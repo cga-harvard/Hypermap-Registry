@@ -1,6 +1,5 @@
 import dj_database_url
 import json
-# from _panchicore import *
 from .default import *
 #####
 
@@ -37,3 +36,6 @@ if CLOUD_FOUNDRY is not None:
     SKIP_CELERY_TASK = False
     REGISTRY_PYCSW['server']['url'] = '%s/search/csw' % SITE_URL.rstrip('/')
     REGISTRY_PYCSW['metadata:main']['provider_url'] = SITE_URL
+
+
+from local_settings import *

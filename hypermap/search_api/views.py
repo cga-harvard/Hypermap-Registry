@@ -240,6 +240,7 @@ def solr(serializer):
     }
 
     data["timing"] = timing
+    data["solr_request_url"] = res.url
 
     return data
 

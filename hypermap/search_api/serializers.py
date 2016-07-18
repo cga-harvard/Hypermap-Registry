@@ -129,7 +129,13 @@ class SearchSerializer(serializers.Serializer):
         """
         if value:
             try:
-                utils.parse_geo_box(value)
+                rectangle = utils.parse_geo_box(value)
+                return "[{0},{1} TO {2},{3}]".format(
+                    rectangle.bounds[0],
+                    rectangle.bounds[1],
+                    rectangle.bounds[2],
+                    rectangle.bounds[3],
+                )
             except Exception as e:
                 raise serializers.ValidationError(e.message)
 
