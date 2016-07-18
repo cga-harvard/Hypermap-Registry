@@ -38,4 +38,7 @@ if CLOUD_FOUNDRY is not None:
     REGISTRY_PYCSW['metadata:main']['provider_url'] = SITE_URL
 
 
-from local_settings import *
+try:
+    from local_settings import *
+except:
+    pass

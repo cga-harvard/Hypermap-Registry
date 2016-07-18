@@ -39,6 +39,11 @@ class SearchSerializer(serializers.Serializer):
         help_text="How many documents to return.",
         default=0
     )
+    d_docs_page = serializers.IntegerField(
+        required=False,
+        help_text="When documents to return are more than d_docs_limit they can be paginated by this value.",
+        default=1
+    )
     d_docs_sort = serializers.ChoiceField(
         required=False,
         help_text="How to order the documents before returning the top X. 'score' is keyword search relevancy. "
@@ -151,4 +156,14 @@ class SearchSerializer(serializers.Serializer):
             except Exception as e:
                 raise serializers.ValidationError(e.message)
 
+        return value
+
+    def validate_d_docs_page(self, value):
+        """
+        paginations cant be zero or negative.
+        :param value:
+        :return:
+        """
+        if value <= 0:
+            raise serializers.ValidationError("d_docs_page cant be zero or negative")
         return value
