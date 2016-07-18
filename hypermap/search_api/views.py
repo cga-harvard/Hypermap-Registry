@@ -277,3 +277,6 @@ class Search(APIView):
             return Response(data,
                             headers={'Access-Control-Allow-Origin': '*'},
                             status=status)
+
+    def options(self, request, *args, **kwargs):
+        return Response({}, headers={'Access-Control-Allow-Origin': '*'})
