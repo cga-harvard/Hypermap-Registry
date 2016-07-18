@@ -21,10 +21,9 @@ class TestWorldMap(unittest.TestCase):
         # create the service
         service = Service(
             type='Hypermap:WorldMap',
+            url='http://worldmap.harvard.edu/'
         )
         service.save()
-        # check url is correct
-        self.assertTrue(service.url, 'http://worldmap.harvard.edu/')
 
         # check title is correct
         self.assertTrue(service.title, 'Harvard WorldMap')
@@ -118,6 +117,7 @@ class TestWorldMap(unittest.TestCase):
         def create_duplicated_service():
             duplicated_service = Service(
                 type='Hypermap:WorldMap',
+                url='http://worldmap.harvard.edu/'
             )
             duplicated_service.save()
 
