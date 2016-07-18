@@ -1,0 +1,8 @@
+http://worldmap.harvard.edu
+http://maps.nypl.org/warper/maps
+http://mapwarper.net/maps
+http://warp.worldmap.harvard.edu/maps
+http://demo.geonode.org/geoserver/ows
+http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml
+https://gis.ngdc.noaa.gov/arcgis/rest/services/SampleWorldCities/MapServer/?f=json
+https://gis.ngdc.noaa.gov/arcgis/rest/services/bag_bathymetry/ImageServer/?f=json

@@ -84,6 +84,9 @@
     <Layer>
       <Title>GeoWebCache WMS</Title>
       <Abstract>Note that not all GeoWebCache instances provide a full WMS service.</Abstract>
+      <!--All supported EPSG projections:-->
+      <SRS>EPSG:4326</SRS>
+      <SRS>EPSG:900913</SRS>
       <LatLonBoundingBox minx="-180.0" miny="-90.0" maxx="180.0" maxy="90.0"/>
       <Layer queryable="1">
         <Name>geonode:_30river_project1_1</Name>
