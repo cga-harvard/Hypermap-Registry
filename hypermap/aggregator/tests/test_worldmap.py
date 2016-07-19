@@ -41,7 +41,7 @@ class TestWorldMap(unittest.TestCase):
         self.assertEqual(layer_0.layerwm.category, 'Rivers, Streams, Lakes')
         self.assertEqual(layer_0.layerwm.username, 'matt')
         self.assertEqual(layer_0.keywords.all().count(), 4)
-        self.assertEqual(layer_0.srs.all().count(), 3)
+        self.assertEqual(layer_0.service.srs.all().count(), 3)
         self.assertEqual(layer_0.check_set.all().count(), 1)
 
         # test dates #1

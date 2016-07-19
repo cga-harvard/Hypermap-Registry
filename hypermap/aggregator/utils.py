@@ -7,11 +7,14 @@ import math
 import traceback
 from urlparse import urlparse
 
+from django.conf import settings
+from owslib.csw import CatalogueServiceWeb
 from owslib.wms import WebMapService
 from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder
 
+from hypermap.aggregator.enums import SERVICE_TYPES
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +46,7 @@ def create_services_from_endpoint(url, greedy_opt):
     """
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
-    ESRI, CWS endpoints corrispond to many services.
+    ESRI, CSW endpoints corrispond to many services.
     """
     num_created = 0
     endpoint = get_sanitized_endpoint(url)
@@ -75,7 +78,67 @@ def create_services_from_endpoint(url, greedy_opt):
         abstract = 'Warper at %s' % domain
         detected = True
 
-    # test if it is WMS, TMS, WMTS or Esri
+    # test if it is CSW, WMS, TMS, WMTS or Esri
+    # CSW
+    try:
+        csw = CatalogueServiceWeb(endpoint)
+        service_links = {}
+        detected = True
+
+        typenames = 'csw:Record'
+        outputschema = 'http://www.opengis.net/cat/csw/2.0.2'
+
+        if 'csw_harvest_pagesize' in settings.PYCSW['manager']:
+            pagesize = int(settings.PYCSW['manager']['csw_harvest_pagesize'])
+        else:
+            pagesize = 10
+
+        print 'Harvesting CSW %s' % endpoint
+        # now get all records
+        # get total number of records to loop against
+        try:
+            csw.getrecords2(typenames=typenames, resulttype='hits',
+                            outputschema=outputschema)
+            matches = csw.results['matches']
+        except:  # this is a CSW, but server rejects query
+            raise RuntimeError(csw.response)
+
+        if pagesize > matches:
+            pagesize = matches
+
+        print 'Harvesting %d CSW records' % matches
+
+        # loop over all catalogue records incrementally
+        for r in range(1, matches+1, pagesize):
+            try:
+                csw.getrecords2(typenames=typenames, startposition=r,
+                                maxrecords=pagesize, outputschema=outputschema, esn='full')
+            except Exception as err:  # this is a CSW, but server rejects query
+                raise RuntimeError(csw.response)
+            for k, v in csw.records.items():
+                # try to parse metadata
+                try:
+                    LOGGER.info('Looking for service links')
+                    if v.references:  # not empty
+                        for ref in v.references:
+                            if ref['scheme'] in [st[0] for st in SERVICE_TYPES]:
+                                if ref['url'] not in service_links:
+                                    service_links[ref['url']] = ref['scheme']
+                except Exception as err:  # parsing failed for some reason
+                    LOGGER.warning('Metadata parsing failed %s', err)
+
+        LOGGER.info('Service links found: %s', service_links)
+        for k, v in service_links.items():
+            try:
+                service = create_service_from_endpoint(k, v)
+                if service is not None:
+                    num_created = num_created + 1
+            except Exception as err:
+                raise RuntimeError('HHypermap error: %s' % err)
+
+    except Exception as e:
+        print str(e)
+
     # WMS
     if not detected:
         try:
@@ -101,7 +164,8 @@ def create_services_from_endpoint(url, greedy_opt):
     # WMTS
     if not detected:
         try:
-            service = WebMapTileService(endpoint, timeout=10)
+            # @tomkralidis timeout is not implemented for WebMapTileService?
+            service = WebMapTileService(endpoint)
             service_type = 'OGC:WMTS'
             title = service.identification.title,
             abstract = service.identification.abstract

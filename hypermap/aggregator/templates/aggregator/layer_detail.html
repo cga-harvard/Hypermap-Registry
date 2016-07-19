@@ -128,7 +128,7 @@
           <td><strong>Spatial Reference Systems</strong></td>
           <td>
             <ul>
-              {% for srs in layer.srs.all %}
+              {% for srs in layer.service.srs.all %}
               <li>{{ srs.code }}</li>
               {% endfor %}
           </ul>

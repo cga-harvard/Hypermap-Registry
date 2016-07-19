@@ -149,7 +149,8 @@ class ESHypermap(object):
                     es_record['layer_date'] = es_date
                     es_record['layer_datetype'] = type
                 ESHypermap.logger.info(es_record)
-                ESHypermap.es.index(ESHypermap.index_name, 'layer', json.dumps(es_record), id=layer.id)
+                ESHypermap.es.index(ESHypermap.index_name, 'layer', json.dumps(es_record), id=layer.id,
+                                    request_timeout=20)
                 ESHypermap.logger.info("Elasticsearch: record saved for layer with id: %s" % layer.id)
                 return True, None
         except Exception:

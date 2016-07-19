@@ -175,8 +175,7 @@ endpoints to Hypermap. So go to the administrative interface:
 
 http://localhost:8000/admin/
 
-Go to Service and add a service of WMS type. As a endpoint you can use this one:
-http://demo.geonode.org/geoserver/ows?service=wms&version=1.1.1&request=GetCapabilities
+Go to Endpoint List and add an endpoint list, for example the one included in /data.
 
 After saving, Hypermap should be start harvesting the endpoint.
 

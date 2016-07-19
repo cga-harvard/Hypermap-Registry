@@ -32,7 +32,7 @@ class TestWarper(unittest.TestCase):
         self.assertEqual(layer_0.title, 'Plate 24: Map bounded by Myrtle Avenue')
         self.assertTrue(layer_0.is_public)
         self.assertEqual(layer_0.keywords.all().count(), 0)
-        self.assertEqual(layer_0.srs.all().count(), 3)
+        self.assertEqual(layer_0.service.srs.all().count(), 3)
         self.assertEqual(layer_0.check_set.all().count(), 1)
         self.assertEqual(layer_0.layerdate_set.all()[0].date, '1855-01-01')
 
