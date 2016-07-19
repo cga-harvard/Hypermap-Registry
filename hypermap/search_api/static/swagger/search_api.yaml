@@ -78,6 +78,13 @@ paths:
           type: integer
           default: 0
         -
+          name: d_docs_page
+          description: When documents to return are more than d_docs_limit they can be paginated by this value.
+          in: query
+          required: false
+          type: integer
+          default: 1
+        -
           name: d_docs_sort
           description: "How to order the documents before returning the top X. 'score' is keyword search relevancy. 'time' is time descending. 'distance' is the distance between the doc and the middle of q.geo."
           in: query

@@ -57,6 +57,7 @@ def solr(serializer):
     q_text = serializer.validated_data.get("q_text")
     q_user = serializer.validated_data.get("q_user")
     d_docs_limit = serializer.validated_data.get("d_docs_limit")
+    d_docs_page = serializer.validated_data.get("d_docs_page")
     d_docs_sort = serializer.validated_data.get("d_docs_sort")
     a_time_limit = serializer.validated_data.get("a_time_limit")
     a_time_gap = serializer.validated_data.get("a_time_gap")
@@ -82,6 +83,11 @@ def solr(serializer):
     }
     if q_text:
         params["q"] = q_text
+
+    if d_docs_limit >= 0:
+        d_docs_page -= 1
+        d_docs_page = d_docs_limit * d_docs_page
+        params["start"] = d_docs_page
 
     # query params for filters
     filters = []
@@ -240,6 +246,7 @@ def solr(serializer):
     }
 
     data["timing"] = timing
+    data["solr_request_url"] = res.url
 
     return data
 
@@ -267,6 +274,4 @@ class Search(APIView):
                 status = data[0]
                 data = data[1]
 
-            return Response(data,
-                            headers={'Access-Control-Allow-Origin': '*'},
-                            status=status)
+            return Response(data, status=status)
