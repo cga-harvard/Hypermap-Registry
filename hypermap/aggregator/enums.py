@@ -1,4 +1,5 @@
 SERVICE_TYPES = (
+    ('OGC:CSW', 'Catalogue Service for the Web (CSW)'),
     ('OGC:WMS', 'Web Map Service (WMS)'),
     ('OGC:WMTS', 'Web Map Tile Service (WMTS)'),
     ('OSGeo:TMS', 'Tile Map Service (TMS)'),
@@ -9,6 +10,7 @@ SERVICE_TYPES = (
 )
 
 CSW_RESOURCE_TYPES = {
+    'OGC:CSW': 'http://www.opengis.net/cat/csw/2.0.2',
     'OGC:WMS': 'http://www.opengis.net/wms',
     'OGC:WMTS': 'http://www.opengis.net/wmts/1.0',
     'OSGeo:TMS': 'https://wiki.osgeo.org/wiki/TMS',
