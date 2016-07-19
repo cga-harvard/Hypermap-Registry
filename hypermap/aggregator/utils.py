@@ -39,7 +39,7 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         return None
 
 
-def create_services_from_endpoint(url):
+def create_services_from_endpoint(url, greedy_opt):
     """
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
@@ -129,6 +129,7 @@ def create_services_from_endpoint(url):
     # we can safely assume the following condition (at least it is true for 1170 services)
     # we need to test this as ArcFolder can freeze with not esri url such as this one:
     # http://hh.worldmap.harvard.edu/admin/aggregator/service/?q=%2Frest%2Fservices
+
     if '/rest/services' in endpoint:
         if not detected:
             try:
@@ -141,15 +142,14 @@ def create_services_from_endpoint(url):
                 # root
                 root_services = process_esri_services(services)
                 num_created = num_created + len(root_services)
-
-                # folders
-                for folder in esri.folders:
+                # Enable the user to fetch a single service.
+                if greedy_opt:
+                    folder = [folder for folder in esri.folders if url.split('/')[6] in str(folder.url)][0]
                     folder_services = process_esri_services(folder.services)
                     num_created = num_created + len(folder_services)
 
             except Exception as e:
                 print str(e)
-
     if detected:
         return True, '%s service/s created' % num_created
     else:
