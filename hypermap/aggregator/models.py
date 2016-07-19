@@ -1228,7 +1228,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
     """
     Used to process the lines of the endpoint list.
     """
-    with open(instance.upload, mode='rb') as f:
+    with open(instance.upload.path, mode='rb') as f:
         lines = f.readlines()
     for url in lines:
         if len(url) > 255:
