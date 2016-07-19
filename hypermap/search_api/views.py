@@ -23,14 +23,64 @@ def elasticsearch(serializer):
     :param serializer:
     :return:
     """
+
     search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
+
     q_text = serializer.validated_data.get("q_text")
+    q_geo = serializer.validated_data.get("q_geo")
+    q_text = serializer.validated_data.get("q_text")
+    d_docs_limit = serializer.validated_data.get("d_docs_limit")
+    d_docs_page = serializer.validated_data.get("d_docs_page")
+
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
 
-    params = {
-        "q": q_text
-    }
-    res = requests.get(search_engine_endpoint, params=params)
+    ## Dict for search on Elastic engine
+    must_array = []
+    filter_dic = {}
+
+    #String searching
+    if q_text:
+        query_string = {
+            "query_string" :{
+                    "query":q_text
+                            }
+                        }
+        #add string searching
+        must_array.append(query_string)
+
+    #geo_shape searching
+    if q_geo:
+        q_geo = str(q_geo)
+        q_geo = q_geo[1:-1]
+        Xmin,Ymin =  q_geo.split(" TO ")[0].split(",")
+        Xmax,Ymax =  q_geo.split(" TO ")[1].split(",")
+        geoshape_query = {
+                    "layer_geoshape":{
+                        "shape":{
+                         "type":"envelope",
+                         "coordinates":[[Xmin,Ymax],[Xmax,Ymin]]
+                        },
+                        "relation":"within"
+                    }
+        }
+        filter_dic["geo_shape"] = geoshape_query
+
+        dic_query = {
+            "query": {
+                    "bool":{
+                        "must":must_array,
+                        "filter":filter_dic
+                        }
+                    }
+                 }
+
+    if d_docs_limit:
+        dic_query["size"] = int(d_docs_limit)
+
+    if d_docs_page:
+        dic_query["from"] = int(d_docs_page)
+
+    res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     es_response = res.json()
 
     if return_search_engine_original_response:
