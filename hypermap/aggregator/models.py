@@ -22,6 +22,7 @@ from lxml import etree
 from shapely.wkt import loads
 from owslib.namespaces import Namespaces
 from owslib.util import nspath_eval
+from owslib.csw import CatalogueServiceWeb
 from owslib.tms import TileMapService
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
@@ -284,6 +285,11 @@ class Service(Resource):
             keywords = []
             wkt_geometry = None
             srs = '4326'
+            if self.type == 'OGC:CSW':
+                ows = CatalogueServiceWeb(self.url)
+                title = ows.identification.title
+                abstract = ows.identification.abstract
+                keywords = ows.identification.keywords
             if self.type == 'OGC:WMS':
                 ows = WebMapService(self.url)
                 title = ows.identification.title
@@ -719,7 +725,11 @@ class Endpoint(models.Model):
     imported = models.BooleanField(default=False)
     message = models.TextField(blank=True, null=True)
     url = models.URLField(unique=True, max_length=255)
-    endpoint_list = models.ForeignKey(EndpointList)
+    endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
+
+    @property
+    def id_string(self):
+        return str(self.id)
 
 
 class TaskError(models.Model):
