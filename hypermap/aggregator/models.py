@@ -620,7 +620,7 @@ class Layer(Resource):
             os.remove(thumbnail_file_name)
 
         # update thumb in model
-        if img and hasattr(img, 'close'):
+        if img:
             thumbnail_file_name = '%s.jpg' % self.name
             upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
             self.thumbnail.save(thumbnail_file_name, upfile, True)
@@ -833,9 +833,15 @@ def update_layers_wms(service):
     wms = WebMapService(service.url)
     layer_names = list(wms.contents)
     parent = wms.contents[layer_names[0]].parent
-
+    # fallback, some endpoint like this one:
+    # https://nsidc.org/cgi-bin/atlas_north?service=WMS&request=GetCapabilities&version=1.1.1
+    # does not have a parent to check for srs
+    if parent:
+        crsOptions = parent.crsOptions
+    else:
+        crsOptions = wms.contents[layer_names[0]].crsOptions
     # set srs
-    for crs_code in parent.crsOptions:
+    for crs_code in crsOptions:
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
         service.srs.add(srs)
 
