@@ -226,25 +226,29 @@ def create_services_from_endpoint(url, greedy_opt=True):
 def process_esri_services(esri_services):
     services_created = []
     for esri_service in esri_services:
-        # for now we process only MapServer and ImageServer
-        if '/MapServer/' in esri_service.url or '/ImageServer/' in esri_service.url:
-            if '/ImageServer/' in esri_service.url:
+        # for now we process only MapServer
+        if '/MapServer/' in esri_service.url:
+            # we import only MapServer with at least one layer
+            if hasattr(esri_service, 'layers'):
                 service = create_service_from_endpoint(
                     esri_service.url,
-                    'ESRI:ArcGIS:ImageServer',
-                    '',
-                    esri_service.serviceDescription
+                    'ESRI:ArcGIS:MapServer',
+                    esri_service.mapName,
+                    esri_service.description
                 )
-            if '/MapServer/' in esri_service.url:
-                # we import only MapServer with at least one layer
-                if hasattr(esri_service, 'layers'):
-                    service = create_service_from_endpoint(
-                        esri_service.url,
-                        'ESRI:ArcGIS:MapServer',
-                        esri_service.mapName,
-                        esri_service.description
-                    )
             services_created.append(service)
+
+        # Don't process ImageServer until the following issue has been resolved:
+        # https://github.com/mapproxy/mapproxy/issues/235
+        #if '/ImageServer/' in esri_service.url:
+        #    service = create_service_from_endpoint(
+        #        esri_service.url,
+        #        'ESRI:ArcGIS:ImageServer',
+        #        '',
+        #        esri_service.serviceDescription
+        #    )
+        #     services_created.append(service)
+
     return services_created
 
 
