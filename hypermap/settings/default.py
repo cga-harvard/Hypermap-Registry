@@ -217,7 +217,7 @@ PYCSW = {
         # authentication/authorization is handled by Django
         'transactions': 'false',
         'allowed_ips': '*',
-        # 'csw_harvest_pagesize=10',
+        # 'csw_harvest_pagesize': '10',
     },
     'repository': {
         'source': 'HHypermap',
