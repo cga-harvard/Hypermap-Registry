@@ -29,7 +29,7 @@
 <script>
 
 var json_data = '{{ data|safe }}';
-var obj = JSON.parse(json_data)['facet_counts']['facet_pivot']['DomainName,ServiceId'];
+var obj = JSON.parse(json_data)['facet_counts']['facet_pivot']['domain_name,service_id'];
 for(var i=0, l1=obj.length; i<l1; i++){
   var domain = obj[i]
   console.log(domain);

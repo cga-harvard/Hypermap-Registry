@@ -36,8 +36,9 @@ def serialize_checks(check_set):
 
 @login_required
 def domains(request):
-    url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=DomainName,ServiceId&wt=json&indent=true&rows=0'
+    url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=domain_name,service_id&wt=json&indent=true&rows=0'
            % settings.SEARCH_URL)
+    print url
     response = urllib2.urlopen(url)
     data = response.read().replace('\n', '')
     # stats
