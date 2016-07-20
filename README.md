@@ -85,15 +85,15 @@ ssh-rsa AAAAB3NzaC1yc2E... /Users/capooti/.ssh/cga.pem
 
 Finally run the playbook:
 
-ansible-playbook aws.yml
+ansible-playbook deploy/ansible/aws.yml
 
 If you want to run only a part of the provisioning process use the --tags option:
 
-ansible-playbook aws.yml --tags "uwsgi"
+ansible-playbook deploy/ansible/aws.yml --tags "uwsgi"
 
 To make a new deployment, after committing to git, run:
 
-ansible-playbook deploy.yml
+ansible-playbook deploy/ansible/deploy.yml
 
 
 ### Manual Installation

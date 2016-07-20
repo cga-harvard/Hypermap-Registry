@@ -16,16 +16,15 @@ vacuum = true
 ; project-level logging to the logs/ folder
 logto = {{ application_log_file }}
 
-chdir = {{ project_path }}/{{ application_name }}
-module = django.core.handlers.wsgi:WSGIHandler()
+chdir = {{ project_path }}
+module = wsgi:application
 
 enable-threads = true
 threads = 20
 
-virtualenv = {{ virtualenv_path }}
+home = {{ virtualenv_path }}
 vacuum = true
-
-env = DJANGO_SETTINGS_MODULE={{ django_settings_file }}
+master = true
 
 {% for variable_name, value in django_environment.items() %}
 env = {{ variable_name }}={{ value }}
