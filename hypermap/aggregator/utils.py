@@ -204,12 +204,15 @@ def create_services_from_endpoint(url, greedy_opt):
                 detected = True
 
                 # root
-                root_services = process_esri_services(services)
-                num_created = num_created + len(root_services)
-                # Enable the user to fetch a single service.
                 if greedy_opt:
+                    root_services = process_esri_services(services)
+                    num_created = num_created + len(root_services)
+
+                # Enable the user to fetch a single service of a single folder.
+                if not greedy_opt:
                     folder = [folder for folder in esri.folders if url.split('/')[6] in str(folder.url)][0]
-                    folder_services = process_esri_services(folder.services)
+                    single_service = [s for s in folder.services if url.split('/')[7] == s.url.split('/')[7]]
+                    folder_services = process_esri_services(single_service)
                     num_created = num_created + len(folder_services)
 
             except Exception as e:
