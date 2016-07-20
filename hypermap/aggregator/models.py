@@ -1256,9 +1256,9 @@ def endpointlist_post_save(instance, *args, **kwargs):
                 endpoint = Endpoint(url=url, endpoint_list=instance)
                 endpoint.save()
     if not settings.SKIP_CELERY_TASK:
-        update_endpoints.delay(instance, greedy_opt=instance.greedy)
+        update_endpoints.delay(instance)
     else:
-        update_endpoints(instance, greedy_opt=instance.greedy)
+        update_endpoints(instance)
 
 
 def service_pre_save(instance, *args, **kwargs):
