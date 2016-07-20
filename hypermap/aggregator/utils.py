@@ -42,7 +42,7 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         return None
 
 
-def create_services_from_endpoint(url, greedy_opt):
+def create_services_from_endpoint(url, greedy_opt=True):
     """
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
