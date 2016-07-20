@@ -241,7 +241,7 @@ class Service(Resource):
     Service represents a remote geowebservice.
     """
 
-    srs = models.ManyToManyField(SpatialReferenceSystem, blank=True, null=True)
+    srs = models.ManyToManyField(SpatialReferenceSystem, blank=True)
 
     @property
     def get_domain(self):
