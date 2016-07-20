@@ -197,10 +197,10 @@ def index_all_layers(self):
 
 
 @shared_task(bind=True)
-def update_endpoint(self, endpoint):
+def update_endpoint(self, endpoint, greedy_opt):
     from hypermap.aggregator.utils import create_services_from_endpoint
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
-    imported, message = create_services_from_endpoint(endpoint.url)
+    imported, message = create_services_from_endpoint(endpoint.url, greedy_opt)
     endpoint.imported = imported
     endpoint.message = message
     endpoint.processed = True
@@ -230,6 +230,6 @@ def update_endpoints(self, endpoint_list):
             )
     else:
         for endpoint in endpoint_to_process:
-            update_endpoint(endpoint)
+            update_endpoint(endpoint, endpoint_list.greedy)
 
     return True

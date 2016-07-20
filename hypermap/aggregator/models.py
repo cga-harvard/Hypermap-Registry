@@ -425,7 +425,8 @@ class Layer(Resource):
         """
         endpoint = self.url
         if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
-            endpoint = '%s/registry/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL.rstrip('/'), self.id)
+            endpoint = '%s/registry/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL.rstrip('/'),
+                                                                                     self.id)
         return endpoint
 
     def get_tile_url(self):
@@ -706,6 +707,7 @@ class EndpointList(models.Model):
     EndpointList represents a file containing an EndPoint list.
     """
     upload = models.FileField(upload_to='endpoint_lists')
+    greedy = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.upload.name
