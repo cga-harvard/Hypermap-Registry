@@ -138,13 +138,6 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERY_RESULT_BACKEND = 'cache+memcached://127.0.0.1:11211/'
 CELERYD_PREFETCH_MULTIPLIER = 25
 
-CELERYBEAT_SCHEDULE = {
-    'Check All Services': {
-        'task': 'check_all_services',
-        'schedule': timedelta(minutes=15)
-    },
-}
-
 CELERY_TIMEZONE = 'UTC'
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://hypermap:hypermap@127.0.0.1:5672/hypermap')
 
