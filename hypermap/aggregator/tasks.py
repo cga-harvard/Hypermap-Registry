@@ -197,7 +197,7 @@ def index_all_layers(self):
 
 
 @shared_task(bind=True)
-def update_endpoint(self, endpoint, greedy_opt):
+def update_endpoint(self, endpoint, greedy_opt=True):
     from hypermap.aggregator.utils import create_services_from_endpoint
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
     imported, message = create_services_from_endpoint(endpoint.url, greedy_opt)
@@ -220,7 +220,7 @@ def update_endpoints(self, endpoint_list):
         for endpoint in endpoint_to_process:
             # use immutable signatures, we dont want the result of the previous
             # task in the celery chain for the next task.
-            tasks.append(update_endpoint.si(endpoint))
+            tasks.append(update_endpoint.si(endpoint, greedy_opt=endpoint_list.greedy))
         chain(tasks)()
         # update state
         if not self.request.called_directly:
@@ -230,6 +230,6 @@ def update_endpoints(self, endpoint_list):
             )
     else:
         for endpoint in endpoint_to_process:
-            update_endpoint(endpoint, endpoint_list.greedy)
+            update_endpoint(endpoint, greedy_opt=endpoint_list.greedy)
 
     return True
