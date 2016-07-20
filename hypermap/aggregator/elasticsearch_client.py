@@ -53,12 +53,11 @@ class ESHypermap(object):
     def layer_to_es(layer):
         category = None
         username = None
-
         ESHypermap.logger.info("Elasticsearch: record to save: %s" % layer.id)
 
         try:
             bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
-            for proj in layer.srs.values():
+            for proj in layer.service.srs.values():
                 if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
             if (ESHypermap.good_coords(bbox)) is False:
@@ -131,7 +130,7 @@ class ESHypermap(object):
                     "max_y": maxY,
                     "area": area,
                     "bbox": wkt,
-                    "srs": [srs.encode('utf-8') for srs in layer.srs.values_list('code', flat=True)],
+                    "srs": [srs.encode('utf-8') for srs in layer.service.srs.values_list('code', flat=True)],
                     "layer_geoshape": {
                         "type": "envelope",
                         "coordinates": [
