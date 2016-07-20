@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DJANGODIR={{ project_path }}/{{ application_name }}
+DJANGODIR={{ project_path }}
 
 # Activate the virtual environment.
 cd $DJANGODIR
@@ -9,4 +9,4 @@ cd $DJANGODIR
 
 # Programs meant to be run under supervisor should not daemonize themselves
 # (do not use --daemon).
-celery -A  {{ application_name }} worker --app=celeryapp  -E -B -l info --concurrency={{ celery_num_workers }}
+celery -A  {{ application_name }}.celery_app worker --app=celeryapp  -E -B -l info --concurrency={{ celery_num_workers }}
