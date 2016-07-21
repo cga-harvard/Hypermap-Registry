@@ -846,6 +846,8 @@ def update_layers_wms(service):
         service.srs.add(srs)
 
     # now update layers
+    layer_n = 0
+    total = len(layer_names)
     for layer_name in layer_names:
         ows_layer = wms.contents[layer_name]
         print 'Updating layer %s' % ows_layer.name
@@ -892,6 +894,11 @@ def update_layers_wms(service):
             layer.save()
             # dates
             add_mined_dates(layer)
+        layer_n = layer_n + 1
+        # exits if DEBUG_SERVICES
+        print "Updating layer n. %s/%s" % (layer_n, total)
+        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            return
 
 
 def update_layers_wmts(service):
@@ -907,6 +914,8 @@ def update_layers_wmts(service):
     service.srs.add(srs)
 
     layer_names = list(wmts.contents)
+    layer_n = 0
+    total = len(layer_names)
     for layer_name in layer_names:
         ows_layer = wmts.contents[layer_name]
         print 'Updating layer %s' % ows_layer.name
@@ -952,6 +961,11 @@ def update_layers_wmts(service):
             layer.save()
             # dates
             add_mined_dates(layer)
+        layer_n = layer_n + 1
+        # exits if DEBUG_SERVICES
+        print "Updating layer n. %s/%s" % (layer_n, total)
+        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            return
 
 
 def update_layers_wm(service):
@@ -969,6 +983,7 @@ def update_layers_wm(service):
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
         service.srs.add(srs)
 
+    layer_n = 0
     for i in range(0, total, 10):
         url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
         print 'Fetching %s' % url
@@ -1033,6 +1048,11 @@ def update_layers_wm(service):
                 # dates
                 add_mined_dates(layer)
                 add_metadata_dates_to_layer([layer_wm.temporal_extent_start, layer_wm.temporal_extent_end], layer)
+            layer_n = layer_n + 1
+            # exits if DEBUG_SERVICES
+            print "Updating layer n. %s/%s" % (layer_n, total)
+            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+                return
 
 
 def update_layers_warper(service):
@@ -1058,6 +1078,8 @@ def update_layers_warper(service):
         records = json.loads(request.content)
         print 'Fetched %s' % request.url
         layers = records['items']
+        layer_n = 0
+        total = len(layers)
         for layer in layers:
             name = layer['id']
             title = layer['title']
@@ -1101,6 +1123,11 @@ def update_layers_warper(service):
                 # dates
                 add_mined_dates(layer)
                 add_metadata_dates_to_layer(dates, layer)
+            layer_n = layer_n + 1
+            # exits if DEBUG_SERVICES
+            print "Updating layer n. %s/%s" % (layer_n, total)
+            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+                return
 
 
 def update_layers_esri_mapserver(service):
@@ -1139,6 +1166,8 @@ def update_layers_esri_mapserver(service):
             from utils import create_service_from_endpoint
             create_service_from_endpoint(wms_url, 'OGC:WMS')
     # now process the REST interface
+    layer_n = 0
+    total = len(esri_service.layers)
     for esri_layer in esri_service.layers:
         # in some case the json is invalid
         # esri_layer._json_struct
@@ -1190,6 +1219,11 @@ def update_layers_esri_mapserver(service):
                 layer.save()
                 # dates
                 add_mined_dates(layer)
+            layer_n = layer_n + 1
+            # exits if DEBUG_SERVICES
+            print "Updating layer n. %s/%s" % (layer_n, total)
+            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+                return
 
 
 def update_layers_esri_imageserver(service):
@@ -1246,7 +1280,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
     """
     Used to process the lines of the endpoint list.
     """
-    with open(instance.upload.path, mode='rb') as f:
+    with open(instance.upload.file.name, mode='rb') as f:
         lines = f.readlines()
     for url in lines:
         if len(url) > 255:

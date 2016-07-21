@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 import os.path
 import sys
-from datetime import timedelta
 
 
 def str2bool(v):
@@ -147,7 +146,7 @@ CELERYD_PREFETCH_MULTIPLIER = 25
 CELERYBEAT_SCHEDULE = {
     'Check All Services': {
         'task': 'hypermap.aggregator.tasks.check_all_services',
-        'schedule': timedelta(minutes=15)
+        'schedule': timedelta(minutes=300)
     },
 }
 
@@ -231,7 +230,7 @@ REGISTRY_PYCSW = {
         # authentication/authorization is handled by Django
         'transactions': 'false',
         'allowed_ips': '*',
-        # 'csw_harvest_pagesize=10',
+        # 'csw_harvest_pagesize': '10',
     },
     'repository': {
         'source': 'HHypermap',
@@ -264,3 +263,10 @@ REGISTRY_PYCSW = {
         'contact_role': 'pointOfContact'
     }
 }
+
+# hypermap settings
+
+# if DEBUG_SERVICES is set to True, only first DEBUG_LAYERS_NUMBER layers
+# for each service are updated and checked
+DEBUG_SERVICES = str2bool(os.getenv('DEBUG_SERVICES', 'False'))
+DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '10'))

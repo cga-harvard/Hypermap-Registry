@@ -61,6 +61,7 @@
               {% elif SEARCH_TYPE == 'solr' %}
               <a href="{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true</a>
               {% endif %}
+              <li>Metadata: <a href="{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}" target="new">{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}</a></li>
               </li>
             {% endif %}
           </ul>
