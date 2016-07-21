@@ -39,60 +39,60 @@ def elasticsearch(serializer):
     must_array = []
     filter_dic = {}
 
-    #String searching
+    # String searching
     if q_text:
         query_string = {
-            "query_string" :{
-                    "query":q_text
-                            }
-                        }
-        #add string searching
+            "query_string": {
+                "query": q_text
+            }
+        }
+        # add string searching
         must_array.append(query_string)
 
     if q_time:
-    	#check if q_time exists
-	q_time = str(q_time) #check string
-	shortener =  q_time[1:-10]
-	shortener = shortener.split(" TO ")
-	gte = shortener[0]+"T00:00:00" #greater than
-	lte = shortener[1]+"T00:00:00" #less than
-	range_time = {
-	  "range":{
-	     "layer_date": {
-	         "gte": gte,
-	          "lte": lte
-	           }
-	       }
-	 }
-    	#add time query
-    	must_array.append(range_time)
+        # check if q_time exists
+        q_time = str(q_time)  # check string
+        shortener = q_time[1:-10]
+        shortener = shortener.split(" TO ")
+        gte = shortener[0] + "T00:00:00"  # greater than
+        lte = shortener[1] + "T00:00:00"  # less than
+        range_time = {
+            "range": {
+                "layer_date": {
+                    "gte": gte,
+                    "lte": lte
+                }
+            }
+        }
+        # add time query
+        must_array.append(range_time)
 
-    #geo_shape searching
+    # geo_shape searching
     if q_geo:
         q_geo = str(q_geo)
         q_geo = q_geo[1:-1]
-        Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
-        Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
+        Ymin, Xmin = q_geo.split(" TO ")[0].split(",")
+        Ymax, Xmax = q_geo.split(" TO ")[1].split(",")
 
         geoshape_query = {
-                    "layer_geoshape":{
-                        "shape":{
-                         "type":"envelope",
-                         "coordinates":[[Xmin,Ymax],[Xmax,Ymin]]
-                        },
-                        "relation":"within"
-                    }
+            "layer_geoshape": {
+                "shape": {
+                    "type": "envelope",
+                    "coordinates": [[Xmin, Ymax], [Xmax, Ymin]]
+                },
+                "relation": "within"
+            }
         }
         filter_dic["geo_shape"] = geoshape_query
 
         dic_query = {
             "query": {
-                    "bool":{
-                        "must":must_array,
-                        "filter":filter_dic
-                        }
-                    }
-                 }
+                "bool": {
+                    "must": must_array,
+                    "filter": filter_dic
+                }
+            }
+        }
 
     if d_docs_limit:
         dic_query["size"] = int(d_docs_limit)
@@ -108,11 +108,9 @@ def elasticsearch(serializer):
 
     data = {}
 
-
     if 'error' in es_response:
         data["error"] = es_response["error"]
         return 400, data
-
 
     hits = es_response.get("hits")
     data["a.matchDocs"] = hits.get("total")
@@ -322,7 +320,7 @@ def solr(serializer):
     }
 
     data["timing"] = timing
-    data["solr_request_url"] = res.url
+    data["request_url"] = res.url
 
     return data
 
