@@ -51,20 +51,34 @@ def elasticsearch(serializer):
 
     if q_time:
     	#check if q_time exists
-	    q_time = str(q_time) #check string
-	    shortener = q_time[1:-1]
-	    shortener = shortener.split(" TO ")
-	    gte = shortener[0] #greater than
-	    lte = shortener[1] #less than
-	    range_time = {
-	       "range":{
-	          "layer_date": {
-	               "gte": gte,
-	                "lte":lte}
-	                }
-	    }
-    	    #add time query
-    	    must_array.append(range_time)
+	q_time = str(q_time) #check string
+	shortener = q_time[1:-1]
+        shortener = shortener.split(" TO ")
+        gte = shortener[0] #greater than
+        lte = shortener[1] #less than
+        layer_date = {}
+        if gte == '*' and lte != '*':
+           layer_date["lte"] = lte
+           range_time = {
+	     "layer_date":layer_date
+	              }
+	   range_time = {"range":range_time}
+	   must_array.append(range_time)
+	if gte != '*' and lte == '*':
+	   layer_date["gte"] = gte
+	   range_time = {
+             "layer_date":layer_date
+                }
+	   range_time = {"range":range_time}
+	   must_array.append(range_time)	   
+        if gte != '*' and lte != '*':
+	   layer_date["gte"] = gte
+	   layer_date["lte"] = lte
+	   range_time = {
+            "range":layer_date
+                }
+	   range_time = {"range":range_time}
+           must_array.append(range_time)
 
     #geo_shape searching
     if q_geo:
