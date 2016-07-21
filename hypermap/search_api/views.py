@@ -50,19 +50,19 @@ def elasticsearch(serializer):
 
     if q_time:
     	#check if q_time exists
-	    q_time = str(q_time) #check string
-	    shortener =  q_time[1:-10]
-	    shortener = shortener.split(" TO ")
-	    gte = shortener[0]+"T00:00:00" #greater than
-	    lte = shortener[1]+"T00:00:00" #less than
-	    range_time = {
-	        "range":{
-	         "layer_date": {
-	            "gte": gte,
-	            "lte": lte
-	            }
-	            }
-	    }
+	q_time = str(q_time) #check string
+	shortener =  q_time[1:-10]
+	shortener = shortener.split(" TO ")
+	gte = shortener[0]+"T00:00:00" #greater than
+	lte = shortener[1]+"T00:00:00" #less than
+	range_time = {
+	  "range":{
+	     "layer_date": {
+	         "gte": gte,
+	          "lte": lte
+	           }
+	       }
+	 }
     	#add time query
     	must_array.append(range_time)
 
