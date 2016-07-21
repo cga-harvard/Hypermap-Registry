@@ -1,10 +1,9 @@
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+import json
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
 from .serializers import SearchSerializer
-import json
 
 # - OPEN API specs
 # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
@@ -28,11 +27,11 @@ def elasticsearch(serializer):
     search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
 
     q_text = serializer.validated_data.get("q_text")
-    q_geo = serializer.validated_data.get("q_geo")
     q_time = serializer.validated_data.get("q_time")
+    q_geo = serializer.validated_data.get("q_geo")
+    q_text = serializer.validated_data.get("q_text")
     d_docs_limit = serializer.validated_data.get("d_docs_limit")
     d_docs_page = serializer.validated_data.get("d_docs_page")
-
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
 
     ## Dict for search on Elastic engine
@@ -73,7 +72,6 @@ def elasticsearch(serializer):
         q_geo = q_geo[1:-1]
         Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
         Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
-
         geoshape_query = {
                     "layer_geoshape":{
                         "shape":{
@@ -85,14 +83,23 @@ def elasticsearch(serializer):
         }
         filter_dic["geo_shape"] = geoshape_query
 
-        dic_query = {
-            "query": {
-                    "bool":{
-                        "must":must_array,
-                        "filter":filter_dic
-                        }
+    if q_user:
+        #Using q_user
+        user_searching = {
+            "match" :{
+                "layer_originator":q_user
                     }
-                 }
+                    }
+        must_array.append(user_searching)
+
+    dic_query = {
+        "query": {
+            "bool":{
+                "must":must_array,
+                "filter":filter_dic
+                    }
+                }
+             }
 
     if d_docs_limit:
         dic_query["size"] = int(d_docs_limit)
@@ -108,11 +115,9 @@ def elasticsearch(serializer):
 
     data = {}
 
-
     if 'error' in es_response:
         data["error"] = es_response["error"]
         return 400, data
-
 
     hits = es_response.get("hits")
     data["a.matchDocs"] = hits.get("total")
