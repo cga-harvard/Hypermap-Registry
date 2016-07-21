@@ -32,7 +32,7 @@ class TestWMS(unittest.TestCase):
         self.assertEqual(layer_0.title, 'Rivers')
         self.assertTrue(layer_0.is_public)
         self.assertEqual(layer_0.keywords.all().count(), 3)
-        self.assertEqual(layer_0.srs.all().count(), 2)
+        self.assertEqual(layer_0.service.srs.all().count(), 2)
         self.assertEqual(layer_0.check_set.all().count(), 1)
         # TODO test layer_0.layerdate_set
 

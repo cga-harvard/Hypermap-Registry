@@ -85,15 +85,15 @@ ssh-rsa AAAAB3NzaC1yc2E... /Users/capooti/.ssh/cga.pem
 
 Finally run the playbook:
 
-ansible-playbook aws.yml
+ansible-playbook deploy/ansible/aws.yml
 
 If you want to run only a part of the provisioning process use the --tags option:
 
-ansible-playbook aws.yml --tags "uwsgi"
+ansible-playbook deploy/ansible/aws.yml --tags "uwsgi"
 
 To make a new deployment, after committing to git, run:
 
-ansible-playbook deploy.yml
+ansible-playbook deploy/ansible/deploy.yml
 
 
 ### Manual Installation
@@ -175,8 +175,7 @@ endpoints to Hypermap. So go to the administrative interface:
 
 http://localhost:8000/admin/
 
-Go to Service and add a service of WMS type. As a endpoint you can use this one:
-http://demo.geonode.org/geoserver/ows?service=wms&version=1.1.1&request=GetCapabilities
+Go to Endpoint List and add an endpoint list, for example the one included in /data.
 
 After saving, Hypermap should be start harvesting the endpoint.
 

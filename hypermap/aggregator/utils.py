@@ -7,11 +7,14 @@ import math
 import traceback
 from urlparse import urlparse
 
+from django.conf import settings
+from owslib.csw import CatalogueServiceWeb
 from owslib.wms import WebMapService
 from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder
 
+from hypermap.aggregator.enums import SERVICE_TYPES
 
 LOGGER = logging.getLogger(__name__)
 
@@ -39,11 +42,11 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         return None
 
 
-def create_services_from_endpoint(url):
+def create_services_from_endpoint(url, greedy_opt=True):
     """
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
-    ESRI, CWS endpoints corrispond to many services.
+    ESRI, CSW endpoints corrispond to many services.
     """
     num_created = 0
     endpoint = get_sanitized_endpoint(url)
@@ -75,7 +78,67 @@ def create_services_from_endpoint(url):
         abstract = 'Warper at %s' % domain
         detected = True
 
-    # test if it is WMS, TMS, WMTS or Esri
+    # test if it is CSW, WMS, TMS, WMTS or Esri
+    # CSW
+    try:
+        csw = CatalogueServiceWeb(endpoint)
+        service_links = {}
+        detected = True
+
+        typenames = 'csw:Record'
+        outputschema = 'http://www.opengis.net/cat/csw/2.0.2'
+
+        if 'csw_harvest_pagesize' in settings.PYCSW['manager']:
+            pagesize = int(settings.PYCSW['manager']['csw_harvest_pagesize'])
+        else:
+            pagesize = 10
+
+        print 'Harvesting CSW %s' % endpoint
+        # now get all records
+        # get total number of records to loop against
+        try:
+            csw.getrecords2(typenames=typenames, resulttype='hits',
+                            outputschema=outputschema)
+            matches = csw.results['matches']
+        except:  # this is a CSW, but server rejects query
+            raise RuntimeError(csw.response)
+
+        if pagesize > matches:
+            pagesize = matches
+
+        print 'Harvesting %d CSW records' % matches
+
+        # loop over all catalogue records incrementally
+        for r in range(1, matches+1, pagesize):
+            try:
+                csw.getrecords2(typenames=typenames, startposition=r,
+                                maxrecords=pagesize, outputschema=outputschema, esn='full')
+            except Exception as err:  # this is a CSW, but server rejects query
+                raise RuntimeError(csw.response)
+            for k, v in csw.records.items():
+                # try to parse metadata
+                try:
+                    LOGGER.info('Looking for service links')
+                    if v.references:  # not empty
+                        for ref in v.references:
+                            if ref['scheme'] in [st[0] for st in SERVICE_TYPES]:
+                                if ref['url'] not in service_links:
+                                    service_links[ref['url']] = ref['scheme']
+                except Exception as err:  # parsing failed for some reason
+                    LOGGER.warning('Metadata parsing failed %s', err)
+
+        LOGGER.info('Service links found: %s', service_links)
+        for k, v in service_links.items():
+            try:
+                service = create_service_from_endpoint(k, v)
+                if service is not None:
+                    num_created = num_created + 1
+            except Exception as err:
+                raise RuntimeError('HHypermap error: %s' % err)
+
+    except Exception as e:
+        print str(e)
+
     # WMS
     if not detected:
         try:
@@ -101,7 +164,8 @@ def create_services_from_endpoint(url):
     # WMTS
     if not detected:
         try:
-            service = WebMapTileService(endpoint, timeout=10)
+            # @tomkralidis timeout is not implemented for WebMapTileService?
+            service = WebMapTileService(endpoint)
             service_type = 'OGC:WMTS'
             title = service.identification.title,
             abstract = service.identification.abstract
@@ -129,6 +193,7 @@ def create_services_from_endpoint(url):
     # we can safely assume the following condition (at least it is true for 1170 services)
     # we need to test this as ArcFolder can freeze with not esri url such as this one:
     # http://hh.worldmap.harvard.edu/admin/aggregator/service/?q=%2Frest%2Fservices
+
     if '/rest/services' in endpoint:
         if not detected:
             try:
@@ -139,17 +204,19 @@ def create_services_from_endpoint(url):
                 detected = True
 
                 # root
-                root_services = process_esri_services(services)
-                num_created = num_created + len(root_services)
+                if greedy_opt:
+                    root_services = process_esri_services(services)
+                    num_created = num_created + len(root_services)
 
-                # folders
-                for folder in esri.folders:
-                    folder_services = process_esri_services(folder.services)
+                # Enable the user to fetch a single service of a single folder.
+                if not greedy_opt:
+                    folder = [folder for folder in esri.folders if url.split('/')[6] in str(folder.url)][0]
+                    single_service = [s for s in folder.services if url.split('/')[7] == s.url.split('/')[7]]
+                    folder_services = process_esri_services(single_service)
                     num_created = num_created + len(folder_services)
 
             except Exception as e:
                 print str(e)
-
     if detected:
         return True, '%s service/s created' % num_created
     else:
@@ -159,25 +226,29 @@ def create_services_from_endpoint(url):
 def process_esri_services(esri_services):
     services_created = []
     for esri_service in esri_services:
-        # for now we process only MapServer and ImageServer
-        if '/MapServer/' in esri_service.url or '/ImageServer/' in esri_service.url:
-            if '/ImageServer/' in esri_service.url:
+        # for now we process only MapServer
+        if '/MapServer/' in esri_service.url:
+            # we import only MapServer with at least one layer
+            if hasattr(esri_service, 'layers'):
                 service = create_service_from_endpoint(
                     esri_service.url,
-                    'ESRI:ArcGIS:ImageServer',
-                    '',
-                    esri_service.serviceDescription
+                    'ESRI:ArcGIS:MapServer',
+                    esri_service.mapName,
+                    esri_service.description
                 )
-            if '/MapServer/' in esri_service.url:
-                # we import only MapServer with at least one layer
-                if hasattr(esri_service, 'layers'):
-                    service = create_service_from_endpoint(
-                        esri_service.url,
-                        'ESRI:ArcGIS:MapServer',
-                        esri_service.mapName,
-                        esri_service.description
-                    )
             services_created.append(service)
+
+        # Don't process ImageServer until the following issue has been resolved:
+        # https://github.com/mapproxy/mapproxy/issues/235
+        #if '/ImageServer/' in esri_service.url:
+        #    service = create_service_from_endpoint(
+        #        esri_service.url,
+        #        'ESRI:ArcGIS:ImageServer',
+        #        '',
+        #        esri_service.serviceDescription
+        #    )
+        #     services_created.append(service)
+
     return services_created
 
 
