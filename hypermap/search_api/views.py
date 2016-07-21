@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
 from .serializers import SearchSerializer
+import json
 
 # - OPEN API specs
 # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
@@ -52,8 +53,9 @@ def elasticsearch(serializer):
     if q_geo:
         q_geo = str(q_geo)
         q_geo = q_geo[1:-1]
-        Xmin,Ymin =  q_geo.split(" TO ")[0].split(",")
-        Xmax,Ymax =  q_geo.split(" TO ")[1].split(",")
+        Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
+        Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
+
         geoshape_query = {
                     "layer_geoshape":{
                         "shape":{
@@ -87,6 +89,12 @@ def elasticsearch(serializer):
         return es_response
 
     data = {}
+
+
+    if 'error' in es_response:
+        data["error"] = es_response["error"]
+        return 400, data
+
 
     hits = es_response.get("hits")
     data["a.matchDocs"] = hits.get("total")
