@@ -1052,6 +1052,7 @@ def update_layers_wm(service):
             if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
                 return
 
+
 def update_layers_warper(service):
     """
     Update layers for a Warper service.
