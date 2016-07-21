@@ -49,12 +49,12 @@ def elasticsearch(serializer):
         must_array.append(query_string)
 
     if q_time:
-    #check if q_time exists
-	    q_time = str(q_time)
+    	#check if q_time exists
+	    q_time = str(q_time) #check string
 	    shortener =  q_time[1:-10]
 	    shortener = shortener.split(" TO ")
-	    gte = shortener[0]+"T00:00:00"
-	    lte = shortener[1]+"T00:00:00"
+	    gte = shortener[0]+"T00:00:00" #greater than
+	    lte = shortener[1]+"T00:00:00" #less than
 	    range_time = {
 	        "range":{
 	         "layer_date": {
@@ -63,7 +63,7 @@ def elasticsearch(serializer):
 	            }
 	            }
 	    }
-    	#add string range time
+    	#add time query
     	must_array.append(range_time)
 
     #geo_shape searching
