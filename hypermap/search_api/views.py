@@ -1,7 +1,7 @@
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+import json
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
 from .serializers import SearchSerializer
 
