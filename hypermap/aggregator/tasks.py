@@ -38,6 +38,10 @@ def check_service(self, service):
     service.update_layers()
     # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
+
+    if settings.DEBUG_SERVICES:
+        layer_to_process = layer_to_process[0:settings.DEBUG_LAYERS_NUMBER]
+
     total = layer_to_process.count() + 2
     status_update(1)
     service.check_available()
