@@ -29,7 +29,7 @@ def elasticsearch(serializer):
     q_text = serializer.validated_data.get("q_text")
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
-    q_text = serializer.validated_data.get("q_text")
+    q_user = serializer.validated_data.get("q_user")
     d_docs_limit = serializer.validated_data.get("d_docs_limit")
     d_docs_page = serializer.validated_data.get("d_docs_page")
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
