@@ -36,6 +36,7 @@ def check_service(self, service):
 
     status_update(0)
     service.update_layers()
+    service.index_layers()
     # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
     total = layer_to_process.count() + 2

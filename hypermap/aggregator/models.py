@@ -256,6 +256,14 @@ class Service(Resource):
             update_layers_warper(self)
         signals.post_save.connect(layer_post_save, sender=Layer)
 
+    def index_layers(self):
+        """
+        Index all layers for this service.
+        """
+        if settings.SEARCH_ENABLED:
+            for layer in self.layer_set.all():
+                index_layer(layer)
+
     def check_available(self):
         """
         Check for availability of a service and provide run metrics.
@@ -1204,6 +1212,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
     f = instance.upload
     f.open(mode='rb')
     lines = f.readlines()
+    #FIXME: sometimes file uploads complete but content comes empty.
     for url in lines:
         if len(url) > 255:
             print 'Skipping this enpoint, as it is more than 255 characters: %s' % url
