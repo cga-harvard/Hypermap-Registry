@@ -1,9 +1,10 @@
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import json
+
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
 from .serializers import SearchSerializer
+import json
 
 # - OPEN API specs
 # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
@@ -50,21 +51,20 @@ def elasticsearch(serializer):
 
     if q_time:
     	#check if q_time exists
-	q_time = str(q_time) #check string
-	shortener =  q_time[1:-10]
-	shortener = shortener.split(" TO ")
-	gte = shortener[0]+"T00:00:00" #greater than
-	lte = shortener[1]+"T00:00:00" #less than
-	range_time = {
-	  "range":{
-	     "layer_date": {
-	         "gte": gte,
-	          "lte": lte
-	           }
-	       }
-	 }
-    	#add time query
-    	must_array.append(range_time)
+	    q_time = str(q_time) #check string
+	    shortener = q_time[1:-1]
+	    shortener = shortener.split(" TO ")
+	    gte = shortener[0] #greater than
+	    lte = shortener[1] #less than
+	    range_time = {
+	       "range":{
+	          "layer_date": {
+	               "gte": gte,
+	                "lte":lte}
+	                }
+	    }
+    	    #add time query
+    	    must_array.append(range_time)
 
     #geo_shape searching
     if q_geo:
@@ -100,7 +100,7 @@ def elasticsearch(serializer):
                     }
                 }
             }
-    #Page  
+    #Page
     if d_docs_limit:
         dic_query["size"] = int(d_docs_limit)
 
@@ -119,9 +119,8 @@ def elasticsearch(serializer):
         data["error"] = es_response["error"]
         return 400, data
 
-    hits = es_response.get("hits")
-    data["a.matchDocs"] = hits.get("total")
-    data["d.docs"] = hits.get("hits")
+    data["a.matchDocs"] = es_response['hits']['total']
+    data["d.docs"] = es_response['hits']['hits']
 
     return data
 
