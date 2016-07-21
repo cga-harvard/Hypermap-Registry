@@ -27,11 +27,11 @@ def elasticsearch(serializer):
     search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
 
     q_text = serializer.validated_data.get("q_text")
+    q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
     q_text = serializer.validated_data.get("q_text")
     d_docs_limit = serializer.validated_data.get("d_docs_limit")
     d_docs_page = serializer.validated_data.get("d_docs_page")
-
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
 
     ## Dict for search on Elastic engine
@@ -47,6 +47,24 @@ def elasticsearch(serializer):
                         }
         #add string searching
         must_array.append(query_string)
+
+    if q_time:
+    #check if q_time exists
+	    q_time = str(q_time)
+	    shortener =  q_time[1:-10]
+	    shortener = shortener.split(" TO ")
+	    gte = shortener[0]+"T00:00:00"
+	    lte = shortener[1]+"T00:00:00"
+	    range_time = {
+	        "range":{
+	         "layer_date": {
+	            "gte": gte,
+	            "lte": lte
+	            }
+	            }
+	    }
+    	#add string range time
+    	must_array.append(range_time)
 
     #geo_shape searching
     if q_geo:
