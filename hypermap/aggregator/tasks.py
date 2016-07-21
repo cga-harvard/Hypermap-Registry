@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from django.conf import settings
 
-from celery import shared_task, chain
+from celery import shared_task
 
 
 @shared_task(bind=True)
@@ -49,13 +49,11 @@ def check_service(self, service):
     count = 3
 
     if not settings.SKIP_CELERY_TASK:
-        tasks = []
         for layer in layer_to_process:
             # update state
             status_update(count)
-            tasks.append(check_layer.si(layer))
+            check_layer.delay(layer)
             count += 1
-        chain(tasks)()
     else:
         for layer in layer_to_process:
             status_update(count)
@@ -223,14 +221,8 @@ def update_endpoints(self, endpoint_list):
     total = endpoint_to_process.count()
     count = 0
     if not settings.SKIP_CELERY_TASK:
-        # the task workflow must be a group of serials requests to each endpoint.
-        # The celery chains links together signatures so that one is called after the other.
-        tasks = []
         for endpoint in endpoint_to_process:
-            # use immutable signatures, we dont want the result of the previous
-            # task in the celery chain for the next task.
-            tasks.append(update_endpoint.si(endpoint))
-        chain(tasks)()
+            update_endpoint.delay(endpoint)
         # update state
         if not self.request.called_directly:
             self.update_state(
