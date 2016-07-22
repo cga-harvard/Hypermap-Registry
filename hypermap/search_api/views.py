@@ -86,7 +86,6 @@ def elasticsearch(serializer):
         q_geo = q_geo[1:-1]
         Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
         Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
-
         geoshape_query = {
             "layer_geoshape": {
                 "shape": {
