@@ -28,11 +28,11 @@ def elasticsearch(serializer):
     search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
 
     q_text = serializer.validated_data.get("q_text")
+    q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
-    q_text = serializer.validated_data.get("q_text")
+    q_user = serializer.validated_data.get("q_user")
     d_docs_limit = serializer.validated_data.get("d_docs_limit")
     d_docs_page = serializer.validated_data.get("d_docs_page")
-
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
 
     ## Dict for search on Elastic engine
@@ -49,13 +49,43 @@ def elasticsearch(serializer):
         #add string searching
         must_array.append(query_string)
 
+    if q_time:
+    	#check if q_time exists
+	q_time = str(q_time) #check string
+	shortener = q_time[1:-1]
+        shortener = shortener.split(" TO ")
+        gte = shortener[0] #greater than
+        lte = shortener[1] #less than
+        layer_date = {}
+        if gte == '*' and lte != '*':
+           layer_date["lte"] = lte
+           range_time = {
+	     "layer_date":layer_date
+	              }
+	   range_time = {"range":range_time}
+	   must_array.append(range_time)
+	if gte != '*' and lte == '*':
+	   layer_date["gte"] = gte
+	   range_time = {
+             "layer_date":layer_date
+                }
+	   range_time = {"range":range_time}
+	   must_array.append(range_time)	   
+        if gte != '*' and lte != '*':
+	   layer_date["gte"] = gte
+	   layer_date["lte"] = lte
+	   range_time = {
+            "range":layer_date
+                }
+	   range_time = {"range":range_time}
+           must_array.append(range_time)
+
     #geo_shape searching
     if q_geo:
         q_geo = str(q_geo)
         q_geo = q_geo[1:-1]
         Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
         Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
-
         geoshape_query = {
                     "layer_geoshape":{
                         "shape":{
@@ -67,15 +97,24 @@ def elasticsearch(serializer):
         }
         filter_dic["geo_shape"] = geoshape_query
 
-        dic_query = {
-            "query": {
-                    "bool":{
-                        "must":must_array,
-                        "filter":filter_dic
-                        }
+    if q_user:
+        #Using q_user
+        user_searching = {
+            "match" :{
+                "layer_originator":q_user
                     }
-                 }
+                    }
+        must_array.append(user_searching)
 
+    dic_query = {
+        "query": {
+            "bool":{
+                "must":must_array,
+                "filter":filter_dic
+                    }
+                }
+            }
+    #Page
     if d_docs_limit:
         dic_query["size"] = int(d_docs_limit)
 
@@ -90,15 +129,12 @@ def elasticsearch(serializer):
 
     data = {}
 
-
     if 'error' in es_response:
         data["error"] = es_response["error"]
         return 400, data
 
-
-    hits = es_response.get("hits")
-    data["a.matchDocs"] = hits.get("total")
-    data["d.docs"] = hits.get("hits")
+    data["a.matchDocs"] = es_response['hits']['total']
+    data["d.docs"] = es_response['hits']['hits']
 
     return data
 
