@@ -203,7 +203,7 @@ def index_all_layers(self):
 def update_endpoint(self, endpoint, greedy_opt=True):
     from hypermap.aggregator.utils import create_services_from_endpoint
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
-    imported, message = create_services_from_endpoint(endpoint.url, greedy_opt)
+    imported, message = create_services_from_endpoint(endpoint.url, greedy_opt=greedy_opt, catalog=endpoint.catalog)
     endpoint.imported = imported
     endpoint.message = message
     endpoint.processed = True

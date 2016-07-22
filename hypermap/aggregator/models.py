@@ -242,6 +242,9 @@ class Service(Resource):
     """
 
     srs = models.ManyToManyField(SpatialReferenceSystem, blank=True)
+    catalog = models.ForeignKey(
+        "Catalog", null=True, blank=True
+    )
 
     @property
     def get_domain(self):
@@ -398,14 +401,25 @@ class Catalog(models.Model):
     Represents a collection of layers to be searched.
     """
     name = models.CharField(
-        max_length=255
+        max_length=255,
+        help_text="Display name in UI"
     )
     slug = AutoSlugField(
         populate_from='name'
     )
+    api_url = models.URLField(
+        max_length=255,
+        help_text="URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/"
+    )
+    identifier = models.CharField(
+        max_length=255,
+        help_text="Identifier string in search backend. AKA: indice or core name. ex: hypermap"
+    )
 
     def __unicode__(self):
-        return self.name
+        return '{0} [{1}:{2}]'.format(
+            self.name, self.slug, self.api_url
+        )
 
 
 class Layer(Resource):
@@ -421,7 +435,7 @@ class Layer(Resource):
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
     page_url = models.URLField(max_length=255)
     service = models.ForeignKey(Service)
-    catalogs = models.ManyToManyField(Catalog)
+    catalog = models.ForeignKey(Catalog)
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.name)
@@ -674,11 +688,6 @@ class Layer(Resource):
     def get_absolute_url(self):
         return reverse('layer_detail', args=(self.id,))
 
-    def get_catalogs_slugs(self):
-        return list(
-            self.catalogs.all().values_list("slug", flat=True)
-        )
-
 
 class LayerDate(models.Model):
     """
@@ -716,6 +725,7 @@ class EndpointList(models.Model):
     """
     upload = models.FileField(upload_to='endpoint_lists')
     greedy = models.BooleanField(default=False)
+    catalog = models.ForeignKey(Catalog)
 
     def __unicode__(self):
         return self.upload.name
@@ -736,6 +746,9 @@ class Endpoint(models.Model):
     message = models.TextField(blank=True, null=True)
     url = models.URLField(unique=True, max_length=255)
     endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
+    catalog = models.ForeignKey(
+        Catalog, default=True, blank=True
+    )
 
     @property
     def id_string(self):
@@ -860,7 +873,7 @@ def update_layers_wms(service):
         ows_layer = wms.contents[layer_name]
         print 'Updating layer %s' % ows_layer.name
         # get or create layer
-        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
+        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service, catalog=service.catalog)
         if layer.active:
             links = [['OGC:WMS', service.url]]
             # update fields
@@ -927,7 +940,7 @@ def update_layers_wmts(service):
     for layer_name in layer_names:
         ows_layer = wmts.contents[layer_name]
         print 'Updating layer %s' % ows_layer.name
-        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
+        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service, catalog=service.catalog)
         if layer.active:
             links = [['OGC:WMTS', service.url]]
             layer.type = 'OGC:WMTS'
@@ -1021,7 +1034,7 @@ def update_layers_wm(service):
             if '_permissions' in row:
                 if not row['_permissions']['view']:
                     is_public = False
-            layer, created = Layer.objects.get_or_create(name=name, service=service)
+            layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
             if layer.active:
                 # update fields
                 layer.type = 'Hypermap:WorldMap'
@@ -1103,7 +1116,7 @@ def update_layers_warper(service):
                 dates.append(layer['depicts_year'])
             if 'issue_year' in layer:
                 dates.append(layer['issue_year'])
-            layer, created = Layer.objects.get_or_create(name=name, service=service)
+            layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
             if layer.active:
                 # update fields
                 layer.type = 'Hypermap:WARPER'
@@ -1172,7 +1185,7 @@ def update_layers_esri_mapserver(service):
             print 'This ESRI REST endpoint has an WMS interface to process: %s' % wms_url
             # import here as otherwise is circular (TODO refactor)
             from utils import create_service_from_endpoint
-            create_service_from_endpoint(wms_url, 'OGC:WMS')
+            create_service_from_endpoint(wms_url, 'OGC:WMS', catalog=service.catalog)
     # now process the REST interface
     layer_n = 0
     total = len(esri_service.layers)
@@ -1184,7 +1197,7 @@ def update_layers_esri_mapserver(service):
         # {u'message': u'An unexpected error occurred processing the request.', u'code': 500, u'details': []}}
         if 'error' not in esri_layer._json_struct:
             print 'Updating layer %s' % esri_layer.name
-            layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
+            layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service, catalog=service.catalog)
             if layer.active:
                 layer.type = 'ESRI:ArcGIS:MapServer'
                 links = [[layer.type, service.url]]
@@ -1247,7 +1260,7 @@ def update_layers_esri_imageserver(service):
     srs_code = obj['spatialReference']['wkid']
     srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
     service.srs.add(srs)
-    layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
+    layer, created = Layer.objects.get_or_create(name=obj['name'], service=service, catalog=service.catalog)
     if layer.active:
         layer.type = 'ESRI:ArcGIS:ImageServer'
         links = [[layer.type, service.url]]
@@ -1296,6 +1309,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
         else:
             if Endpoint.objects.filter(url=url).count() == 0:
                 endpoint = Endpoint(url=url, endpoint_list=instance)
+                endpoint.catalog = instance.catalog
                 endpoint.save()
     if not settings.SKIP_CELERY_TASK:
         update_endpoints.delay(instance)

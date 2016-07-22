@@ -19,7 +19,7 @@ from hypermap.aggregator.enums import SERVICE_TYPES
 LOGGER = logging.getLogger(__name__)
 
 
-def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None):
+def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None, catalog=None):
     """
     Create a service from an endpoint if it does not already exists.
     """
@@ -31,7 +31,7 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
             print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
             service = Service(
                  type=service_type, url=endpoint, title=title, abstract=abstract,
-                 csw_type='service'
+                 csw_type='service', catalog=catalog
             )
             service.save()
             return service
@@ -42,7 +42,7 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         return None
 
 
-def create_services_from_endpoint(url, greedy_opt=True):
+def create_services_from_endpoint(url, catalog, greedy_opt=True):
     """
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
@@ -130,7 +130,7 @@ def create_services_from_endpoint(url, greedy_opt=True):
         LOGGER.info('Service links found: %s', service_links)
         for k, v in service_links.items():
             try:
-                service = create_service_from_endpoint(k, v)
+                service = create_service_from_endpoint(k, v, catalog=catalog)
                 if service is not None:
                     num_created = num_created + 1
             except Exception as err:
@@ -180,7 +180,8 @@ def create_services_from_endpoint(url, greedy_opt=True):
                 endpoint,
                 service_type,
                 title,
-                abstract=abstract
+                abstract=abstract,
+                catalog=catalog
             )
             if service is not None:
                 num_created = num_created + 1
@@ -205,14 +206,14 @@ def create_services_from_endpoint(url, greedy_opt=True):
 
                 # root
                 if greedy_opt:
-                    root_services = process_esri_services(services)
+                    root_services = process_esri_services(services, catalog=catalog)
                     num_created = num_created + len(root_services)
 
                 # Enable the user to fetch a single service of a single folder.
                 if not greedy_opt:
                     folder = [folder for folder in esri.folders if url.split('/')[6] in str(folder.url)][0]
                     single_service = [s for s in folder.services if url.split('/')[7] == s.url.split('/')[7]]
-                    folder_services = process_esri_services(single_service)
+                    folder_services = process_esri_services(single_service, catalog=catalog)
                     num_created = num_created + len(folder_services)
 
             except Exception as e:
@@ -223,7 +224,7 @@ def create_services_from_endpoint(url, greedy_opt=True):
         return False, 'ERROR! Could not detect service type for endpoint %s or already existing' % endpoint
 
 
-def process_esri_services(esri_services):
+def process_esri_services(esri_services, catalog):
     services_created = []
     for esri_service in esri_services:
         # for now we process only MapServer
@@ -234,9 +235,10 @@ def process_esri_services(esri_services):
                     esri_service.url,
                     'ESRI:ArcGIS:MapServer',
                     esri_service.mapName,
-                    esri_service.description
+                    esri_service.description,
+                    catalog=catalog
                 )
-            services_created.append(service)
+                services_created.append(service)
 
         # Don't process ImageServer until the following issue has been resolved:
         # https://github.com/mapproxy/mapproxy/issues/235
