@@ -82,6 +82,7 @@ def create_services_from_endpoint(url):
     # CSW
     try:
         csw = CatalogueServiceWeb(endpoint)
+        service_type = 'OGC:CSW'
         service_links = {}
         detected = True
 
@@ -174,7 +175,7 @@ def create_services_from_endpoint(url):
             print str(e)
 
     # if detected, let's create the service
-    if detected:
+    if detected and service_type != 'OGC:CSW':
         try:
             service = create_service_from_endpoint(
                 endpoint,
