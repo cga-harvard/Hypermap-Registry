@@ -29,7 +29,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
-from tasks import update_endpoints, check_service, check_layer, index_layer
+from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
 from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
@@ -1293,6 +1293,16 @@ def endpointlist_post_save(instance, *args, **kwargs):
         update_endpoints(instance)
 
 
+def endpoint_post_save(instance, *args, **kwargs):
+    if Endpoint.objects.filter(url=instance.url).count() == 0:
+        endpoint = Endpoint(url=instance.url)
+        endpoint.save()
+    if not settings.SKIP_CELERY_TASK:
+        update_endpoint.delay(instance)
+    else:
+        update_endpoint(instance)
+
+
 def service_pre_save(instance, *args, **kwargs):
     """
     Used to do a service full check when saving it.
@@ -1325,6 +1335,7 @@ def layer_post_save(instance, *args, **kwargs):
         check_layer(instance)
 
 
+signals.post_save.connect(endpoint_post_save, sender=Endpoint)
 signals.post_save.connect(endpointlist_post_save, sender=EndpointList)
 signals.pre_save.connect(service_pre_save, sender=Service)
 signals.post_save.connect(service_post_save, sender=Service)
