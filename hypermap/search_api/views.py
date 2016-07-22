@@ -39,14 +39,14 @@ def elasticsearch(serializer):
     must_array = []
     filter_dic = {}
 
-    #String searching
+    # String searching
     if q_text:
         query_string = {
-            "query_string" :{
-                    "query":q_text
-                            }
-                        }
-        #add string searching
+            "query_string": {
+                "query": q_text
+            }
+        }
+        # add string searching
         must_array.append(query_string)
 
     if q_time:
@@ -86,14 +86,15 @@ def elasticsearch(serializer):
         q_geo = q_geo[1:-1]
         Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
         Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
+
         geoshape_query = {
-                    "layer_geoshape":{
-                        "shape":{
-                         "type":"envelope",
-                         "coordinates":[[Xmin,Ymax],[Xmax,Ymin]]
-                        },
-                        "relation":"within"
-                    }
+            "layer_geoshape": {
+                "shape": {
+                    "type": "envelope",
+                    "coordinates": [[Xmin, Ymax], [Xmax, Ymin]]
+                },
+                "relation": "within"
+            }
         }
         filter_dic["geo_shape"] = geoshape_query
 
@@ -340,7 +341,7 @@ def solr(serializer):
     }
 
     data["timing"] = timing
-    data["solr_request_url"] = res.url
+    data["request_url"] = res.url
 
     return data
 

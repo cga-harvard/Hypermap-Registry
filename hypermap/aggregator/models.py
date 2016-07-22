@@ -269,6 +269,14 @@ class Service(Resource):
             update_layers_warper(self)
         signals.post_save.connect(layer_post_save, sender=Layer)
 
+    def index_layers(self):
+        """
+        Index all layers for this service.
+        """
+        if settings.SEARCH_ENABLED:
+            for layer in self.layer_set.all():
+                index_layer(layer)
+
     def check_available(self):
         """
         Check for availability of a service and provide run metrics.

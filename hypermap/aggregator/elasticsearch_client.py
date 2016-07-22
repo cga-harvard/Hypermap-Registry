@@ -22,6 +22,8 @@ class ESHypermap(object):
     logger = logging.getLogger("hypermap")
 
     def __init__(self):
+        #TODO: this create_indices() should not happen here:
+        # ES creates the indexes automaticaly.
         self.create_indices()
         super(ESHypermap, self).__init__()
 
