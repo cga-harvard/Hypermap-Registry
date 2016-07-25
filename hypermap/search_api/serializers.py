@@ -1,4 +1,6 @@
 import re
+
+from hypermap.aggregator.models import Catalog
 from . import utils
 from rest_framework import serializers
 
@@ -167,3 +169,9 @@ class SearchSerializer(serializers.Serializer):
         if value <= 0:
             raise serializers.ValidationError("d_docs_page cant be zero or negative")
         return value
+
+
+class CatalogSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Catalog
+        fields = ('id', 'slug', 'name', 'api_url', 'identifier')

@@ -1,9 +1,11 @@
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
+from hypermap.aggregator.models import Catalog
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
-from .serializers import SearchSerializer
+from .serializers import SearchSerializer, CatalogSerializer
 import json
 
 # - OPEN API specs
@@ -349,3 +351,9 @@ class Search(APIView):
                 data = data[1]
 
             return Response(data, status=status)
+
+
+class CatalogViewSet(ModelViewSet):
+    queryset = Catalog.objects.all()
+    serializer_class = CatalogSerializer
+
