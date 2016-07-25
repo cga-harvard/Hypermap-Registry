@@ -48,7 +48,7 @@ class CheckAdmin(admin.ModelAdmin):
 
 class EndpointListAdmin(admin.ModelAdmin):
     model = EndpointList
-    list_display = ('upload', 'endpoints_admin_url', 'catalog')
+    list_display = ('id', 'upload', 'endpoints_admin_url', 'catalog')
 
 
 class EndpointAdmin(admin.ModelAdmin):
@@ -67,7 +67,8 @@ class TaskErrorAdmin(admin.ModelAdmin):
 
 class CatalogAdmin(admin.ModelAdmin):
     model = Catalog
-    list_display = ('name', 'slug')
+    list_display = ('name', 'slug', 'identifier')
+    search_fields = ('name', )
 
 
 admin.site.register(Service, ServiceAdmin)

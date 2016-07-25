@@ -252,6 +252,13 @@ class Service(Resource):
         domain = '{uri.netloc}'.format(uri=parsed_uri)
         return domain
 
+    @property
+    def get_absolute_url(self):
+        return '{0}{1}'.format(
+            settings.SITE_URL,
+            reverse("service_detail", args=[self.catalog.slug, self.id])
+        )
+
     def update_layers(self):
         """
         Update layers for a service.
@@ -685,8 +692,12 @@ class Layer(Resource):
         print 'Layer checked in %s seconds, status is %s' % (response_time, success)
         return success, message
 
+    @property
     def get_absolute_url(self):
-        return reverse('layer_detail', args=(self.id,))
+        return '{0}{1}'.format(
+            settings.SITE_URL,
+            reverse("layer_detail", args=[self.catalog.slug, self.id])
+        )
 
 
 class LayerDate(models.Model):
@@ -881,7 +892,7 @@ def update_layers_wms(service):
             layer.title = ows_layer.title
             layer.abstract = ows_layer.abstract
             layer.url = service.url
-            layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+            layer.page_url = layer.get_absolute_url
             links.append([
                 'WWW:LINK',
                 settings.SITE_URL.rstrip('/') + layer.page_url
@@ -954,7 +965,7 @@ def update_layers_wmts(service):
                 for keyword in keywords:
                     layer.keywords.add(keyword)
             layer.url = service.url
-            layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+            layer.page_url = layer.get_absolute_url
             links.append([
                 'WWW:LINK',
                 settings.SITE_URL.rstrip('/') + layer.page_url
@@ -1204,7 +1215,7 @@ def update_layers_esri_mapserver(service):
                 layer.title = esri_layer.name
                 layer.abstract = esri_service.serviceDescription
                 layer.url = service.url
-                layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+                layer.page_url = layer.get_absolute_url
                 links.append([
                     'WWW:LINK',
                     settings.SITE_URL.rstrip('/') + layer.page_url
@@ -1271,7 +1282,7 @@ def update_layers_esri_imageserver(service):
         layer.bbox_y0 = str(obj['extent']['ymin'])
         layer.bbox_x1 = str(obj['extent']['xmax'])
         layer.bbox_y1 = str(obj['extent']['ymax'])
-        layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
+        layer.page_url = layer.get_absolute_url
         links.append([
             'WWW:LINK',
             settings.SITE_URL.rstrip('/') + layer.page_url
