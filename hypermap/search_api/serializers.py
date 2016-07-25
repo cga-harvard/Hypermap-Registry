@@ -7,14 +7,18 @@ from rest_framework import serializers
 
 
 class SearchSerializer(serializers.Serializer):
+
+    #TODO: remove this after catalogs integration:
     search_engine = serializers.ChoiceField(
+        required=False,
         help_text="Where will be running the search.",
         choices=["solr", "elasticsearch"]
     )
     search_engine_endpoint = serializers.URLField(
-        required=True,
+        required=False,
         help_text="Endpoint URL",
     )
+    #TODO:END.
 
     q_time = serializers.CharField(
         required=False,

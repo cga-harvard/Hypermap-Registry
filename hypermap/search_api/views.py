@@ -20,14 +20,15 @@ TIME_SORT_FIELD = "layer_date"
 GEO_SORT_FIELD = "bbox"
 
 
-def elasticsearch(serializer):
+def elasticsearch(serializer, catalog):
     """
     https://www.elastic.co/guide/en/elasticsearch/reference/current/_the_search_api.html
     :param serializer:
     :return:
     """
 
-    search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
+    # search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
+    search_engine_endpoint = "http://localhost:9200/{}/_search".format(catalog.slug)
 
     q_text = serializer.validated_data.get("q_text")
     q_geo = serializer.validated_data.get("q_geo")
@@ -333,17 +334,17 @@ class Search(APIView):
     edit in http://editor.swagger.io/#/
     """
 
-    def get(self, request):
+    def get(self, request, catalog_slug):
 
         serializer = SearchSerializer(data=request.GET)
         if serializer.is_valid(raise_exception=True):
 
-            search_engine = serializer.validated_data.get("search_engine")
+            try:
+                catalog = Catalog.objects.get(slug=catalog_slug)
+            except Catalog.DoesNotExist:
+                return Response({}, status=404)
 
-            if search_engine == 'solr':
-                data = solr(serializer)
-            else:
-                data = elasticsearch(serializer)
+            data = elasticsearch(serializer, catalog)
 
             status = 200
             if type(data) is tuple:
