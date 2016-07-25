@@ -8,6 +8,7 @@ from hypermap.aggregator import views
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
+    url(r'^(?P<catalog_slug>[-\w]+)/$', views.index, name='index'),
     url(r'^domains', views.domains, name='domains'),
     url(r'^service/(?P<service_id>\d+)/$', views.service_detail, name='service_detail'),
     url(r'^service/(?P<service_id>\d+)/checks$', views.service_checks, name='service_checks'),
