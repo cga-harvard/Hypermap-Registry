@@ -147,8 +147,8 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
 
     params = {
         'facet.range': field,
-        key_range_start: start.isoformat() + 'Z',
-        key_range_end: end.isoformat() + 'Z',
+        key_range_start: start.isoformat().replace("+00:00", "Z"),
+        key_range_end: end.isoformat().replace("+00:00", "Z"),
         key_range_gap: gap,
     }
     # get_params = urllib.urlencode(params)
