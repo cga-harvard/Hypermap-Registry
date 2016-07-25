@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render_to_response
 from django.template import loader, RequestContext
 from django.views.decorators.csrf import csrf_exempt
+from django_basic_auth import logged_in_or_basicauth
 
 from pycsw import server
 
@@ -17,6 +18,7 @@ from hypermap.aggregator.models import Catalog
 
 
 @csrf_exempt
+@logged_in_or_basicauth()
 def csw_global_dispatch(request):
     """pycsw wrapper"""
 
