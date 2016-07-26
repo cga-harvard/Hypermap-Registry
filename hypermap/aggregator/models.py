@@ -1298,7 +1298,7 @@ def endpoint_post_save(instance, *args, **kwargs):
     if Endpoint.objects.filter(url=instance.url).count() == 0:
         endpoint = Endpoint(url=instance.url)
         endpoint.save()
-        signals.post_save.connect(endpoint_post_save, sender=Endpoint)        
+        signals.post_save.connect(endpoint_post_save, sender=Endpoint)
     if not settings.SKIP_CELERY_TASK:
         update_endpoint.delay(instance)
     else:
