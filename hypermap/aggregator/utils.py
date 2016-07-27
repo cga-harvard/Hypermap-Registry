@@ -15,6 +15,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder
 
 from hypermap.aggregator.enums import SERVICE_TYPES
+from lxml.etree import XMLSyntaxError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -136,7 +137,9 @@ def create_services_from_endpoint(url, greedy_opt=True):
                     num_created = num_created + 1
             except Exception as err:
                 raise RuntimeError('HHypermap error: %s' % err)
-
+    except XMLSyntaxError as e:
+        # This is not XML, so likely not a CSW. Moving on.
+        pass
     except Exception as e:
         print str(e)
 
@@ -148,6 +151,9 @@ def create_services_from_endpoint(url, greedy_opt=True):
             title = service.identification.title,
             abstract = service.identification.abstract
             detected = True
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a WMS. Moving on.
+            pass
         except Exception as e:
             print str(e)
 
@@ -159,6 +165,9 @@ def create_services_from_endpoint(url, greedy_opt=True):
             title = service.identification.title,
             abstract = service.identification.abstract
             detected = True
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a TsMS. Moving on.
+            pass
         except Exception as e:
             print str(e)
 
@@ -171,6 +180,9 @@ def create_services_from_endpoint(url, greedy_opt=True):
             title = service.identification.title,
             abstract = service.identification.abstract
             detected = True
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a WMTS. Moving on.
+            pass
         except Exception as e:
             print str(e)
 
@@ -185,6 +197,9 @@ def create_services_from_endpoint(url, greedy_opt=True):
             )
             if service is not None:
                 num_created = num_created + 1
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a OGC:CSW. Moving on.
+            pass
         except Exception as e:
             print str(e)
 
