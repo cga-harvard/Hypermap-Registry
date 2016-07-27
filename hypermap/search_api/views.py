@@ -143,13 +143,14 @@ def elasticsearch(serializer):
 
         else:
             msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
-            return {"error": {"msg": msg}} 
+         return {"error": {"msg": msg}} 
+    try:
+        res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
+    except Exception as e:
+        return 500, {"error": {"msg": str(e)}}
 
-
-    res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     es_response = res.json()
     
-
     if return_search_engine_original_response:
         return es_response
 
