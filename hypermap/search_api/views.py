@@ -131,10 +131,10 @@ def elasticsearch(serializer):
     if d_docs_sort == "distance":
         if q_geo:
             
-            distance_x = np.linalg.norm(float(Xmin)-float(Xmax))
-            distance_y = np.linalg.norm(float(Ymin)-float(Ymax))
-            X_middle = float(Xmin) + (distance_x/2) 
-            Y_middle = float(Ymin) + (distance_y/2) 
+            distance_x = float (((float(Xmin)-float(Xmax))**2.0)**(0.5))
+            distance_y = float (((float(Ymin)-float(Ymax))**2.0)**(0.5))
+            X_middle = float(Xmin) + (distance_x/2.0) 
+            Y_middle = float(Ymin) + (distance_y/2.0)
             msg=("Sorting by distance is different on ElasticSearch than Solr, because this"
             "feature on elastic is unavailable to geo_shape type.ElasticSearch docs said:"
             "Due to the complex input structure and index representation of shapes," 
