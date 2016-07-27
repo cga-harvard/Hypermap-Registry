@@ -179,7 +179,7 @@ class ESHypermap(object):
                         "layer_geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
-                            "precision": "1m"
+                            "precision": "50m"
                         }
                     }
                 }
