@@ -141,17 +141,22 @@ def elasticsearch(serializer):
             "it is not currently possible to sort shapes or retrieve their fields directly."
             "The geo_shape value is only retrievable through the _source field."
             " Link: https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html")
-            return {"error": {"msg": msg}}
+
+            return {"error": {"msg": msg}} 
 
         else:
             msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
             return {"error": {"msg": msg}} 
 
 
-    res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
-    es_response = res.json()
-    
+    try:
+        res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
+    except Exception as e:
+        return 500, {"error": {"msg": str(e)}}
 
+    es_response = res.json()
+
+    #return original response 
     if return_search_engine_original_response:
         return es_response
 
@@ -170,11 +175,11 @@ def elasticsearch(serializer):
         for item in es_response['hits']['hits']:
             #data 
             temp = item['_source']['abstract']
-            temp = temp.replace(u'\u201c',"\"")
-            temp = temp.replace(u'\u201d',"\"")
+            temp = temp.replace("“".decode('utf-8'),"\"")
+            temp = temp.replace("”".decode('utf-8'),"\"")
             temp = temp.replace('"',"\"")
             temp = temp.replace("'","\'")
-            temp = temp.replace(u'\u2019',"\'")
+            temp = temp.replace("’".decode('utf-8'),"\'")
             item['_source']['abstract'] = temp
             docs.append(item['_source'])
     data["d.docs"] = docs
@@ -182,7 +187,6 @@ def elasticsearch(serializer):
        
 
     return data
-
 
 
 def solr(serializer):
