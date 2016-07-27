@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,6 +6,12 @@ from rest_framework.response import Response
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
 from .serializers import SearchSerializer
 import json
+
+import sys  
+
+#Set utf8 as coder and encoder string 
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 # - OPEN API specs
 # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
@@ -31,70 +38,69 @@ def elasticsearch(serializer):
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
     q_user = serializer.validated_data.get("q_user")
-    d_docs_limit = serializer.validated_data.get("d_docs_limit")
-    d_docs_page = serializer.validated_data.get("d_docs_page")
+    d_docs_limit = int (serializer.validated_data.get("d_docs_limit"))
+    d_docs_page = int (serializer.validated_data.get("d_docs_page"))
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
+
 
     ## Dict for search on Elastic engine
     must_array = []
     filter_dic = {}
 
-    # String searching
+    #String searching
     if q_text:
         query_string = {
-            "query_string": {
-                "query": q_text
-            }
-        }
-        # add string searching
+            "query_string" :{
+                    "query":q_text
+                            }
+                        }
+        #add string searching
         must_array.append(query_string)
 
     if q_time:
-    	#check if q_time exists
-	q_time = str(q_time) #check string
-	shortener = q_time[1:-1]
+    #check if q_time exists
+        q_time = str(q_time) #check string
+        shortener = q_time[1:-1]
         shortener = shortener.split(" TO ")
         gte = shortener[0] #greater than
         lte = shortener[1] #less than
         layer_date = {}
         if gte == '*' and lte != '*':
-           layer_date["lte"] = lte
-           range_time = {
-	     "layer_date":layer_date
-	              }
-	   range_time = {"range":range_time}
-	   must_array.append(range_time)
-	if gte != '*' and lte == '*':
-	   layer_date["gte"] = gte
-	   range_time = {
+            layer_date["lte"] = lte
+            range_time = {
              "layer_date":layer_date
-                }
-	   range_time = {"range":range_time}
-	   must_array.append(range_time)	   
+                  }
+            range_time = {"range":range_time}
+            must_array.append(range_time)
+        if gte != '*' and lte == '*':
+            layer_date["gte"] = gte
+            range_time = {
+               "layer_date":layer_date
+                 }
+            range_time = {"range":range_time}
+            must_array.append(range_time)      
         if gte != '*' and lte != '*':
-	   layer_date["gte"] = gte
-	   layer_date["lte"] = lte
-	   range_time = {
-            "range":layer_date
+            layer_date["gte"] = gte
+            layer_date["lte"] = lte
+            range_time = {
+              "layer_date":layer_date
                 }
-	   range_time = {"range":range_time}
-           must_array.append(range_time)
-
+            range_time = {"range":range_time}
+            must_array.append(range_time)
     #geo_shape searching
     if q_geo:
         q_geo = str(q_geo)
         q_geo = q_geo[1:-1]
         Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
         Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
-
         geoshape_query = {
-            "layer_geoshape": {
-                "shape": {
-                    "type": "envelope",
-                    "coordinates": [[Xmin, Ymax], [Xmax, Ymin]]
-                },
-                "relation": "within"
-            }
+                    "layer_geoshape":{
+                        "shape":{
+                         "type":"envelope",
+                         "coordinates":[[Xmin,Ymax],[Xmax,Ymin]]
+                        },
+                        "relation":"within"
+                    }
         }
         filter_dic["geo_shape"] = geoshape_query
 
@@ -117,13 +123,14 @@ def elasticsearch(serializer):
             }
     #Page
     if d_docs_limit:
-        dic_query["size"] = int(d_docs_limit)
+        dic_query["size"] = d_docs_limit
 
     if d_docs_page:
-        dic_query["from"] = int(d_docs_page)
+        dic_query["from"] = d_docs_limit*d_docs_page - d_docs_limit
 
     res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     es_response = res.json()
+    
 
     if return_search_engine_original_response:
         return es_response
@@ -134,8 +141,23 @@ def elasticsearch(serializer):
         data["error"] = es_response["error"]
         return 400, data
 
+    data["request_url"] = res.url
+    data["request_body"] = json.dumps(dic_query)
     data["a.matchDocs"] = es_response['hits']['total']
-    data["d.docs"] = es_response['hits']['hits']
+    docs = []
+
+    if not  int(d_docs_limit) == 0:
+        for item in es_response['hits']['hits']:
+            #data 
+            temp = item['_source']['abstract']
+            temp = temp.replace("“","\"")
+            temp = temp.replace("”","\"")
+            temp = temp.replace("'","\'")
+            item['_source']['abstract'] = temp
+            docs.append(item['_source'])
+    data["d.docs"] = docs
+    
+       
 
     return data
 
