@@ -1294,7 +1294,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
 
 
 def endpoint_post_save(instance, *args, **kwargs):
-    
+
     if Endpoint.objects.filter(url=instance.url).count() == 0:
         signals.post_save.disconnect(endpoint_post_save, sender=Endpoint)
         endpoint = Endpoint(url=instance.url)
