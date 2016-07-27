@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+import numpy as np
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
 from .serializers import SearchSerializer
 import json
@@ -31,70 +32,69 @@ def elasticsearch(serializer):
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
     q_user = serializer.validated_data.get("q_user")
-    d_docs_limit = serializer.validated_data.get("d_docs_limit")
-    d_docs_page = serializer.validated_data.get("d_docs_page")
+    d_docs_sort = serializer.validated_data.get("d_docs_sort")
+    d_docs_limit = int (serializer.validated_data.get("d_docs_limit"))
+    d_docs_page = int (serializer.validated_data.get("d_docs_page"))
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
-
+    
     ## Dict for search on Elastic engine
     must_array = []
     filter_dic = {}
 
-    # String searching
+    #String searching
     if q_text:
         query_string = {
-            "query_string": {
-                "query": q_text
-            }
-        }
-        # add string searching
+            "query_string" :{
+                    "query":q_text
+                            }
+                        }
+        #add string searching
         must_array.append(query_string)
 
     if q_time:
-    	#check if q_time exists
-	q_time = str(q_time) #check string
-	shortener = q_time[1:-1]
+    #check if q_time exists
+        q_time = str(q_time) #check string
+        shortener = q_time[1:-1]
         shortener = shortener.split(" TO ")
         gte = shortener[0] #greater than
         lte = shortener[1] #less than
         layer_date = {}
         if gte == '*' and lte != '*':
-           layer_date["lte"] = lte
-           range_time = {
-	     "layer_date":layer_date
-	              }
-	   range_time = {"range":range_time}
-	   must_array.append(range_time)
-	if gte != '*' and lte == '*':
-	   layer_date["gte"] = gte
-	   range_time = {
+            layer_date["lte"] = lte
+            range_time = {
              "layer_date":layer_date
-                }
-	   range_time = {"range":range_time}
-	   must_array.append(range_time)	   
+                  }
+            range_time = {"range":range_time}
+            must_array.append(range_time)
+        if gte != '*' and lte == '*':
+            layer_date["gte"] = gte
+            range_time = {
+               "layer_date":layer_date
+                 }
+            range_time = {"range":range_time}
+            must_array.append(range_time)      
         if gte != '*' and lte != '*':
-	   layer_date["gte"] = gte
-	   layer_date["lte"] = lte
-	   range_time = {
-            "range":layer_date
+            layer_date["gte"] = gte
+            layer_date["lte"] = lte
+            range_time = {
+              "layer_date":layer_date
                 }
-	   range_time = {"range":range_time}
-           must_array.append(range_time)
-
+            range_time = {"range":range_time}
+            must_array.append(range_time)
     #geo_shape searching
     if q_geo:
         q_geo = str(q_geo)
         q_geo = q_geo[1:-1]
         Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
         Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
-
         geoshape_query = {
-            "layer_geoshape": {
-                "shape": {
-                    "type": "envelope",
-                    "coordinates": [[Xmin, Ymax], [Xmax, Ymin]]
-                },
-                "relation": "within"
-            }
+                    "layer_geoshape":{
+                        "shape":{
+                         "type":"envelope",
+                         "coordinates":[[Xmin,Ymax],[Xmax,Ymin]]
+                        },
+                        "relation":"within"
+                    }
         }
         filter_dic["geo_shape"] = geoshape_query
 
@@ -117,13 +117,40 @@ def elasticsearch(serializer):
             }
     #Page
     if d_docs_limit:
-        dic_query["size"] = int(d_docs_limit)
+        dic_query["size"] = d_docs_limit
 
     if d_docs_page:
-        dic_query["from"] = int(d_docs_page)
+        dic_query["from"] = d_docs_limit*d_docs_page - d_docs_limit
+
+    if d_docs_sort == "score":
+        dic_query ["sort"] = {"_score": { "order": "desc" }}
+
+    if d_docs_sort == "time":
+        dic_query ["sort"] = {"layer_date": { "order": "desc" }}
+
+    if d_docs_sort == "distance":
+        if q_geo:
+            
+            distance_x = np.linalg.norm(float(Xmin)-float(Xmax))
+            distance_y = np.linalg.norm(float(Ymin)-float(Ymax))
+            X_middle = float(Xmin) + (distance_x/2) 
+            Y_middle = float(Ymin) + (distance_y/2) 
+            msg=("Sorting by distance is different on ElasticSearch than Solr, because this"
+            "feature on elastic is unavailable to geo_shape type.ElasticSearch docs said:"
+            "Due to the complex input structure and index representation of shapes," 
+            "it is not currently possible to sort shapes or retrieve their fields directly."
+            "The geo_shape value is only retrievable through the _source field."
+            " Link: https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html")
+            return {"error": {"msg": msg}}
+
+        else:
+            msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
+            return {"error": {"msg": msg}} 
+
 
     res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     es_response = res.json()
+    
 
     if return_search_engine_original_response:
         return es_response
@@ -134,10 +161,28 @@ def elasticsearch(serializer):
         data["error"] = es_response["error"]
         return 400, data
 
+    data["request_url"] = res.url
+    data["request_body"] = json.dumps(dic_query)
     data["a.matchDocs"] = es_response['hits']['total']
-    data["d.docs"] = es_response['hits']['hits']
+    docs = []
+
+    if not  int(d_docs_limit) == 0:
+        for item in es_response['hits']['hits']:
+            #data 
+            temp = item['_source']['abstract']
+            temp = temp.replace(u'\u201c',"\"")
+            temp = temp.replace(u'\u201d',"\"")
+            temp = temp.replace('"',"\"")
+            temp = temp.replace("'","\'")
+            temp = temp.replace(u'\u2019',"\'")
+            item['_source']['abstract'] = temp
+            docs.append(item['_source'])
+    data["d.docs"] = docs
+    
+       
 
     return data
+
 
 
 def solr(serializer):
