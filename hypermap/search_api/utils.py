@@ -14,7 +14,11 @@ def parse_datetime(date_str):
     """
     if date_str == '*':
         return None  # open ended.
-    return parse(date_str)
+    default = datetime.datetime.now().replace(
+        hour=0, minute=0, second=0, microsecond=0,
+        day=1, month=1
+    )
+    return parse(date_str, default=default)
 
 
 def parse_solr_time_range_as_pair(time_filter):
@@ -147,8 +151,8 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
 
     params = {
         'facet.range': field,
-        key_range_start: start.isoformat() + 'Z',
-        key_range_end: end.isoformat() + 'Z',
+        key_range_start: start.isoformat().replace("+00:00", "Z"),
+        key_range_end: end.isoformat().replace("+00:00", "Z"),
         key_range_gap: gap,
     }
     # get_params = urllib.urlencode(params)
