@@ -2,16 +2,10 @@
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+import numpy as np
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
 from .serializers import SearchSerializer
 import json
-
-import sys  
-
-#Set utf8 as coder and encoder string 
-reload(sys)  
-sys.setdefaultencoding('utf8')
 
 # - OPEN API specs
 # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
@@ -38,11 +32,11 @@ def elasticsearch(serializer):
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
     q_user = serializer.validated_data.get("q_user")
+    d_docs_sort = serializer.validated_data.get("d_docs_sort")
     d_docs_limit = int (serializer.validated_data.get("d_docs_limit"))
     d_docs_page = int (serializer.validated_data.get("d_docs_page"))
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
-
-
+    
     ## Dict for search on Elastic engine
     must_array = []
     filter_dic = {}
@@ -128,6 +122,32 @@ def elasticsearch(serializer):
     if d_docs_page:
         dic_query["from"] = d_docs_limit*d_docs_page - d_docs_limit
 
+    if d_docs_sort == "score":
+        dic_query ["sort"] = {"_score": { "order": "desc" }}
+
+    if d_docs_sort == "time":
+        dic_query ["sort"] = {"layer_date": { "order": "desc" }}
+
+    if d_docs_sort == "distance":
+        if q_geo:
+            
+            distance_x = np.linalg.norm(float(Xmin)-float(Xmax))
+            distance_y = np.linalg.norm(float(Ymin)-float(Ymax))
+            X_middle = float(Xmin) + (distance_x/2) 
+            Y_middle = float(Ymin) + (distance_y/2) 
+            msg=("Sorting by distance is different on ElasticSearch than Solr, because this"
+            "feature on elastic is unavailable to geo_shape type.ElasticSearch docs said:"
+            "Due to the complex input structure and index representation of shapes," 
+            "it is not currently possible to sort shapes or retrieve their fields directly."
+            "The geo_shape value is only retrievable through the _source field."
+            " Link: https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html")
+            return {"error": {"msg": msg}}
+
+        else:
+            msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
+            return {"error": {"msg": msg}} 
+
+
     res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     es_response = res.json()
     
@@ -150,9 +170,11 @@ def elasticsearch(serializer):
         for item in es_response['hits']['hits']:
             #data 
             temp = item['_source']['abstract']
-            temp = temp.replace("“","\"")
-            temp = temp.replace("”","\"")
+            temp = temp.replace(u'\u201c',"\"")
+            temp = temp.replace(u'\u201d',"\"")
+            temp = temp.replace('"',"\"")
             temp = temp.replace("'","\'")
+            temp = temp.replace(u'\u2019',"\'")
             item['_source']['abstract'] = temp
             docs.append(item['_source'])
     data["d.docs"] = docs
@@ -160,6 +182,7 @@ def elasticsearch(serializer):
        
 
     return data
+
 
 
 def solr(serializer):
