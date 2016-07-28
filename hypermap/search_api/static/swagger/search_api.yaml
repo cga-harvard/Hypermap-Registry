@@ -44,7 +44,7 @@ paths:
           in: query
           required: true
           type: string
-          default: "http://54.221.223.91:8983/solr/hypermap2/select"
+          default: "http://54.221.223.91:8983/solr/hypermap/select"
         -
           name: q_time
           description: "Constrains docs by time range. Either side can be '*' to signify open-ended. Otherwise it must be in either format as given in the example. UTC time zone is implied."
