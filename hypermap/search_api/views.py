@@ -39,6 +39,7 @@ def elasticsearch(serializer):
     ## Dict for search on Elastic engine
     must_array = []
     filter_dic = {}
+    aggs_dic = {}
 
     #String searching
     if q_text:
@@ -144,6 +145,33 @@ def elasticsearch(serializer):
         else:
             msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
          return {"error": {"msg": msg}} 
+
+    if a_text_limit:
+        #getting most frequently occurring users.
+        text_limt = { 
+       
+            "terms" : { 
+              "field" : "abstract",
+              "size"  : a_text_limit
+                      }
+                }
+        aggs_dic['popular_text'] = text_limt
+
+
+    if a_user_limit:
+        #getting most frequently occurring users.
+        users_limt = { 
+       
+            "terms" : { 
+              "field" : "layer_originator",
+              "size"  : a_user_limit
+                      }
+                }
+        aggs_dic['popular_users'] = users_limt
+    
+    #adding aggreations on body query
+    dic_query['aggs'] = aggs_dic
+
     try:
         res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     except Exception as e:
@@ -164,6 +192,26 @@ def elasticsearch(serializer):
     data["request_body"] = json.dumps(dic_query)
     data["a.matchDocs"] = es_response['hits']['total']
     docs = []
+    #aggreations response: facets searching
+    if es_response["aggregations"]:
+        #getting the most frequently occurring users.
+        if es_response["aggregations"]["popular_users"]["buckets"]:
+            a_users_list_array = [] 
+            users_resp = es_response["aggregations"]["popular_users"]["buckets"]
+            for item in users_resp:
+                temp = {}
+                temp['count'] = item['doc_count']
+                temp['value'] = item['key']
+                a_users_list_array.append(temp)
+        #getting most frequently ocurring words
+        if es_response["aggregations"]["popular_text"]["buckets"]:
+            a_text_list_array = [] 
+            text_resp = es_response["aggregations"]["popular_text"]["buckets"]
+            for item in text_resp:
+                temp = {}
+                temp['count'] = item['doc_count']
+                temp['value'] = item['key']
+                a_text_list_array.append(temp)
 
     if not  int(d_docs_limit) == 0:
         for item in es_response['hits']['hits']:
@@ -177,7 +225,8 @@ def elasticsearch(serializer):
             item['_source']['abstract'] = temp
             docs.append(item['_source'])
     data["d.docs"] = docs
-    
+    data["a.user"] = a_users_list_array
+    data["a.text"] = a_text_list_array
        
 
     return data
