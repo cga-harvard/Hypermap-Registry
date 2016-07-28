@@ -218,19 +218,29 @@ def create_services_from_endpoint(url, greedy_opt=True):
 
                 service_type = 'ESRI'
                 detected = True
-
-                # root
-                if greedy_opt:
-                    root_services = process_esri_services(services)
-                    num_created = num_created + len(root_services)
-
                 # Enable the user to fetch a single service of a single folder.
                 if not greedy_opt:
-                    folder = [folder for folder in esri.folders if url.split('/')[6] in str(folder.url)][0]
-                    single_service = [s for s in folder.services if url.split('/')[7] == s.url.split('/')[7]]
-                    folder_services = process_esri_services(single_service)
-                    num_created = num_created + len(folder_services)
+                    # Get folder and service from endpoint url.
+                    url_token = '/rest/services/'
+                    components = url.strip().split(url_token)[1].split('/')
+                    esri_folder, esri_service = components[0], components[1]
 
+                    # Get folder class from the list of esri services for the given endpoint.
+                    services_folder = [f for f in esri.folders
+                        if f.url.split(url_token)[1].split('/')[0] == esri_folder][0]
+
+                    # Get service class from the folder for the given endpoint.
+                    service_to_process = [s for s in services_folder.services
+                        if s.url.split(url_token)[1].split('/')[1] == esri_service]
+
+                    folder_services = process_esri_services(service_to_process)
+                    num_created = num_created + len(folder_services)
+                else:
+                    root_services = process_esri_services(services)
+                    num_created = num_created + len(root_services)
+                    for folder in esri.folders:
+                        folder_services = process_esri_services(folder.services)
+                        num_created = num_created + len(folder_services)
             except Exception as e:
                 print str(e)
     if detected:

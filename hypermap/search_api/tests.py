@@ -8,7 +8,7 @@ class SearchApiTestCase(TestCase):
     # TODO: create tests based in local solr endpoint.
 
     def setUp(self):
-        self.search_engine_endpoint = "http://54.221.223.91:8983/solr/hypermap2/select"
+        self.search_engine_endpoint = "http://54.221.223.91:8983/solr/hypermap/select"
         self.search_engine = "solr"
         self.test_url = "http://localhost:8000/registry/api/search/"
 

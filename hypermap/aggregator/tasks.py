@@ -89,7 +89,7 @@ def clear_index():
         from hypermap.aggregator.solr import SolrHypermap
         solrobject = SolrHypermap()
         solrobject.clear_solr()
-    elif  settings.SEARCH_TYPE == 'elasticsearch':
+    elif settings.SEARCH_TYPE == 'elasticsearch':
         print 'Clearing the ES indexes'
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         esobject = ESHypermap()
@@ -200,9 +200,15 @@ def index_all_layers(self):
 
 
 @shared_task(bind=True)
-def update_endpoint(self, endpoint, greedy_opt=True):
+def update_endpoint(self, endpoint, greedy_opt=False):
     from hypermap.aggregator.utils import create_services_from_endpoint
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
+
+    # Override the greedy_opt var with the value from the endpoint list 
+    # if it's available.
+    if endpoint.endpoint_list:
+        greedy_opt = endpoint.endpoint_list.greedy
+    
     imported, message = create_services_from_endpoint(endpoint.url, greedy_opt)
     endpoint.imported = imported
     endpoint.message = message
@@ -218,7 +224,7 @@ def update_endpoints(self, endpoint_list):
     count = 0
     if not settings.SKIP_CELERY_TASK:
         for endpoint in endpoint_to_process:
-            update_endpoint.delay(endpoint, greedy_opt=endpoint_list.greedy)
+            update_endpoint.delay(endpoint)
         # update state
         if not self.request.called_directly:
             self.update_state(
@@ -227,6 +233,6 @@ def update_endpoints(self, endpoint_list):
             )
     else:
         for endpoint in endpoint_to_process:
-            update_endpoint(endpoint, greedy_opt=endpoint_list.greedy)
+            update_endpoint(endpoint)
 
     return True
