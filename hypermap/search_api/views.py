@@ -144,7 +144,7 @@ def elasticsearch(serializer):
 
         else:
             msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
-         return {"error": {"msg": msg}} 
+            return {"error": {"msg": msg}} 
 
     if a_text_limit:
         #getting most frequently occurring users.
