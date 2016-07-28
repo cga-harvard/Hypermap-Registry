@@ -195,7 +195,7 @@ def elasticsearch(serializer):
     data["a.matchDocs"] = es_response['hits']['total']
     docs = []
     #aggreations response: facets searching
-    if es_response["aggregations"]:
+    if aggs_dic:
         #getting the most frequently occurring users.
         if es_response["aggregations"]["popular_users"]["buckets"]:
             a_users_list_array = [] 
@@ -227,8 +227,10 @@ def elasticsearch(serializer):
             item['_source']['abstract'] = temp
             docs.append(item['_source'])
     data["d.docs"] = docs
-    data["a.user"] = a_users_list_array
-    data["a.text"] = a_text_list_array
+
+    if aggs_dic:
+        data["a.user"] = a_users_list_array
+        data["a.text"] = a_text_list_array
        
 
     return data
