@@ -33,7 +33,9 @@ def elasticsearch(serializer):
     q_user = serializer.validated_data.get("q_user")
     d_docs_sort = serializer.validated_data.get("d_docs_sort")
     d_docs_limit = int (serializer.validated_data.get("d_docs_limit"))
-    d_docs_page = int (serializer.validated_data.get("d_docs_page"))
+    d_docs_page = int (serializer.validated_data.get("d_docs_page")) 
+    a_text_limit = serializer.validated_data.get("a_text_limit")
+    a_user_limit = serializer.validated_data.get("a_user_limit")
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
     
     ## Dict for search on Elastic engine
@@ -170,8 +172,8 @@ def elasticsearch(serializer):
         aggs_dic['popular_users'] = users_limt
     
     #adding aggreations on body query
-    dic_query['aggs'] = aggs_dic
-
+    if aggs_dic:
+        dic_query['aggs'] = aggs_dic
     try:
         res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     except Exception as e:
@@ -193,7 +195,7 @@ def elasticsearch(serializer):
     data["a.matchDocs"] = es_response['hits']['total']
     docs = []
     #aggreations response: facets searching
-    if es_response["aggregations"]:
+    if aggs_dic:
         #getting the most frequently occurring users.
         if es_response["aggregations"]["popular_users"]["buckets"]:
             a_users_list_array = [] 
@@ -225,8 +227,10 @@ def elasticsearch(serializer):
             item['_source']['abstract'] = temp
             docs.append(item['_source'])
     data["d.docs"] = docs
-    data["a.user"] = a_users_list_array
-    data["a.text"] = a_text_list_array
+
+    if aggs_dic:
+        data["a.user"] = a_users_list_array
+        data["a.text"] = a_text_list_array
        
 
     return data
