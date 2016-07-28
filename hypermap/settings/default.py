@@ -257,3 +257,9 @@ PYCSW = {
 # for each service are updated and checked
 DEBUG_SERVICES = str2bool(os.getenv('DEBUG_SERVICES', 'False'))
 DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '10'))
+
+# Enable local settings.
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    pass

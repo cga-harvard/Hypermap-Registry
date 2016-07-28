@@ -71,8 +71,6 @@ hypermap/media
 hypermap/settings/local_settings.py
 development.db
 
-# IDE specific
-/hypermap/settings/_panchicore.py
 # pycharm
 .idea
 
