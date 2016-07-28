@@ -195,20 +195,21 @@ def elasticsearch(serializer):
     data["a.matchDocs"] = es_response['hits']['total']
     docs = []
     #aggreations response: facets searching
-    if aggs_dic:
+    if 'aggregations' in es_response:
+        aggs = es_response['aggregations']
         #getting the most frequently occurring users.
-        if es_response["aggregations"]["popular_users"]["buckets"]:
+        if 'popular_users' in aggs:
             a_users_list_array = [] 
-            users_resp = es_response["aggregations"]["popular_users"]["buckets"]
+            users_resp = aggs["popular_users"]["buckets"]
             for item in users_resp:
                 temp = {}
                 temp['count'] = item['doc_count']
                 temp['value'] = item['key']
                 a_users_list_array.append(temp)
         #getting most frequently ocurring words
-        if es_response["aggregations"]["popular_text"]["buckets"]:
+        if 'popular_text' in aggs:
             a_text_list_array = [] 
-            text_resp = es_response["aggregations"]["popular_text"]["buckets"]
+            text_resp = aggs["popular_text"]["buckets"]
             for item in text_resp:
                 temp = {}
                 temp['count'] = item['doc_count']
