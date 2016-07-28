@@ -131,10 +131,10 @@ You need to create a settings file named as your username:
 
 ```
 cd HHypermap/hypermap
-touch settings/_yourusername.py
+touch settings/local_settings.py
 ```
 
-In _yourusername.py you need to add at least the first line, and then the settings specific for your environment, such as preferences about Celery and Solr:
+In local_settings.py you need to add at least the first line, and then the settings specific for your environment, such as preferences about Celery and Solr:
 
 ```
 from settings.default import *  # noqa
