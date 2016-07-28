@@ -16,7 +16,7 @@ MD_CORE_MODEL = {
         'pycsw:KeywordType': 'keywordstype',
         'pycsw:Format': 'type',
         'pycsw:Source': 'url',
-        'pycsw:Date': 'date',
+        'pycsw:Date': 'csw_last_updated',
         'pycsw:Modified': 'last_updated_iso8601',
         'pycsw:Type': 'csw_type',
         'pycsw:BoundingBox': 'wkt_geometry',
