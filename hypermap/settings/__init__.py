@@ -36,9 +36,3 @@ if CLOUD_FOUNDRY is not None:
     SKIP_CELERY_TASK = False
     REGISTRY_PYCSW['server']['url'] = '%s/search/csw' % SITE_URL.rstrip('/')
     REGISTRY_PYCSW['metadata:main']['provider_url'] = SITE_URL
-
-
-try:
-    from local_settings import *
-except:
-    pass

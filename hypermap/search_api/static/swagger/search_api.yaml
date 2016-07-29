@@ -51,7 +51,7 @@ paths:
           description: Slug of catalog that needs to be fetched
           required: true
           type: string
-          default: local
+          default: hypermap
         -
           name: q_time
           description: "Constrains docs by time range. Either side can be '*' to signify open-ended. Otherwise it must be in either format as given in the example. UTC time zone is implied."
