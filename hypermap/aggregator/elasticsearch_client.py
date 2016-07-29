@@ -54,7 +54,7 @@ class ESHypermap(object):
     def layer_to_es(layer):
         category = None
         username = None
-        ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.identifier, layer.id))
+        ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.slug, layer.id))
 
         try:
             bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
@@ -146,8 +146,8 @@ class ESHypermap(object):
                     es_record['layer_datetype'] = type
                 ESHypermap.logger.info(es_record)
                 # TODO: cache index creation.
-                ESHypermap.create_indices(layer.catalog.identifier)
-                ESHypermap.es.index(layer.catalog.identifier, 'layer', json.dumps(es_record), id=layer.id,
+                ESHypermap.create_indices(layer.catalog.slug)
+                ESHypermap.es.index(layer.catalog.slug, 'layer', json.dumps(es_record), id=layer.id,
                                     request_timeout=20)
                 ESHypermap.logger.info("Elasticsearch: record saved for layer with id: %s" % layer.id)
                 return True, None
@@ -160,12 +160,12 @@ class ESHypermap(object):
     @staticmethod
     def clear_es():
         """Clear all indexes in the es core"""
-        # TODO: should receive a catalog identifier.
+        # TODO: should receive a catalog slug.
         ESHypermap.es.indices.delete(ESHypermap.index_name, ignore=[400, 404])
         print 'Elasticsearch: Index cleared'
 
     @staticmethod
-    def create_indices(catalog_identifier):
+    def create_indices(catalog_slug):
         """Create ES core indices """
         # TODO: enable auto_create_index in the ES nodes to make this implicit.
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html#index-creation
@@ -183,4 +183,4 @@ class ESHypermap(object):
                 }
             }
         }
-        ESHypermap.es.indices.create(catalog_identifier, ignore=[400, 404], body=mapping)
+        ESHypermap.es.indices.create(catalog_slug, ignore=[400, 404], body=mapping)

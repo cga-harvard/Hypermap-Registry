@@ -178,4 +178,4 @@ class SearchSerializer(serializers.Serializer):
 class CatalogSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Catalog
-        fields = ('id', 'slug', 'name', 'api_url', 'identifier')
+        fields = ('id', 'slug', 'name', 'api_url',)

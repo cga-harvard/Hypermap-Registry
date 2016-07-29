@@ -418,10 +418,6 @@ class Catalog(models.Model):
         max_length=255,
         help_text="URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/"
     )
-    identifier = models.CharField(
-        max_length=255,
-        help_text="Identifier string in search backend. AKA: indice or core name. ex: hypermap"
-    )
 
     def __unicode__(self):
         return '{0} [{1}:{2}]'.format(
