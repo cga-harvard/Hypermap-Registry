@@ -53,8 +53,9 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
     try:
         urllib2.urlopen(endpoint, timeout=10)
     except Exception as e:
-        print 'ERROR! Cannot open this endpoint: %s' % endpoint
         message = traceback.format_exception(*sys.exc_info())
+        print 'ERROR! Cannot open this endpoint: %s' % endpoint
+        print 'ERROR MESSAGE: %s' % message
         return False, message
 
     detected = False

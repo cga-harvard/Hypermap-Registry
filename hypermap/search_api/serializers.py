@@ -176,6 +176,9 @@ class SearchSerializer(serializers.Serializer):
 
 
 class CatalogSerializer(serializers.HyperlinkedModelSerializer):
+    search_url = serializers.CharField(source="get_search_url",
+                                       read_only=True)
+
     class Meta:
         model = Catalog
-        fields = ('id', 'slug', 'name', 'api_url',)
+        fields = ('id', 'slug', 'name', 'url_remote', 'url_local', 'search_url')

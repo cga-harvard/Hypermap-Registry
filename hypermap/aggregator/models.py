@@ -14,7 +14,7 @@ from django.contrib.contenttypes import generic
 from django.db.models import Avg, Min, Max
 from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django_extensions.db.fields import AutoSlugField
 
 from taggit.managers import TaggableManager
@@ -412,17 +412,39 @@ class Catalog(models.Model):
         help_text="Display name in UI"
     )
     slug = AutoSlugField(
-        populate_from='name'
+        populate_from='name',
+        editable=True,
+        help_text="Leave empty to be populated from name"
     )
-    api_url = models.URLField(
+    url_remote = models.URLField(
         max_length=255,
-        help_text="URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/"
+        help_text="Only if remote. URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/",
+        null=True, blank=True
+    )
+    url_local = models.CharField(
+        max_length=100,
+        help_text="If not remote, add django url name to be reversed",
+        null=True, blank=True
     )
 
     def __unicode__(self):
-        return '{0} [{1}:{2}]'.format(
-            self.name, self.slug, self.api_url
+        return '{0}'.format(
+            self.name
         )
+
+    def get_search_url(self):
+        """
+        resolve the search url no matter if local or remote.
+        :return: url or exception
+        """
+
+        if self.url_remote:
+            return self.url_remote
+
+        try:
+            return reverse(self.url_local, args=[self.slug])
+        except NoReverseMatch as e:
+            return str(e)
 
 
 class Layer(Resource):

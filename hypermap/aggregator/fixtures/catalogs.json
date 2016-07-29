@@ -1,1 +1,0 @@
-[{"fields": {"api_url": "http://localhost:8000/registry/api/search/", "identifier": "hypermap", "name": "Local", "slug": "local"}, "model": "aggregator.catalog", "pk": 1}]
