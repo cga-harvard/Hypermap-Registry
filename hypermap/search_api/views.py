@@ -37,12 +37,15 @@ def elasticsearch(serializer, catalog):
     q_user = serializer.validated_data.get("q_user")
     d_docs_sort = serializer.validated_data.get("d_docs_sort")
     d_docs_limit = int (serializer.validated_data.get("d_docs_limit"))
-    d_docs_page = int (serializer.validated_data.get("d_docs_page"))
+    d_docs_page = int (serializer.validated_data.get("d_docs_page")) 
+    a_text_limit = serializer.validated_data.get("a_text_limit")
+    a_user_limit = serializer.validated_data.get("a_user_limit")
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
     
     ## Dict for search on Elastic engine
     must_array = []
     filter_dic = {}
+    aggs_dic = {}
 
     #String searching
     if q_text:
@@ -149,11 +152,39 @@ def elasticsearch(serializer, catalog):
             msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
             return {"error": {"msg": msg}} 
 
+    if a_text_limit:
+        #getting most frequently occurring users.
+        text_limt = { 
+       
+            "terms" : { 
+              "field" : "abstract",
+              "size"  : a_text_limit
+                      }
+                }
+        aggs_dic['popular_text'] = text_limt
 
-    res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
+
+    if a_user_limit:
+        #getting most frequently occurring users.
+        users_limt = { 
+       
+            "terms" : { 
+              "field" : "layer_originator",
+              "size"  : a_user_limit
+                      }
+                }
+        aggs_dic['popular_users'] = users_limt
+    
+    #adding aggreations on body query
+    if aggs_dic:
+        dic_query['aggs'] = aggs_dic
+    try:
+        res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
+    except Exception as e:
+        return 500, {"error": {"msg": str(e)}}
+
     es_response = res.json()
     
-
     if return_search_engine_original_response:
         return es_response
 
@@ -167,6 +198,30 @@ def elasticsearch(serializer, catalog):
     data["request_body"] = json.dumps(dic_query)
     data["a.matchDocs"] = es_response['hits']['total']
     docs = []
+    #aggreations response: facets searching
+    if 'aggregations' in es_response:
+        aggs = es_response['aggregations']
+        #getting the most frequently occurring users.
+        if 'popular_users' in aggs:
+            a_users_list_array = [] 
+            users_resp = aggs["popular_users"]["buckets"]
+            for item in users_resp:
+                temp = {}
+                temp['count'] = item['doc_count']
+                temp['value'] = item['key']
+                a_users_list_array.append(temp)
+            data["a.user"] = a_users_list_array
+
+        #getting most frequently ocurring words
+        if 'popular_text' in aggs:
+            a_text_list_array = [] 
+            text_resp = es_response["aggregations"]["popular_text"]["buckets"]
+            for item in text_resp:
+                temp = {}
+                temp['count'] = item['doc_count']
+                temp['value'] = item['key']
+                a_text_list_array.append(temp)
+            data["a.text"] = a_text_list_array
 
     if not  int(d_docs_limit) == 0:
         for item in es_response['hits']['hits']:
@@ -179,10 +234,10 @@ def elasticsearch(serializer, catalog):
             temp = temp.replace(u'\u2019',"\'")
             item['_source']['abstract'] = temp
             docs.append(item['_source'])
+            
     data["d.docs"] = docs
-    
-       
 
+   
     return data
 
 
