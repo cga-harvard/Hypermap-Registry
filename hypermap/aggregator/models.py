@@ -1016,6 +1016,7 @@ def update_layers_wm(service):
                     is_public = False
             layer, created = Layer.objects.get_or_create(name=name, service=service)
             if layer.active:
+                links = [['Hypermap:WorldMap', endpoint]]
                 # update fields
                 layer.type = 'Hypermap:WorldMap'
                 layer.title = title
@@ -1045,6 +1046,22 @@ def update_layers_wm(service):
                 # keywords
                 for keyword in row['keywords']:
                     layer.keywords.add(keyword)
+
+                layer.wkt_geometry = bbox2wktpolygon((bbox['minx'], bbox['miny'], bbox['maxx'], bbox['maxy']))
+                layer.xml = create_metadata_record(
+                    identifier=layer.id_string,
+                    source=endpoint,
+                    links=links,
+                    format='Hypermap:WorldMap',
+                    type=layer.csw_type,
+                    relation=service.id_string,
+                    title=layer.title,
+                    alternative=name,
+                    abstract=layer.abstract,
+                    keywords=row['keywords'],
+                    wkt_geometry=layer.wkt_geometry
+                )
+                layer.anytext = gen_anytext(layer.title, layer.abstract, row['keywords'])
                 layer.save()
                 # dates
                 add_mined_dates(layer)
