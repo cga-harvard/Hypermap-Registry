@@ -128,6 +128,9 @@ class Resource(models.Model):
     temporal_extent_end = models.CharField(max_length=255, null=True, blank=True)
 
     # CSW fields
+    csw_last_updated = models.CharField(max_length=32,
+                                        default=datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                        null=False)
     csw_type = models.CharField(max_length=32, default='dataset', null=False)
     csw_typename = models.CharField(max_length=32, default='csw:Record', null=False)
 
@@ -1065,6 +1068,7 @@ def update_layers_wm(service):
                     is_public = False
             layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
             if layer.active:
+                links = [['Hypermap:WorldMap', endpoint]]
                 # update fields
                 layer.type = 'Hypermap:WorldMap'
                 layer.title = title
@@ -1094,6 +1098,22 @@ def update_layers_wm(service):
                 # keywords
                 for keyword in row['keywords']:
                     layer.keywords.add(keyword)
+
+                layer.wkt_geometry = bbox2wktpolygon((bbox['minx'], bbox['miny'], bbox['maxx'], bbox['maxy']))
+                layer.xml = create_metadata_record(
+                    identifier=layer.id_string,
+                    source=endpoint,
+                    links=links,
+                    format='Hypermap:WorldMap',
+                    type=layer.csw_type,
+                    relation=service.id_string,
+                    title=layer.title,
+                    alternative=name,
+                    abstract=layer.abstract,
+                    keywords=row['keywords'],
+                    wkt_geometry=layer.wkt_geometry
+                )
+                layer.anytext = gen_anytext(layer.title, layer.abstract, row['keywords'])
                 layer.save()
                 # dates
                 add_mined_dates(layer)
@@ -1347,7 +1367,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
 
 
 def endpoint_post_save(instance, *args, **kwargs):
-    
+
     if Endpoint.objects.filter(url=instance.url).count() == 0:
         signals.post_save.disconnect(endpoint_post_save, sender=Endpoint)
         endpoint = Endpoint(url=instance.url)
