@@ -61,11 +61,11 @@ class PageRendererTestCase(TestCase):
         # anonymous going to service_detail is authorized
         service = Service.objects.all()[0]
         response = self.client.get(
-            reverse('service_detail', args=(str(service.id),)))
+            reverse('service_detail', args=(service.catalog.slug, str(service.id),)))
         self.assertEqual(200, response.status_code)
 
         # anonymous going to layer_detail is authorized
         layer = Layer.objects.all()[0]
         response = self.client.get(
-            reverse('layer_detail', args=(str(layer.id),)))
+            reverse('layer_detail', args=(layer.catalog.slug, str(layer.id),)))
         self.assertEqual(200, response.status_code)

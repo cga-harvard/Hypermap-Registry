@@ -1,18 +1,24 @@
 import re
+
+from hypermap.aggregator.models import Catalog
 from . import utils
 from rest_framework import serializers
 
 
 
 class SearchSerializer(serializers.Serializer):
+
+    #TODO: remove this after catalogs integration:
     search_engine = serializers.ChoiceField(
+        required=False,
         help_text="Where will be running the search.",
         choices=["solr", "elasticsearch"]
     )
     search_engine_endpoint = serializers.URLField(
-        required=True,
+        required=False,
         help_text="Endpoint URL",
     )
+    #TODO:END.
 
     q_time = serializers.CharField(
         required=False,
@@ -167,3 +173,12 @@ class SearchSerializer(serializers.Serializer):
         if value <= 0:
             raise serializers.ValidationError("d_docs_page cant be zero or negative")
         return value
+
+
+class CatalogSerializer(serializers.HyperlinkedModelSerializer):
+    search_url = serializers.CharField(source="get_search_url",
+                                       read_only=True)
+
+    class Meta:
+        model = Catalog
+        fields = ('id', 'slug', 'name', 'url_remote', 'url_local', 'search_url')

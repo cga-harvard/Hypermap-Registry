@@ -63,7 +63,7 @@
             <tr>
               <td>
                 <strong>{{ service.get_domain }}</strong>
-                <br /><a href="{% url 'service_detail' service.id %}">{{ service.title|truncatechars:40 }}</a>
+                <br /><a href="{{ service.get_absolute_url }}">{{ service.title|truncatechars:40 }}</a>
                 <br /><a href="{{ service.url }}">{{ service.url|truncatechars:40 }}</a>
                 <br />{{ service.get_type_display }}
               </td>

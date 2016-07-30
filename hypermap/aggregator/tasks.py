@@ -208,8 +208,8 @@ def update_endpoint(self, endpoint, greedy_opt=False):
     # if it's available.
     if endpoint.endpoint_list:
         greedy_opt = endpoint.endpoint_list.greedy
-    
-    imported, message = create_services_from_endpoint(endpoint.url, greedy_opt)
+ 
+    imported, message = create_services_from_endpoint(endpoint.url, greedy_opt=greedy_opt, catalog=endpoint.catalog)
     endpoint.imported = imported
     endpoint.message = message
     endpoint.processed = True

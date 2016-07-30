@@ -21,7 +21,7 @@ produces:
 # Describe your paths here
 paths:
   # This is a path endpoint. Change it.
-  /search/:
+  /search/{catalog_slug}:
     # This is a HTTP operation
     get:
       # Describe this verb here. Note: you can use markdown
@@ -30,21 +30,28 @@ paths:
       # This is array of GET operation parameters:
       parameters:
         # An example parameter that is in query and is required
+#        -
+#          name: search_engine
+#          in: query
+#          description: Where will be running the search.
+#          required: true
+#          type: string
+#          default: "solr"
+#          enum: [ "solr", "elasticsearch" ]
+#        -
+#          name: search_engine_endpoint
+#          description: "Endpoint url (ES http://localhost:9200/hypermap/_search)"
+#          in: query
+#          required: true
+#          type: string
+#          default: "http://54.221.223.91:8983/solr/hypermap2/select"
         -
-          name: search_engine
-          in: query
-          description: Where will be running the search.
+          name: catalog_slug
+          in: path
+          description: Slug of catalog that needs to be fetched
           required: true
           type: string
-          default: "solr"
-          enum: [ "solr", "elasticsearch" ]
-        -
-          name: search_engine_endpoint
-          description: "Endpoint url (ES http://localhost:9200/hypermap/_search)"
-          in: query
-          required: true
-          type: string
-          default: "http://54.221.223.91:8983/solr/hypermap/select"
+          default: hypermap
         -
           name: q_time
           description: "Constrains docs by time range. Either side can be '*' to signify open-ended. Otherwise it must be in either format as given in the example. UTC time zone is implied."
@@ -170,6 +177,31 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+
+  /catalogs:
+    # This is a HTTP operation
+    get:
+      parameters:
+      responses:
+        # Response code
+        200:
+          description: An array of catalogs
+  /catalogs/{id}:
+    # This is a HTTP operation
+    get:
+      parameters:
+        -
+          name: id
+          description: Get catalog detail by id
+          in: path
+          required: false
+          type: integer
+      responses:
+        # Response code
+        200:
+          description: An array of catalogs
+        404:
+          description: Not found
 definitions:
   HeatmapFacet:
     type: object

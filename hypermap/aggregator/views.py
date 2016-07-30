@@ -55,17 +55,22 @@ def domains(request):
     return HttpResponse(template.render(context))
 
 
-def index(request):
+def index(request, catalog_slug=None):
     order_by = request.GET.get('order_by', '-last_updated')
     filter_by = request.GET.get('filter_by', None)
     query = request.GET.get('q', None)
+
+    services = Service.objects.all()
+    if catalog_slug:
+        services = Service.objects.filter(catalog__slug=catalog_slug)
+
     # order_by
     if 'total_checks' in order_by:
-        services = Service.objects.annotate(total_checks=Count('resource_ptr__check')).order_by(order_by)
+        services = services.annotate(total_checks=Count('resource_ptr__check')).order_by(order_by)
     elif 'layers_count' in order_by:
-        services = Service.objects.annotate(layers_count=Count('layer')).order_by(order_by)
+        services = services.annotate(layers_count=Count('layer')).order_by(order_by)
     else:
-        services = Service.objects.all().order_by(order_by)
+        services = services.order_by(order_by)
     # filter_by
     if filter_by:
         services = services.filter(type__exact=filter_by)
@@ -96,8 +101,10 @@ def index(request):
     return HttpResponse(template.render(context))
 
 
-def service_detail(request, service_id):
-    service = get_object_or_404(Service, pk=service_id)
+def service_detail(request, catalog_slug, service_id):
+    service = get_object_or_404(Service,
+                                pk=service_id,
+                                catalog__slug=catalog_slug)
 
     if request.method == 'POST':
         if 'check' in request.POST:
@@ -121,15 +128,19 @@ def service_detail(request, service_id):
                                                               'SEARCH_URL': settings.SEARCH_URL.rstrip('/')})
 
 
-def service_checks(request, service_id):
-    service = get_object_or_404(Service, pk=service_id)
+def service_checks(request, catalog_slug, service_id):
+    service = get_object_or_404(Service,
+                                pk=service_id,
+                                catalog__slug=catalog_slug)
     resource = serialize_checks(service.check_set)
 
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
-def layer_detail(request, layer_id):
-    layer = get_object_or_404(Layer, pk=layer_id)
+def layer_detail(request, catalog_slug, layer_id):
+    layer = get_object_or_404(Layer,
+                              pk=layer_id,
+                              catalog__slug=catalog_slug)
 
     if request.method == 'POST':
         if 'check' in request.POST:
@@ -150,8 +161,10 @@ def layer_detail(request, layer_id):
                                                             'SEARCH_URL': settings.SEARCH_URL.rstrip('/')})
 
 
-def layer_checks(request, layer_id):
-    layer = get_object_or_404(Layer, pk=layer_id)
+def layer_checks(request, catalog_slug, layer_id):
+    layer = get_object_or_404(Layer,
+                              pk=layer_id,
+                              catalog__slug=catalog_slug)
     resource = serialize_checks(layer.check_set)
 
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
@@ -266,9 +279,11 @@ def update_progressbar(request, task_id):
     return HttpResponse(json_data, content_type="application/json")
 
 
-def layer_mapproxy(request,  layer_id, path_info):
+def layer_mapproxy(request, catalog_slug, layer_id, path_info):
     # Get Layer with matching primary key
-    layer = get_object_or_404(Layer, pk=layer_id)
+    layer = get_object_or_404(Layer,
+                              pk=layer_id,
+                              catalog__slug=catalog_slug)
 
     # Set up a mapproxy app for this particular layer
     mp, yaml_config = get_mapproxy(layer)

@@ -20,13 +20,13 @@
     </ul>
     {% endif %}
     <ul>
-      <li><a href="{% url 'service_checks' service.id %}">See full check stats</a></li>
+      <li><a href="{{ service.get_absolute_url }}">See full check stats</a></li>
     </ul>
   </div>
   <div class="col-md-6">
     {% if user.is_superuser %}
     Administrative actions:
-    <form action="{% url 'service_detail' service.id %}" method="post">
+    <form action="{{ service.get_absolute_url }}" method="post">
       {% csrf_token %}
       <input type="submit" name="check" value="Check now">
       <input type="submit" name="remove" value="Remove checks">
@@ -114,12 +114,12 @@
                 <tr>
                   <td>
                     {% if layer.thumbnail %}
-                    <a href="{% url 'layer_detail' layer.id %}"><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" /></a>
+                    <a href="{{ layer.get_absolute_url }}"><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" /></a>
                     {% endif %}
                   </td>
                   <td>
                     <ul>
-                      <li>Name: <a href="{% url 'layer_detail' layer.id %}">{{ layer.name }}</a></li>
+                      <li>Name: <a href="{{ layer.get_absolute_url }}">{{ layer.name }}</a></li>
                       <li>Title: {{ layer.title }}</li>
                       <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
                     </ul>
@@ -134,7 +134,7 @@
                   </td>
                   <td>
                     {% if layer.checks_count > 0 %}
-                      <a href="{% url 'layer_detail' layer.id %}">
+                      <a href="{{ layer.get_absolute_url }}">
                       {% if layer.last_status %}
                         <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                       {% else %}

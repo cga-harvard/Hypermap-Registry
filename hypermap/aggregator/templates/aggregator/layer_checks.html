@@ -8,7 +8,7 @@
   <h1>Layer checks for: {{ layer.title }}</h1>
 </div>
 
-<a href="{% url 'layer_detail' layer.id %}">Go to layer details page</a>
+<a href="{{ layer.get_absolute_url }}">Go to layer details page</a>
 
 <div class="layer-thumb">
   <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" />
