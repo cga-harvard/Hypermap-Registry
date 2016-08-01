@@ -47,7 +47,7 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
 SEARCH_ENABLED = str2bool(os.getenv('SEARCH_ENABLED', 'False'))
-SEARCH_TYPE = 'solr'
+SEARCH_TYPE = os.getenv('SEARCH_TYPE', 'solr')
 SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
 
 # Application definition
