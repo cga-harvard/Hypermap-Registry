@@ -1,0 +1,45 @@
+version: '2'
+services:
+
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+
+  elasticsearch:
+   image: elasticsearch
+   ports:
+        - "9200:9200"
+
+  rabbitmq:
+     image: rabbitmq
+     ports:
+        - "5672:5672"
+
+  django:
+    image: django
+    links:
+      - postgres:postgres
+      - elasticsearch:elasticsearch
+      - rabbitmq:rabbit
+    volumes:
+      - .:/code/piensanode
+    expose:
+      - "8000"
+    command: uwsgi --emperor /code/piensanode
+
+  nginx:
+    image: nginx:latest
+    links:
+      - django:uwsgi
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+
+  celery:
+    image: celery
+    links:
+      - rabbitmq:rabbit
+      - postgres:postgres
+      - elasticsearch:elasticsearch
