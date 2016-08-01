@@ -30,21 +30,19 @@ paths:
       # This is array of GET operation parameters:
       parameters:
         # An example parameter that is in query and is required
-#        -
-#          name: search_engine
-#          in: query
-#          description: Where will be running the search.
-#          required: true
-#          type: string
-#          default: "solr"
-#          enum: [ "solr", "elasticsearch" ]
-#        -
-#          name: search_engine_endpoint
-#          description: "Endpoint url (ES http://localhost:9200/hypermap/_search)"
-#          in: query
-#          required: true
-#          type: string
-#          default: "http://54.221.223.91:8983/solr/hypermap2/select"
+        -
+          name: search_engine
+          in: query
+          description: Where will be running the search.
+          type: string
+          default: "solr"
+          enum: [ "solr", "elasticsearch" ]
+        -
+          name: search_engine_endpoint
+          description: "Specify only if external endpoint, internals are attached to Catalogs"
+          in: query
+          type: string
+          default: "http://54.221.223.91:8983/solr/hypermap/select"
         -
           name: catalog_slug
           in: path

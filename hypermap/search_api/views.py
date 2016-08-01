@@ -464,7 +464,11 @@ class Search(APIView):
             except Catalog.DoesNotExist:
                 return Response({}, status=404)
 
-            data = elasticsearch(serializer, catalog)
+            search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
+            if search_engine == 'solr':
+                data = solr(serializer)
+            else:
+                data = elasticsearch(serializer, catalog)
 
             status = 200
             if type(data) is tuple:

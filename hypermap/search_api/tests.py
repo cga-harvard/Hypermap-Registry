@@ -10,7 +10,7 @@ class SearchApiTestCase(TestCase):
     def setUp(self):
         self.search_engine_endpoint = "http://54.221.223.91:8983/solr/hypermap/select"
         self.search_engine = "solr"
-        self.test_url = "http://localhost:8000/registry/api/search/"
+        self.test_url = "http://localhost:8000/registry/api/search/hypermap"
 
         # TODO: delete solr documents
         # TODO: add test solr documents
@@ -37,30 +37,29 @@ class SearchApiTestCase(TestCase):
         data = res.json()
         self.assertGreater(data.get("a.matchDocs", 0), 0)
 
-    def test_time_order(self):
-        pass
-
-    def test_time_facets(self):
-        pass
-
-    def test_time_facets_compute_gap(self):
-        pass
-
-    def test_utils_time_parse(self):
-        dt = utils.parse_datetime("2013")
-        self.assertEquals(dt.year, 2013)
-
     def test_parse_datetime_range(self):
-        range = utils.parse_datetime_range("[2013-03-01 TO 2014-05-01T23:00:00]")
-        self.assertEquals(len(range), 2)
-        self.assertEquals(range[0].year, 2013)
-        self.assertEquals(range[0].month, 3)
-        self.assertEquals(range[0].day, 1)
-        self.assertEquals(range[1].hour, 23)
+        start, end = utils.parse_datetime_range("[2013-03-01 TO 2014-05-02T23:00:00]")
+        self.assertTrue(start.get("is_common_era"))
+        self.assertEqual(start.get("parsed_datetime").year, 2013)
+        self.assertEqual(start.get("parsed_datetime").month, 3)
+        self.assertEqual(start.get("parsed_datetime").day, 1)
+        self.assertTrue(end.get("is_common_era"))
+        self.assertEqual(end.get("parsed_datetime").year, 2014)
+        self.assertEqual(end.get("parsed_datetime").month, 5)
+        self.assertEqual(end.get("parsed_datetime").day, 2)
+        self.assertEqual(end.get("parsed_datetime").hour, 23)
+        self.assertEqual(end.get("parsed_datetime").minute, 0)
+        self.assertEqual(end.get("parsed_datetime").second, 0)
 
-        range = utils.parse_datetime_range("[* TO *]")
-        self.assertIsNone(range[0])
-        self.assertIsNone(range[1])
+        start, end = utils.parse_datetime_range("[-500000000 TO 2014-05-02T23:00:00]")
+        self.assertFalse(start.get("is_common_era"))
+        self.assertEqual(start.get("parsed_datetime"), "-500000000-01-01T00:00:00Z")
+
+        start, end = utils.parse_datetime_range("[* TO *]")
+        self.assertTrue(start.get("is_common_era"))
+        self.assertEqual(start.get("parsed_datetime"), None)
+        self.assertEqual(end.get("parsed_datetime"), None)
+
 
     def test_parse_ISO8601(self):
         quantity, units = utils.parse_ISO8601("P3D")
@@ -77,3 +76,21 @@ class SearchApiTestCase(TestCase):
         self.assertEqual(value.bounds[1], -180)
         self.assertEqual(value.bounds[2], 90)
         self.assertEqual(value.bounds[3], 180)
+
+    def test_request_time_facet(self):
+        d = utils.request_time_facet("x", "[2000 TO 2014-01-02T11:12:13]", None, 1000)
+        self.assertEqual(type(d), dict)
+
+        r = {'f.x.facet.range.end': '2014-01-02T11:12:13Z',
+             'f.x.facet.range.gap': '+6DAYS',
+             'f.x.facet.range.start': '2000-01-01T00:00:00Z',
+             'facet.range': 'x'}
+        self.assertEqual(d, r)
+
+        d = utils.request_time_facet("y", "[-5000000 TO 2016]", "P1D", 1)
+        r = {'f.y.facet.range.end': '2016-01-01T00:00:00Z',
+             'f.y.facet.range.gap': '+1DAYS',
+             'f.y.facet.range.start': '-5000000-01-01T00:00:00Z',
+             'facet.range': 'y'}
+
+        self.assertEqual(d, r)
