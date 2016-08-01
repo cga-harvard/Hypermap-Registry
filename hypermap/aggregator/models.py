@@ -463,7 +463,7 @@ class Layer(Resource):
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
     page_url = models.URLField(max_length=255)
     service = models.ForeignKey(Service)
-    catalog = models.ForeignKey(Catalog)
+    catalog = models.ForeignKey(Catalog, blank=True, null=True)
 
     def __unicode__(self):
         return '%s - %s' % (self.id, self.name)
@@ -757,7 +757,7 @@ class EndpointList(models.Model):
     """
     upload = models.FileField(upload_to='endpoint_lists')
     greedy = models.BooleanField(default=False)
-    catalog = models.ForeignKey(Catalog)
+    catalog = models.ForeignKey(Catalog, blank=True, null=True)
 
     def __unicode__(self):
         return self.upload.name
@@ -779,7 +779,7 @@ class Endpoint(models.Model):
     url = models.URLField(unique=True, max_length=255)
     endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
     catalog = models.ForeignKey(
-        Catalog, default=True, blank=True
+        Catalog, default=True, blank=True, null=True
     )
 
     @property
