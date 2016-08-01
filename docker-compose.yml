@@ -26,16 +26,16 @@ services:
       - .:/code/piensanode
     expose:
       - "8000"
-    command: uwsgi --emperor /code/piensanode
+    command: python manage.py runserver
 
   nginx:
-    image: nginx:latest
+    image: nginx
     links:
-      - django:uwsgi
+      - django:django
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+#    volumes:
+#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
 
   celery:
     image: celery
