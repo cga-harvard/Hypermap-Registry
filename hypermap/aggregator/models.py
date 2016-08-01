@@ -779,7 +779,7 @@ class Endpoint(models.Model):
     url = models.URLField(unique=True, max_length=255)
     endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
     catalog = models.ForeignKey(
-        Catalog, default=True, blank=True, null=True
+        Catalog, blank=True, null=True
     )
 
     @property
