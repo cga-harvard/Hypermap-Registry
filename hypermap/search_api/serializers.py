@@ -121,14 +121,22 @@ class SearchSerializer(serializers.Serializer):
         """
         if value:
             try:
-                start, end = utils.parse_datetime_range(value)
-                left = '*'
-                if start:
-                    left = start.isoformat() + 'Z'
-                right = '*'
-                if end:
-                    right = end.isoformat() + 'Z'
-                return "[{0} TO {1}]".format(left, right)
+                range = utils.parse_datetime_range_to_solr(value)
+                return range
+            except Exception as e:
+                raise serializers.ValidationError(e.message)
+
+        return value
+
+    def validate_a_time_filter(self, value):
+        """
+        Would be for example: [2013-03-01 TO 2013-04-01T00:00:00] and/or [* TO *]
+        Returns a valid sorl value. [2013-03-01T00:00:00Z TO 2013-04-01T00:00:00Z] and/or [* TO *]
+        """
+        if value:
+            try:
+                range = utils.parse_datetime_range_to_solr(value)
+                return range
             except Exception as e:
                 raise serializers.ValidationError(e.message)
 
