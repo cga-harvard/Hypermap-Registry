@@ -1,11 +1,15 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.generic import TemplateView
-from rest_framework.urlpatterns import format_suffix_patterns
+from rest_framework import routers
 from hypermap.search_api import views
 
-urlpatterns = [
-    url(r'^search/$', views.Search.as_view()),
-    url(r'^docs/$', TemplateView.as_view(template_name='search_api/swagger/index.html'))
-]
 
-urlpatterns = format_suffix_patterns(urlpatterns)
+router = routers.DefaultRouter()
+router.register(r'catalogs', views.CatalogViewSet)
+
+
+urlpatterns = [
+    url(r'^search/(?P<catalog_slug>[-\w]+)/$', views.Search.as_view(), name="search_api"),
+    url(r'^docs/$', TemplateView.as_view(template_name='search_api/swagger/index.html')),
+    url(r'^', include(router.urls)),
+]

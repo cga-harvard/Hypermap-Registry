@@ -20,14 +20,14 @@
     </ul>
     {% endif %}
     <ul>
-      <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
+      <li><a href="{{ layer.service.get_absolute_url }}">Go to service page</a></li>
       <li><a href="map/demo/">Go to demo page</a></li>
     </ul>
 </div>
   <div class="col-md-6">
     {% if user.is_superuser %}
     Administrative actions:
-    <form action="{% url 'layer_detail' layer.id %}" method="post">
+    <form action="{{ layer.get_absolute_url }}" method="post">
       {% csrf_token %}
       <input type="submit" name="check" value="Check now">
       <input type="submit" name="remove" value="Remove checks">
@@ -49,7 +49,7 @@
           <td><strong>Endpoints</strong></td>
           <td>
             <ul>
-            <li>Service Hypermap Page: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
+            <li>Service Hypermap Page: <a href="{{ layer.service.get_absolute_url }}">{{ layer.service.title }}</a></li>
             <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
             <li>Layer Hypermap EndPoint: <a href="{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
             {% if user.is_superuser %}
@@ -148,7 +148,7 @@
               <li>Last Check: {{ layer.last_check }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
               <li>Reliability: {{ layer.reliability }}</li>
-              <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
+              <li><a href="{{ layer.get_absolute_url }}">See full check stats</a></li>
             </ul>
             {% else %}
               No checks performed so far

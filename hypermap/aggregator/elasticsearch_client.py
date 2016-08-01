@@ -24,7 +24,6 @@ class ESHypermap(object):
     def __init__(self):
         #TODO: this create_indices() should not happen here:
         # ES creates the indexes automaticaly.
-        self.create_indices()
         super(ESHypermap, self).__init__()
 
     @staticmethod
@@ -55,7 +54,7 @@ class ESHypermap(object):
     def layer_to_es(layer):
         category = None
         username = None
-        ESHypermap.logger.info("Elasticsearch: record to save: %s" % layer.id)
+        ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.slug, layer.id))
 
         try:
             bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
@@ -122,7 +121,7 @@ class ESHypermap(object):
                     "last_status": layer.last_status,
                     "is_public": layer.is_public,
                     "availability": "Online",
-                    "location": '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                    "location": '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
                     "abstract": abstract,
                     "domain_name": layer.service.get_domain,
                     # "SrsProjectionCode": layer.srs.values_list('code', flat=True),
@@ -141,16 +140,14 @@ class ESHypermap(object):
                     },
                 }
 
-                slugs = layer.get_catalogs_slugs()
-                if slugs:
-                    es_record["catalogs"] = slugs
-
                 es_date, type = get_date(layer)
                 if es_date is not None:
                     es_record['layer_date'] = es_date
                     es_record['layer_datetype'] = type
                 ESHypermap.logger.info(es_record)
-                ESHypermap.es.index(ESHypermap.index_name, 'layer', json.dumps(es_record), id=layer.id,
+                # TODO: cache index creation.
+                ESHypermap.create_indices(layer.catalog.slug)
+                ESHypermap.es.index(layer.catalog.slug, 'layer', json.dumps(es_record), id=layer.id,
                                     request_timeout=20)
                 ESHypermap.logger.info("Elasticsearch: record saved for layer with id: %s" % layer.id)
                 return True, None
@@ -163,11 +160,12 @@ class ESHypermap(object):
     @staticmethod
     def clear_es():
         """Clear all indexes in the es core"""
+        # TODO: should receive a catalog slug.
         ESHypermap.es.indices.delete(ESHypermap.index_name, ignore=[400, 404])
         print 'Elasticsearch: Index cleared'
 
     @staticmethod
-    def create_indices():
+    def create_indices(catalog_slug):
         """Create ES core indices """
         # TODO: enable auto_create_index in the ES nodes to make this implicit.
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html#index-creation
@@ -185,4 +183,4 @@ class ESHypermap(object):
                 }
             }
         }
-        ESHypermap.es.indices.create(ESHypermap.index_name, ignore=[400, 404], body=mapping)
+        ESHypermap.es.indices.create(catalog_slug, ignore=[400, 404], body=mapping)

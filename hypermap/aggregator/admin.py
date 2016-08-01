@@ -33,7 +33,6 @@ class LayerAdmin(admin.ModelAdmin):
     list_display = ('name', 'title', 'service', )
     search_fields = ['name', 'title', ]
     list_filter = ('is_public', )
-    filter_horizontal = ('catalogs', )
 
 
 class LayerWMAdmin(admin.ModelAdmin):
@@ -49,7 +48,7 @@ class CheckAdmin(admin.ModelAdmin):
 
 class EndpointListAdmin(admin.ModelAdmin):
     model = EndpointList
-    list_display = ('upload', 'endpoints_admin_url')
+    list_display = ('id', 'upload', 'endpoints_admin_url', 'catalog')
 
 
 class EndpointAdmin(admin.ModelAdmin):
@@ -68,7 +67,8 @@ class TaskErrorAdmin(admin.ModelAdmin):
 
 class CatalogAdmin(admin.ModelAdmin):
     model = Catalog
-    list_display = ('name', 'slug')
+    list_display = ('name', 'slug', 'url_remote', 'url_local', 'get_search_url')
+    search_fields = ('name', )
 
 
 admin.site.register(Service, ServiceAdmin)
