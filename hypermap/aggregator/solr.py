@@ -8,6 +8,7 @@ import datetime
 from urlparse import urlparse
 from django.conf import settings
 from django.utils.html import strip_tags
+from shapely.geometry import box
 
 from hypermap.aggregator.utils import mercator_to_llbbox
 
@@ -91,6 +92,7 @@ class SolrHypermap(object):
                 halfWidth = (maxX - minX) / 2.0
                 halfHeight = (maxY - minY) / 2.0
                 area = (halfWidth * 2) * (halfHeight * 2)
+                rectangle = box(minX, minY, maxX, maxY)
             domain = self.get_domain(layer.service.url)
             if hasattr(layer, 'layerwm'):
                 category = layer.layerwm.category
@@ -138,6 +140,9 @@ class SolrHypermap(object):
                 solr_record['max_y'] = maxY
                 solr_record['area'] = area
                 solr_record['bbox'] = wkt
+                solr_record['centroid_x'] = rectangle.centroid.x
+                solr_record['centroid_y'] = rectangle.centroid.y
+
                 srs_list = [srs.encode('utf-8') for srs in layer.service.srs.values_list('code', flat=True)]
                 # solr_record['srs'] = ', '.join(srs_list)
                 solr_record['srs'] = srs_list
