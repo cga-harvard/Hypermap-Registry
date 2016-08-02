@@ -757,7 +757,7 @@ class EndpointList(models.Model):
     """
     upload = models.FileField(upload_to='endpoint_lists')
     greedy = models.BooleanField(default=False)
-    catalog = models.ForeignKey(Catalog, blank=True, null=True)
+    catalog = models.ForeignKey(Catalog, blank=False, null=True)
 
     def __unicode__(self):
         return self.upload.name
