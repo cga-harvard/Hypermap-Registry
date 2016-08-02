@@ -65,7 +65,6 @@ INSTALLED_APPS = (
     'taggit',
     'django_extensions',
     'djmp',
-    'maploom_registry',
     'hypermap.aggregator',
     'hypermap.dynasty',
     'hypermap.search',
