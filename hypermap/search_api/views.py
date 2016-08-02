@@ -262,8 +262,8 @@ def elasticsearch(serializer, catalog):
                 temp['value'] = item['key']
                 a_text_list_array.append(temp)
             data["a.text"] = a_text_list_array
-            
-         if 'articles_over_time' in aggs:
+
+        if 'articles_over_time' in aggs:
             gap_count = []
             a_gap = {}
             gap_resp = aggs["articles_over_time"]["buckets"]
