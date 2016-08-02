@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from hypermap.aggregator.models import Catalog
-from .utils import parse_geo_box, request_time_facet, request_heatmap_facet
+from .utils import parse_geo_box, request_time_facet, request_heatmap_facet,gap_to_elastic
 from .serializers import SearchSerializer, CatalogSerializer
 import json
 
@@ -40,6 +40,8 @@ def elasticsearch(serializer, catalog):
     d_docs_page = int (serializer.validated_data.get("d_docs_page")) 
     a_text_limit = serializer.validated_data.get("a_text_limit")
     a_user_limit = serializer.validated_data.get("a_user_limit")
+    a_time_gap = serializer.validated_data.get("a_time_gap")
+    a_time_limit = serializer.validated_data.get("a_time_limit")
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
     
     ## Dict for search on Elastic engine
@@ -174,6 +176,44 @@ def elasticsearch(serializer, catalog):
                       }
                 }
         aggs_dic['popular_users'] = users_limt
+
+    if a_time_limit:
+        ### Work in progress 
+        if q_time:
+            if not a_time_gap:
+                #getting time limit histogram.
+                time_limt = { 
+                    "date_range" : { 
+                      "field" : "layer_date",
+                      "format": "yyyy-MM-dd'T'HH:mm:ssZ",
+                      "ranges": [
+                            { "from": gte,"to": lte } 
+                            ]
+                     
+                              }
+                        }
+                aggs_dic['range'] = time_limt
+            else:
+                pass
+
+        else:
+            msg = "If you want to use a_time_limit feature, q_time MUST BE initialized"
+            return {"error": {"msg": msg}}
+
+       
+
+    if a_time_gap:
+        interval = gap_to_elastic(a_time_gap)
+        time_gap = {
+            "date_histogram" : {
+                "field" : "layer_date",
+                "format": "yyyy-MM-dd'T'HH:mm:ssZ",
+                "interval" : interval
+                }
+        }
+        aggs_dic['articles_over_time'] = time_gap
+        
+      
     
     #adding aggreations on body query
     if aggs_dic:
@@ -222,6 +262,44 @@ def elasticsearch(serializer, catalog):
                 temp['value'] = item['key']
                 a_text_list_array.append(temp)
             data["a.text"] = a_text_list_array
+            
+         if 'articles_over_time' in aggs:
+            gap_count = []
+            a_gap = {}
+            gap_resp = aggs["articles_over_time"]["buckets"]
+            start = gap_resp[0]['key_as_string'].replace('+0000','z')
+            end = gap_resp[-1]['key_as_string'].replace('+0000','z')
+            a_gap['start'] = start
+            a_gap['end'] = end
+            a_gap['gap'] = a_time_gap
+
+            for item in gap_resp:
+                temp = {}
+                if item['doc_count'] != 0:
+                    temp['count'] = item['doc_count']
+                    temp['value'] = item['key_as_string'].replace('+0000','z')
+                    gap_count.append(temp)
+            a_gap['counts'] = gap_count
+            data['a.time'] = a_gap
+
+        if 'range' in aggs:
+            ### Work in progress 
+            #Pay attention in the following code lines: Make it better!!!!
+            time_count = []
+            time_resp = aggs["range"]["buckets"]
+            a_time = {}
+            a_time['start'] = gte
+            a_time['end'] = lte
+            a_time ['gap'] = None 
+
+            for item in time_resp:
+                 temp = {}
+                 if item['doc_count'] != 0:
+                     temp['count'] = item['doc_count']
+                     temp['value'] = item['key'].replace('+0000','z')
+                     time_count.append(temp)
+            a_time['counts'] = time_count
+            data['a.time'] = a_time
 
     if not  int(d_docs_limit) == 0:
         for item in es_response['hits']['hits']:
