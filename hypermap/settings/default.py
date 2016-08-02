@@ -270,3 +270,5 @@ REGISTRY_PYCSW = {
 # for each service are updated and checked
 DEBUG_SERVICES = str2bool(os.getenv('DEBUG_SERVICES', 'False'))
 DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '10'))
+
+FILE_CACHE_DIRECTORY = os.getenv('FILE_CACHE_DIRECTORY', '/tmp/mapproxy/')

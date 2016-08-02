@@ -17,13 +17,16 @@ services:
         - "5672:5672"
 
   django:
-    image: django:onbuild
+    build: .
     links:
       - postgres:postgres
       - elasticsearch:elasticsearch
       - rabbitmq:rabbit
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/usr/src/app
+    command: python manage.py runserver 0.0.0.0:8000
 
   nginx:
     image: nginx
