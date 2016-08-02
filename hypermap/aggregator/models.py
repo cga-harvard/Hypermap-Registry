@@ -130,7 +130,7 @@ class Resource(models.Model):
     # CSW fields
     csw_last_updated = models.CharField(max_length=32,
                                         default=datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                                        null=False)
+                                        null=True, blank=True)
     csw_type = models.CharField(max_length=32, default='dataset', null=False)
     csw_typename = models.CharField(max_length=32, default='csw:Record', null=False)
 
