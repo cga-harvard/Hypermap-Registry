@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from hypermap.aggregator.models import Catalog
+from settings import SEARCH_URL
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet,gap_to_elastic
 from .serializers import SearchSerializer, CatalogSerializer
 import json
@@ -29,7 +30,7 @@ def elasticsearch(serializer, catalog):
     """
 
     # search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
-    search_engine_endpoint = "http://localhost:9200/{}/_search".format(catalog.slug)
+    search_engine_endpoint = "{0}{1}/_search".format(SEARCH_URL, catalog.slug)
 
     q_text = serializer.validated_data.get("q_text")
     q_time = serializer.validated_data.get("q_time")
