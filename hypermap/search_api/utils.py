@@ -156,6 +156,21 @@ def compute_gap(start, end, time_limit):
         # at the moment can not do maths with BCE dates.
         # those dates are relatively big, so 100 years are reasonable in those cases.
         return "+100YEARS"
+        
+def gap_to_elastic(time_gap):
+    ##elastic units link: https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#time-units
+     elastic_units = {
+        "YEARS": 'y',
+        "MONTHS": 'M',
+        "WEEKS": 'w',
+        "DAYS": 'd',
+        "HOURS": 'h',
+        "MINUTES": 'm',
+        "SECONDS": 's'
+     }
+     quantity, unit = parse_ISO8601(time_gap)
+     interval = "{0}{1}".format(str(quantity),elastic_units[unit[0]])
+     return interval
 
 
 def gap_to_sorl(time_gap):
