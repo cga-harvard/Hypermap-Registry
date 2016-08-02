@@ -52,14 +52,35 @@ class ESHypermap(object):
             return "Harvard"  # assumption
         return hostname
 
+
+    @staticmethod
+    def create_bounding_box(layer):
+
+        def float_box(coord):
+            idx, value = coord
+            try:
+                float_value = float(value)
+            except TypeError:
+                # setting the maximum value for x or y coordinates.
+                float_value = 90
+                # For the case of x coordinates (even indexes).
+                if idx % 2 == 0:
+                    float_value = 180
+            return float_value
+
+        bbox = [layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1]
+        bbox = [float_box(coord) for coord in enumerate(bbox)]
+
+        return bbox
+
+
     @staticmethod
     def layer_to_es(layer):
         category = None
         username = None
         ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.slug, layer.id))
-
         try:
-            bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+            bbox = ESHypermap.create_bounding_box(layer)
             for proj in layer.service.srs.values():
                 if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
