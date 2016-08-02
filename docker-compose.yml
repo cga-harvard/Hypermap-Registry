@@ -17,16 +17,13 @@ services:
         - "5672:5672"
 
   django:
-    image: django
+    image: django:onbuild
     links:
       - postgres:postgres
       - elasticsearch:elasticsearch
       - rabbitmq:rabbit
-    volumes:
-      - .:/code/piensanode
     expose:
       - "8000"
-    command: python manage.py runserver
 
   nginx:
     image: nginx
