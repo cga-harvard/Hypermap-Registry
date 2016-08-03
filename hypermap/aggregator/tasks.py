@@ -4,6 +4,8 @@ from django.conf import settings
 
 from celery import shared_task
 
+from hypermap.aggregator.models import Endpoint
+
 
 @shared_task(bind=True)
 def check_all_services(self):
@@ -210,10 +212,11 @@ def update_endpoint(self, endpoint, greedy_opt=False):
         greedy_opt = endpoint.endpoint_list.greedy
  
     imported, message = create_services_from_endpoint(endpoint.url, greedy_opt=greedy_opt, catalog=endpoint.catalog)
-    endpoint.imported = imported
-    endpoint.message = message
-    endpoint.processed = True
-    endpoint.save()
+
+    # this update will not execute the endpoint_post_save signal.
+    Endpoint.objects.filter(id=endpoint.id).update(
+        imported=imported, message=message, processed=True
+    )
 
 
 @shared_task(bind=True)
