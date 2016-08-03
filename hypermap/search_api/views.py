@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from hypermap.aggregator.models import Catalog
-from settings import SEARCH_URL
+from django.conf import settings
 from .utils import parse_geo_box, request_time_facet, request_heatmap_facet,gap_to_elastic
 from .serializers import SearchSerializer, CatalogSerializer
 import json
@@ -20,7 +20,7 @@ USER_FIELD = "layer_originator"
 TEXT_FIELD = "title"
 TIME_SORT_FIELD = "layer_date"
 GEO_SORT_FIELD = "bbox"
-
+SEARCH_URL = settings.SEARCH_URL
 
 def elasticsearch(serializer, catalog):
     """
