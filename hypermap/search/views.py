@@ -48,7 +48,7 @@ def csw_global_dispatch(request):
     env.update({'local.app_root': os.path.dirname(__file__),
                 'REQUEST_URI': request.build_absolute_uri()})
 
-    csw = server.Csw(settings.PYCSW, env, version='2.0.2')
+    csw = server.Csw(settings.PYCSW, env)
 
     content = csw.dispatch_wsgi()
 
