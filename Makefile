@@ -3,7 +3,7 @@ up:
 	# bring up the services
 	docker-compose up -d
 
-migrate:
+sync:
 	# set up the database tables
 	docker-compose run django python manage.py migrate --noinput
 	# load the default catalog (hypermap)
