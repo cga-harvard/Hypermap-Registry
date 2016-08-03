@@ -1,7 +1,9 @@
 .PHONY: hypermap
-hypermap:
+up:
 	# bring up the services
 	docker-compose up -d
+
+migrate:
 	# set up the database tables
 	docker-compose run django python manage.py migrate --noinput
 	# load the default catalog (hypermap)
@@ -10,5 +12,5 @@ hypermap:
 	docker-compose run django python manage.py loaddata hypermap/aggregator/fixtures/user.json
 
 .PHONY: clean
-clean:
+down:
 	docker-compose down
