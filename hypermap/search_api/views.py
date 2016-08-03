@@ -268,8 +268,14 @@ def elasticsearch(serializer, catalog):
             gap_count = []
             a_gap = {}
             gap_resp = aggs["articles_over_time"]["buckets"]
-            start = gap_resp[0]['key_as_string'].replace('+0000','z')
-            end = gap_resp[-1]['key_as_string'].replace('+0000','z')
+
+            start = "*"
+            end = "*"
+
+            if len(gap_count) > 0:
+                start = gap_resp[0]['key_as_string'].replace('+0000','z')
+                end = gap_resp[-1]['key_as_string'].replace('+0000','z')
+
             a_gap['start'] = start
             a_gap['end'] = end
             a_gap['gap'] = a_time_gap
