@@ -2,6 +2,10 @@ up:
 	# bring up the services
 	docker-compose up -d
 
+build:
+	docker-compose build django
+	docker-compose build celery
+
 sync:
 	# set up the database tables
 	docker-compose run django python manage.py migrate --noinput
@@ -15,3 +19,5 @@ logs:
 
 down:
 	docker-compose down
+
+reset: down build up sync
