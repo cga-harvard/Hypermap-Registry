@@ -4,8 +4,6 @@ from django.conf import settings
 
 from celery import shared_task
 
-from hypermap.aggregator.models import Endpoint
-
 
 @shared_task(bind=True)
 def check_all_services(self):
@@ -204,6 +202,8 @@ def index_all_layers(self):
 @shared_task(bind=True)
 def update_endpoint(self, endpoint, greedy_opt=False):
     from hypermap.aggregator.utils import create_services_from_endpoint
+    from hypermap.aggregator.models import Endpoint
+    
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
 
     # Override the greedy_opt var with the value from the endpoint list 
