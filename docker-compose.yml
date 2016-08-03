@@ -24,9 +24,10 @@ services:
       - rabbitmq
     ports:
       - "8000:8000"
+    # Loading the app is defined here to allow for autoreload on changes it is
+    # mounted on top of the old copy that docker added when creating the image.
     volumes:
-      - .:/code
-    command: python manage.py runserver 0.0.0.0:8000
+      - .:/usr/src/app
     environment:
       - DEBUG=True
       - SEARCH_ENABLED=True
@@ -47,8 +48,10 @@ services:
       - postgres
       - elasticsearch
     command: celery worker --app=hypermap.celeryapp:app -B -l INFO
+    # Loading the app is defined here to allow for autoreload on changes it is
+    # mounted on top of the old copy that docker added when creating the image.
     volumes:
-      - .:/code
+      - .:/usr/src/app
     environment:
       - DEBUG=True
       - SEARCH_ENABLED=True
