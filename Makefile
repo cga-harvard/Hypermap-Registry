@@ -11,6 +11,9 @@ migrate:
 	# load a superuser admin / admin
 	docker-compose run django python manage.py loaddata hypermap/aggregator/fixtures/user.json
 
+logs:
+	docker-compose logs --follow
+
 .PHONY: clean
 down:
 	docker-compose down
