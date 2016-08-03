@@ -156,7 +156,7 @@ paths:
           type: integer
           default: 0
         -
-          name: return_search_engine_original_response
+          name: original_response
           description: Just for debugging purposes when 1 will return the original solr response.
           in: query
           required: false

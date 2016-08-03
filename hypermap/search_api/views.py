@@ -44,7 +44,7 @@ def elasticsearch(serializer, catalog):
     a_user_limit = serializer.validated_data.get("a_user_limit")
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
-    return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
+    original_response = serializer.validated_data.get("original_response")
 
     ## Dict for search on Elastic engine
     must_array = []
@@ -220,7 +220,7 @@ def elasticsearch(serializer, catalog):
 
     es_response = res.json()
 
-    if return_search_engine_original_response:
+    if original_response:
         return es_response
 
     data = {}
@@ -342,7 +342,7 @@ def solr(serializer):
     a_hm_filter = serializer.validated_data.get("a_hm_filter")
     a_text_limit = serializer.validated_data.get("a_text_limit")
     a_user_limit = serializer.validated_data.get("a_user_limit")
-    return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
+    original_response = serializer.validated_data.get("original_response")
 
     print serializer.validated_data
 
@@ -423,7 +423,7 @@ def solr(serializer):
     solr_response = res.json()
     solr_response["solr_request"] = res.url
 
-    if return_search_engine_original_response > 0:
+    if original_response > 0:
         return solr_response
 
     # create the response dict following the swagger model:
