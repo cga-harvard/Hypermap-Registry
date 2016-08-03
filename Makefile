@@ -1,4 +1,3 @@
-.PHONY: hypermap
 up:
 	# bring up the services
 	docker-compose up -d
@@ -14,6 +13,5 @@ sync:
 logs:
 	docker-compose logs --follow
 
-.PHONY: clean
 down:
 	docker-compose down
