@@ -22,6 +22,7 @@ TIME_SORT_FIELD = "layer_date"
 GEO_SORT_FIELD = "bbox"
 SEARCH_URL = settings.SEARCH_URL
 
+
 def elasticsearch(serializer, catalog):
     """
     https://www.elastic.co/guide/en/elasticsearch/reference/current/_the_search_api.html
@@ -37,8 +38,8 @@ def elasticsearch(serializer, catalog):
     q_geo = serializer.validated_data.get("q_geo")
     q_user = serializer.validated_data.get("q_user")
     d_docs_sort = serializer.validated_data.get("d_docs_sort")
-    d_docs_limit = int (serializer.validated_data.get("d_docs_limit"))
-    d_docs_page = int (serializer.validated_data.get("d_docs_page"))
+    d_docs_limit = int(serializer.validated_data.get("d_docs_limit"))
+    d_docs_page = int(serializer.validated_data.get("d_docs_page"))
     a_text_limit = serializer.validated_data.get("a_text_limit")
     a_user_limit = serializer.validated_data.get("a_user_limit")
     a_time_gap = serializer.validated_data.get("a_time_gap")
@@ -50,105 +51,105 @@ def elasticsearch(serializer, catalog):
     filter_dic = {}
     aggs_dic = {}
 
-    #String searching
+    # String searching
     if q_text:
         query_string = {
-            "query_string" :{
-                    "query":q_text
-                            }
-                        }
-        #add string searching
+            "query_string": {
+                "query": q_text
+            }
+        }
+        # add string searching
         must_array.append(query_string)
 
     if q_time:
-    #check if q_time exists
-        q_time = str(q_time) #check string
+        # check if q_time exists
+        q_time = str(q_time)  # check string
         shortener = q_time[1:-1]
         shortener = shortener.split(" TO ")
-        gte = shortener[0] #greater than
-        lte = shortener[1] #less than
+        gte = shortener[0]  # greater than
+        lte = shortener[1]  # less than
         layer_date = {}
         if gte == '*' and lte != '*':
             layer_date["lte"] = lte
             range_time = {
-             "layer_date":layer_date
-                  }
-            range_time = {"range":range_time}
+                "layer_date": layer_date
+            }
+            range_time = {"range": range_time}
             must_array.append(range_time)
         if gte != '*' and lte == '*':
             layer_date["gte"] = gte
             range_time = {
-               "layer_date":layer_date
-                 }
-            range_time = {"range":range_time}
+                "layer_date": layer_date
+            }
+            range_time = {"range": range_time}
             must_array.append(range_time)
         if gte != '*' and lte != '*':
             layer_date["gte"] = gte
             layer_date["lte"] = lte
             range_time = {
-              "layer_date":layer_date
-                }
-            range_time = {"range":range_time}
+                "layer_date": layer_date
+            }
+            range_time = {"range": range_time}
             must_array.append(range_time)
-    #geo_shape searching
+    # geo_shape searching
     if q_geo:
         q_geo = str(q_geo)
         q_geo = q_geo[1:-1]
-        Ymin,Xmin =  q_geo.split(" TO ")[0].split(",")
-        Ymax,Xmax =  q_geo.split(" TO ")[1].split(",")
+        Ymin, Xmin = q_geo.split(" TO ")[0].split(",")
+        Ymax, Xmax = q_geo.split(" TO ")[1].split(",")
         geoshape_query = {
-                    "layer_geoshape":{
-                        "shape":{
-                         "type":"envelope",
-                         "coordinates":[[Xmin,Ymax],[Xmax,Ymin]]
-                        },
-                        "relation":"within"
-                    }
+            "layer_geoshape": {
+                "shape": {
+                    "type": "envelope",
+                    "coordinates": [[Xmin, Ymax], [Xmax, Ymin]]
+                },
+                "relation": "within"
+            }
         }
         filter_dic["geo_shape"] = geoshape_query
 
     if q_user:
-        #Using q_user
+        # Using q_user
         user_searching = {
-            "match" :{
-                "layer_originator":q_user
-                    }
-                    }
+            "match": {
+                "layer_originator": q_user
+            }
+        }
         must_array.append(user_searching)
 
     dic_query = {
         "query": {
-            "bool":{
-                "must":must_array,
-                "filter":filter_dic
-                    }
-                }
+            "bool": {
+                "must": must_array,
+                "filter": filter_dic
             }
-    #Page
+        }
+    }
+    # Page
     if d_docs_limit:
         dic_query["size"] = d_docs_limit
 
     if d_docs_page:
-        dic_query["from"] = d_docs_limit*d_docs_page - d_docs_limit
+        dic_query["from"] = d_docs_limit * d_docs_page - d_docs_limit
 
     if d_docs_sort == "score":
-        dic_query ["sort"] = {"_score": { "order": "desc" }}
+        dic_query["sort"] = {"_score": {"order": "desc"}}
 
     if d_docs_sort == "time":
-        dic_query ["sort"] = {"layer_date": { "order": "desc" }}
+        dic_query["sort"] = {"layer_date": {"order": "desc"}}
 
     if d_docs_sort == "distance":
         if q_geo:
-            distance_x = float (((float(Xmin)-float(Xmax))**2.0)**(0.5))
-            distance_y = float (((float(Ymin)-float(Ymax))**2.0)**(0.5))
-            X_middle = float(Xmin) + (distance_x/2.0) 
-            Y_middle = float(Ymin) + (distance_y/2.0)
-            msg=("Sorting by distance is different on ElasticSearch than Solr, because this"
-            "feature on elastic is unavailable to geo_shape type.ElasticSearch docs said:"
-            "Due to the complex input structure and index representation of shapes,"
-            "it is not currently possible to sort shapes or retrieve their fields directly."
-            "The geo_shape value is only retrievable through the _source field."
-            " Link: https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html")
+            distance_x = float(((float(Xmin) - float(Xmax)) ** 2.0) ** (0.5))
+            distance_y = float(((float(Ymin) - float(Ymax)) ** 2.0) ** (0.5))
+            X_middle = float(Xmin) + (distance_x / 2.0)
+            Y_middle = float(Ymin) + (distance_y / 2.0)
+            msg = ("Sorting by distance is different on ElasticSearch than Solr, because this"
+                   "feature on elastic is unavailable to geo_shape type.ElasticSearch docs said:"
+                   "Due to the complex input structure and index representation of shapes,"
+                   "it is not currently possible to sort shapes or retrieve their fields directly."
+                   "The geo_shape value is only retrievable through the _source field."
+                   " Link: https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html")
             return {"error": {"msg": msg}}
 
         else:
@@ -156,42 +157,40 @@ def elasticsearch(serializer, catalog):
             return {"error": {"msg": msg}}
 
     if a_text_limit:
-        #getting most frequently occurring users.
-        text_limt = {
-
-            "terms" : {
-              "field" : "abstract",
-              "size"  : a_text_limit
-                      }
-                }
-        aggs_dic['popular_text'] = text_limt
-
+        # getting most frequently occurring users.
+        text_limit = {
+            "terms": {
+                "field": "abstract",
+                "size": a_text_limit
+            }
+        }
+        aggs_dic['popular_text'] = text_limit
 
     if a_user_limit:
-        #getting most frequently occurring users.
+        # getting most frequently occurring users.
         users_limit = {
 
-            "terms" : {
-              "field" : "layer_originator",
-              "size"  : a_user_limit
-                      }
-                }
+            "terms": {
+                "field": "layer_originator",
+                "size": a_user_limit
+            }
+        }
         aggs_dic['popular_users'] = users_limit
 
     if a_time_limit:
         ### Work in progress
         if q_time:
             if not a_time_gap:
-                #getting time limit histogram.
+                # getting time limit histogram.
                 time_limt = {
-                    "date_range" : {
-                      "field" : "layer_date",
-                      "format": "yyyy-MM-dd'T'HH:mm:ssZ",
-                      "ranges": [
-                            { "from": gte,"to": lte }
-                            ]
-                              }
-                        }
+                    "date_range": {
+                        "field": "layer_date",
+                        "format": "yyyy-MM-dd'T'HH:mm:ssZ",
+                        "ranges": [
+                            {"from": gte, "to": lte}
+                        ]
+                    }
+                }
                 aggs_dic['range'] = time_limt
             else:
                 pass
@@ -200,22 +199,18 @@ def elasticsearch(serializer, catalog):
             msg = "If you want to use a_time_limit feature, q_time MUST BE initialized"
             return {"error": {"msg": msg}}
 
-
-
     if a_time_gap:
         interval = gap_to_elastic(a_time_gap)
         time_gap = {
-            "date_histogram" : {
-                "field" : "layer_date",
+            "date_histogram": {
+                "field": "layer_date",
                 "format": "yyyy-MM-dd'T'HH:mm:ssZ",
-                "interval" : interval
-                }
+                "interval": interval
+            }
         }
         aggs_dic['articles_over_time'] = time_gap
 
-
-
-    #adding aggreations on body query
+    # adding aggreations on body query
     if aggs_dic:
         dic_query['aggs'] = aggs_dic
     try:
@@ -238,12 +233,12 @@ def elasticsearch(serializer, catalog):
     data["request_body"] = json.dumps(dic_query)
     data["a.matchDocs"] = es_response['hits']['total']
     docs = []
-    #aggreations response: facets searching
+    # aggreations response: facets searching
     if 'aggregations' in es_response:
         aggs = es_response['aggregations']
-        #getting the most frequently occurring users.
+        # getting the most frequently occurring users.
         if 'popular_users' in aggs:
-            a_users_list_array = [] 
+            a_users_list_array = []
             users_resp = aggs["popular_users"]["buckets"]
             for item in users_resp:
                 temp = {}
@@ -252,9 +247,9 @@ def elasticsearch(serializer, catalog):
                 a_users_list_array.append(temp)
             data["a.user"] = a_users_list_array
 
-        #getting most frequently ocurring words
+        # getting most frequently ocurring words
         if 'popular_text' in aggs:
-            a_text_list_array = [] 
+            a_text_list_array = []
             text_resp = es_response["aggregations"]["popular_text"]["buckets"]
             for item in text_resp:
                 temp = {}
@@ -272,8 +267,8 @@ def elasticsearch(serializer, catalog):
             end = "*"
 
             if len(gap_resp) > 0:
-                start = gap_resp[0]['key_as_string'].replace('+0000','z')
-                end = gap_resp[-1]['key_as_string'].replace('+0000','z')
+                start = gap_resp[0]['key_as_string'].replace('+0000', 'z')
+                end = gap_resp[-1]['key_as_string'].replace('+0000', 'z')
 
             a_gap['start'] = start
             a_gap['end'] = end
@@ -283,45 +278,44 @@ def elasticsearch(serializer, catalog):
                 temp = {}
                 if item['doc_count'] != 0:
                     temp['count'] = item['doc_count']
-                    temp['value'] = item['key_as_string'].replace('+0000','z')
+                    temp['value'] = item['key_as_string'].replace('+0000', 'z')
                     gap_count.append(temp)
             a_gap['counts'] = gap_count
             data['a.time'] = a_gap
 
         if 'range' in aggs:
             ### Work in progress 
-            #Pay attention in the following code lines: Make it better!!!!
+            # Pay attention in the following code lines: Make it better!!!!
             time_count = []
             time_resp = aggs["range"]["buckets"]
             a_time = {}
             a_time['start'] = gte
             a_time['end'] = lte
-            a_time ['gap'] = None 
+            a_time['gap'] = None
 
             for item in time_resp:
-                 temp = {}
-                 if item['doc_count'] != 0:
-                     temp['count'] = item['doc_count']
-                     temp['value'] = item['key'].replace('+0000','z')
-                     time_count.append(temp)
+                temp = {}
+                if item['doc_count'] != 0:
+                    temp['count'] = item['doc_count']
+                    temp['value'] = item['key'].replace('+0000', 'z')
+                    time_count.append(temp)
             a_time['counts'] = time_count
             data['a.time'] = a_time
 
-    if not  int(d_docs_limit) == 0:
+    if not int(d_docs_limit) == 0:
         for item in es_response['hits']['hits']:
-            #data 
+            # data
             temp = item['_source']['abstract']
-            temp = temp.replace(u'\u201c',"\"")
-            temp = temp.replace(u'\u201d',"\"")
-            temp = temp.replace('"',"\"")
-            temp = temp.replace("'","\'")
-            temp = temp.replace(u'\u2019',"\'")
+            temp = temp.replace(u'\u201c', "\"")
+            temp = temp.replace(u'\u201d', "\"")
+            temp = temp.replace('"', "\"")
+            temp = temp.replace("'", "\'")
+            temp = temp.replace(u'\u2019', "\'")
             item['_source']['abstract'] = temp
             docs.append(item['_source'])
-            
+
     data["d.docs"] = docs
 
-   
     return data
 
 
