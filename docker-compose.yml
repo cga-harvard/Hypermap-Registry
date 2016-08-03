@@ -31,7 +31,7 @@ services:
       - DEBUG=True
       - SEARCH_ENABLED=True
       - SEARCH_TYPE=elastic
-      - SEARCH_URL=http://elastic/
+      - SEARCH_URL=http://elasticsearch:9200/
       - DATABASE_ENGINE=django.db.backends.postgresql_psycopg2
       - DATABASE_NAME=postgres
       - DATABASE_USER=postgres
@@ -39,17 +39,9 @@ services:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-  nginx:
-    image: nginx
-    links:
-      - django
-    ports:
-      - "80:80"
-#    volumes:
-#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
 
   celery:
-    image: celery
+    build: .
     links:
       - rabbitmq
       - postgres
@@ -69,3 +61,4 @@ services:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+      - C_FORCE_ROOT=1
