@@ -74,7 +74,7 @@ setup(
         'pycsw==2.0.0',
         'flake8==2.5.1',
         'httmock==1.2.5',
-        'djmp==0.2',
+        'djmp==0.2.1',
         'MapProxy==1.9',
         'djangorestframework==3.3.3',
         'django-celery==3.1.17',
