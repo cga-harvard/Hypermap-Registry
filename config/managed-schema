@@ -402,30 +402,32 @@
   <field name="abstract" type="string" multiValued="false" indexed="true"/>
   <field name="area" type="tdoubles" multiValued="false"/>
   <field name="availability" type="string" multiValued="false" indexed="true"/>
-  <field name="bbox" type="location_rpt" multiValued="false" indexed="true" stored="true" />
+  <field name="bbox" type="location_rpt" multiValued="false" indexed="true" stored="true"/>
   <field name="domain_name" type="string" multiValued="false" indexed="true"/>
   <field name="id" type="tlongs" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="is_public" type="booleans" multiValued="false"/>
   <field name="last_status" type="booleans" multiValued="false"/>
+  <field name="layer_category" type="strings"/>
   <field name="layer_date" type="tdates" multiValued="false"/>
   <field name="layer_datetype" type="string" multiValued="false" indexed="true"/>
   <field name="layer_id" type="tlongs" multiValued="false"/>
   <field name="layer_originator" type="string" multiValued="false" indexed="true"/>
+  <field name="layer_username" type="strings"/>
   <field name="location" type="string" multiValued="false" indexed="true"/>
   <field name="max_x" type="tdoubles" multiValued="false"/>
   <field name="max_y" type="tdoubles" multiValued="false"/>
   <field name="min_x" type="tdoubles" multiValued="false"/>
-  <field name="min_y" type="tdoubles" multiValued="false" />
-  <field name="name" type="string" multiValued="false" />
-  <field name="recent_reliability" type="tdoubles" multiValued="false" />
-  <field name="reliability" type="tdoubles" multiValued="false" />
-  <field name="service_id" type="tlongs" multiValued="false" />
+  <field name="min_y" type="tdoubles" multiValued="false"/>
+  <field name="name" type="string" multiValued="false"/>
+  <field name="recent_reliability" type="tdoubles" multiValued="false"/>
+  <field name="reliability" type="tdoubles" multiValued="false"/>
+  <field name="service_id" type="tlongs" multiValued="false"/>
   <field name="service_type" type="string" multiValued="false" indexed="true"/>
   <field name="srs" type="string" multiValued="true" indexed="true"/>
   <field name="tile_url" type="string" multiValued="false" indexed="true"/>
   <field name="title" type="string" multiValued="false" indexed="true"/>
   <field name="type" type="string" multiValued="false" indexed="true"/>
-  <field name="url" type="strings" multiValued="false" indexed="true" />
+  <field name="url" type="strings" multiValued="false" indexed="true"/>
   <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
   <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
   <dynamicField name="*_ancestor_path" type="ancestor_path" indexed="true" stored="true"/>
@@ -471,7 +473,7 @@
   <dynamicField name="*_srpt" type="location_rpt" indexed="true" stored="true"/>
   <dynamicField name="*_tdts" type="tdates" indexed="true" stored="true"/>
   <dynamicField name="attr_*" type="text_general" multiValued="true" indexed="true" stored="true"/>
-  <dynamicField name="*_txt" type="text_general" indexed="true" stored="true"/>
+  <dynamicField name="*_txt" type="text_general" indexed="true" stored="false"/>
   <dynamicField name="*_dts" type="date" multiValued="true" indexed="true" stored="true"/>
   <dynamicField name="*_tis" type="tints" indexed="true" stored="true"/>
   <dynamicField name="*_tls" type="tlongs" indexed="true" stored="true"/>
@@ -500,4 +502,7 @@
   <dynamicField name="*_p" type="location" indexed="true" stored="true"/>
   <dynamicField name="*_c" type="currency" indexed="true" stored="true"/>
   <copyField source="*" dest="_text_"/>
+  <copyField source="title" dest="title_txt" />
+  <copyField source="abstract" dest="abstract_txt" />
+  <copyField source="layer_originator" dest="layer_originator_txt" />
 </schema>
