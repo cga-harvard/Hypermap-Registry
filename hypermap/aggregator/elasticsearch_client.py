@@ -8,15 +8,19 @@ from django.conf import settings
 from django.utils.html import strip_tags
 
 from elasticsearch import Elasticsearch
+from shapely.geometry import box
 
 from hypermap.aggregator.utils import mercator_to_llbbox
 
 from hypermap.aggregator.solr import get_date
 
 
+SEARCH_MAPPING_PRECISION = getattr(settings, "SEARCH_MAPPING_PRECISION", "500m")
+SEARCH_URL = getattr(settings, "SEARCH_URL", "http://localhost:9200/")
+
 class ESHypermap(object):
 
-    es_url = settings.SEARCH_URL
+    es_url = SEARCH_URL
     es = Elasticsearch(hosts=[es_url])
     index_name = 'hypermap'
     logger = logging.getLogger("hypermap")
@@ -88,6 +92,7 @@ class ESHypermap(object):
                 if (maxY > 90):
                     maxY = 90
                 wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
+                rectangle = box(minX, minY, maxX, maxY)
                 domain = ESHypermap.get_domain(layer.service.url)
                 if hasattr(layer, 'layerwm'):
                     category = layer.layerwm.category
@@ -131,6 +136,8 @@ class ESHypermap(object):
                     "max_y": maxY,
                     "area": area,
                     "bbox": wkt,
+                    "centroid_x": rectangle.centroid.x,
+                    "centroid_y": rectangle.centroid.y,
                     "srs": [srs.encode('utf-8') for srs in layer.service.srs.values_list('code', flat=True)],
                     "layer_geoshape": {
                         "type": "envelope",
@@ -177,7 +184,7 @@ class ESHypermap(object):
                         "layer_geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
-                            "precision": "50m"
+                            "precision": SEARCH_MAPPING_PRECISION
                         }
                     }
                 }

@@ -47,7 +47,7 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
 SEARCH_ENABLED = str2bool(os.getenv('SEARCH_ENABLED', 'False'))
-SEARCH_TYPE = 'solr'
+SEARCH_TYPE = os.getenv('SEARCH_TYPE', 'solr')
 SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
 
 # Application definition
@@ -65,7 +65,6 @@ INSTALLED_APPS = (
     'taggit',
     'django_extensions',
     'djmp',
-    'maploom_registry',
     'hypermap.aggregator',
     'hypermap.dynasty',
     'hypermap.search',
@@ -271,3 +270,6 @@ REGISTRY_PYCSW = {
 # for each service are updated and checked
 DEBUG_SERVICES = str2bool(os.getenv('DEBUG_SERVICES', 'False'))
 DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '10'))
+
+FILE_CACHE_DIRECTORY = os.getenv('FILE_CACHE_DIRECTORY', '/tmp/mapproxy/')
+ES_MAPPING_PRECISION = os.getenv("ES_MAPPING_PRECISION", "2000m")

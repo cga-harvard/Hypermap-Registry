@@ -74,8 +74,6 @@ setup(
         'pycsw==2.0.0',
         'flake8==2.5.1',
         'httmock==1.2.5',
-        # django-maploom-registry is a temporary package while Registry support is added to main MapLoom
-        'django-maploom-registry==1.5.1',
         # Get djmp from the registry branch on terranodo/django-mapproxy
         'djmp',
         # For ArcGIS support we need to install the latest from Github.

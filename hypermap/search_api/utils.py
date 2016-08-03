@@ -8,17 +8,47 @@ from dateutil.parser import parse
 from shapely.geometry import box
 
 
+def is_range_common_era(start, end):
+    """
+    does the range contains CE dates.
+    BCE and CE are not compatible at the moment.
+    :param start:
+    :param end:
+    :return: False if contains BCE dates.
+    """
+    return all([start.get("is_common_era"),
+                end.get("is_common_era")])
+
 def parse_datetime(date_str):
     """
     Parses a date string to date object.
+    for BCE dates, only supports the year part.
     """
-    if date_str == '*':
-        return None  # open ended.
-    default = datetime.datetime.now().replace(
-        hour=0, minute=0, second=0, microsecond=0,
-        day=1, month=1
-    )
-    return parse(date_str, default=default)
+    is_common_era = True
+    date_str_parts = date_str.split("-")
+    if date_str_parts and date_str_parts[0] == '':
+        is_common_era = False
+        # for now, only support BCE years
+        date_str = date_str + "-01-01T00:00:00Z"
+
+    parsed_datetime = {
+        'is_common_era': is_common_era,
+        'parsed_datetime': None
+    }
+
+    if is_common_era:
+        if date_str == '*':
+            return parsed_datetime  # open ended.
+
+        default = datetime.datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0,
+            day=1, month=1
+        )
+        parsed_datetime['parsed_datetime'] = parse(date_str, default=default)
+        return parsed_datetime
+
+    parsed_datetime['parsed_datetime'] = date_str
+    return parsed_datetime
 
 
 def parse_solr_time_range_as_pair(time_filter):
@@ -48,10 +78,25 @@ def parse_datetime_range(time_filter):
 
     start, end = parse_solr_time_range_as_pair(time_filter)
     start, end = parse_datetime(start), parse_datetime(end)
-    if None not in [start, end] and start > end:
-        raise Exception("Start must come before End: {0}".format(time_filter))
-
     return start, end
+
+
+def parse_datetime_range_to_solr(time_filter):
+    start, end = parse_datetime_range(time_filter)
+    left = "*"
+    right = "*"
+
+    if start.get("parsed_datetime"):
+        left = start.get("parsed_datetime")
+        if start.get("is_common_era"):
+            left = start.get("parsed_datetime").isoformat() + 'Z'
+
+    if end.get("parsed_datetime"):
+        right = end.get("parsed_datetime")
+        if end.get("is_common_era"):
+            right = end.get("parsed_datetime").isoformat() + 'Z'
+
+    return "[{0} TO {1}]".format(left, right)
 
 
 def parse_ISO8601(time_gap):
@@ -103,9 +148,29 @@ def compute_gap(start, end, time_limit):
     :param time_limit: gaps count
     :return: solr's format duration.
     """
-    duration = end - start
-    unit = int(math.ceil(duration.days / float(time_limit)))
-    return "+{0}DAYS".format(unit)
+    if is_range_common_era(start, end):
+        duration = end.get("parsed_datetime") - start.get("parsed_datetime")
+        unit = int(math.ceil(duration.days / float(time_limit)))
+        return "+{0}DAYS".format(unit)
+    else:
+        # at the moment can not do maths with BCE dates.
+        # those dates are relatively big, so 100 years are reasonable in those cases.
+        return "+100YEARS"
+        
+def gap_to_elastic(time_gap):
+    ##elastic units link: https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#time-units
+     elastic_units = {
+        "YEARS": 'y',
+        "MONTHS": 'M',
+        "WEEKS": 'w',
+        "DAYS": 'd',
+        "HOURS": 'h',
+        "MINUTES": 'm',
+        "SECONDS": 's'
+     }
+     quantity, unit = parse_ISO8601(time_gap)
+     interval = "{0}{1}".format(str(quantity),elastic_units[unit[0]])
+     return interval
 
 
 def gap_to_sorl(time_gap):
@@ -135,10 +200,11 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
     """
     now = datetime.datetime.utcnow()
     start, end = parse_datetime_range(time_filter)
-    if not start:
-        start = now - datetime.timedelta(days=90)
-    if not end:
-        end = now
+
+    if not start.get("parsed_datetime"):
+        start = {"parsed_datetime": now - datetime.timedelta(days=90), "is_common_era": True}
+    if not end.get("parsed_datetime"):
+        end = {"parsed_datetime": now, "is_common_era": True}
 
     key_range_start = "f.{0}.facet.range.start".format(field)
     key_range_end = "f.{0}.facet.range.end".format(field)
@@ -149,13 +215,23 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
     else:
         gap = compute_gap(start, end, time_limit)
 
+    value_range_start = start.get("parsed_datetime")
+    if start.get("is_common_era"):
+        value_range_start = start.get("parsed_datetime").isoformat() + "Z"
+
+    value_range_end = start.get("parsed_datetime")
+    if end.get("is_common_era"):
+        value_range_end = end.get("parsed_datetime").isoformat() + "Z"
+
+    value_range_gap = gap
+
     params = {
         'facet.range': field,
-        key_range_start: start.isoformat().replace("+00:00", "Z"),
-        key_range_end: end.isoformat().replace("+00:00", "Z"),
-        key_range_gap: gap,
+        key_range_start: value_range_start,
+        key_range_end: value_range_end,
+        key_range_gap: value_range_gap
     }
-    # get_params = urllib.urlencode(params)
+
     return params
 
 

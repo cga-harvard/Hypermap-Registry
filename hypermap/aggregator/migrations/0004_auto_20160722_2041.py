@@ -24,30 +24,30 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='catalog',
             name='identifier',
-            field=models.CharField(default=1, help_text=b'Identifier string in search backend. AKA: indice or core name. ex: hypermap', max_length=255),
+            field=models.CharField(help_text=b'Identifier string in search backend. AKA: indice or core name. ex: hypermap', max_length=255),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='endpoint',
             name='catalog',
-            field=models.ForeignKey(default=True, blank=True, to='aggregator.Catalog'),
+            field=models.ForeignKey(to='aggregator.Catalog', blank=True, null=True),
         ),
         migrations.AddField(
             model_name='endpointlist',
             name='catalog',
-            field=models.ForeignKey(default=1, to='aggregator.Catalog'),
+            field=models.ForeignKey(to='aggregator.Catalog', blank=True, null=True),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='layer',
             name='catalog',
-            field=models.ForeignKey(default=1, to='aggregator.Catalog'),
+            field=models.ForeignKey(to='aggregator.Catalog', blank=True, null=True),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='service',
             name='catalog',
-            field=models.ForeignKey(blank=True, to='aggregator.Catalog', null=True),
+            field=models.ForeignKey(to='aggregator.Catalog', null=True, blank=True),
         ),
         migrations.AlterField(
             model_name='catalog',
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='endpoint',
             name='endpoint_list',
-            field=models.ForeignKey(blank=True, to='aggregator.EndpointList', null=True),
+            field=models.ForeignKey(to='aggregator.EndpointList', null=True, blank=True),
         ),
         migrations.AlterField(
             model_name='layer',
