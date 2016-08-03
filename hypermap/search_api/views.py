@@ -38,13 +38,13 @@ def elasticsearch(serializer, catalog):
     q_user = serializer.validated_data.get("q_user")
     d_docs_sort = serializer.validated_data.get("d_docs_sort")
     d_docs_limit = int (serializer.validated_data.get("d_docs_limit"))
-    d_docs_page = int (serializer.validated_data.get("d_docs_page")) 
+    d_docs_page = int (serializer.validated_data.get("d_docs_page"))
     a_text_limit = serializer.validated_data.get("a_text_limit")
     a_user_limit = serializer.validated_data.get("a_user_limit")
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
     return_search_engine_original_response = serializer.validated_data.get("return_search_engine_original_response")
-    
+
     ## Dict for search on Elastic engine
     must_array = []
     filter_dic = {}
@@ -81,7 +81,7 @@ def elasticsearch(serializer, catalog):
                "layer_date":layer_date
                  }
             range_time = {"range":range_time}
-            must_array.append(range_time)      
+            must_array.append(range_time)
         if gte != '*' and lte != '*':
             layer_date["gte"] = gte
             layer_date["lte"] = lte
@@ -145,7 +145,7 @@ def elasticsearch(serializer, catalog):
             Y_middle = float(Ymin) + (distance_y/2.0)
             msg=("Sorting by distance is different on ElasticSearch than Solr, because this"
             "feature on elastic is unavailable to geo_shape type.ElasticSearch docs said:"
-            "Due to the complex input structure and index representation of shapes," 
+            "Due to the complex input structure and index representation of shapes,"
             "it is not currently possible to sort shapes or retrieve their fields directly."
             "The geo_shape value is only retrievable through the _source field."
             " Link: https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html")
@@ -153,13 +153,13 @@ def elasticsearch(serializer, catalog):
 
         else:
             msg = "q_qeo MUST BE NO ZERO if you wanna sort by distance"
-            return {"error": {"msg": msg}} 
+            return {"error": {"msg": msg}}
 
     if a_text_limit:
         #getting most frequently occurring users.
-        text_limt = { 
-       
-            "terms" : { 
+        text_limt = {
+
+            "terms" : {
               "field" : "abstract",
               "size"  : a_text_limit
                       }
@@ -169,28 +169,27 @@ def elasticsearch(serializer, catalog):
 
     if a_user_limit:
         #getting most frequently occurring users.
-        users_limt = { 
-       
-            "terms" : { 
+        users_limit = {
+
+            "terms" : {
               "field" : "layer_originator",
               "size"  : a_user_limit
                       }
                 }
-        aggs_dic['popular_users'] = users_limt
+        aggs_dic['popular_users'] = users_limit
 
     if a_time_limit:
-        ### Work in progress 
+        ### Work in progress
         if q_time:
             if not a_time_gap:
                 #getting time limit histogram.
-                time_limt = { 
-                    "date_range" : { 
+                time_limt = {
+                    "date_range" : {
                       "field" : "layer_date",
                       "format": "yyyy-MM-dd'T'HH:mm:ssZ",
                       "ranges": [
-                            { "from": gte,"to": lte } 
+                            { "from": gte,"to": lte }
                             ]
-                     
                               }
                         }
                 aggs_dic['range'] = time_limt
@@ -201,7 +200,7 @@ def elasticsearch(serializer, catalog):
             msg = "If you want to use a_time_limit feature, q_time MUST BE initialized"
             return {"error": {"msg": msg}}
 
-       
+
 
     if a_time_gap:
         interval = gap_to_elastic(a_time_gap)
@@ -213,9 +212,9 @@ def elasticsearch(serializer, catalog):
                 }
         }
         aggs_dic['articles_over_time'] = time_gap
-        
-      
-    
+
+
+
     #adding aggreations on body query
     if aggs_dic:
         dic_query['aggs'] = aggs_dic
@@ -225,7 +224,7 @@ def elasticsearch(serializer, catalog):
         return 500, {"error": {"msg": str(e)}}
 
     es_response = res.json()
-    
+
     if return_search_engine_original_response:
         return es_response
 
@@ -272,7 +271,7 @@ def elasticsearch(serializer, catalog):
             start = "*"
             end = "*"
 
-            if len(gap_count) > 0:
+            if len(gap_resp) > 0:
                 start = gap_resp[0]['key_as_string'].replace('+0000','z')
                 end = gap_resp[-1]['key_as_string'].replace('+0000','z')
 
