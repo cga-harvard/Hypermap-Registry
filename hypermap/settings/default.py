@@ -256,4 +256,4 @@ PYCSW = {
 # if DEBUG_SERVICES is set to True, only first DEBUG_LAYERS_NUMBER layers
 # for each service are updated and checked
 DEBUG_SERVICES = str2bool(os.getenv('DEBUG_SERVICES', 'False'))
-DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '10'))
+DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '20'))

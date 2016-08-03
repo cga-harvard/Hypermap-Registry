@@ -449,7 +449,6 @@ class Layer(Resource):
             else:
                 return True
 
-
     def get_layer_dates(self):
 
         def get_date_sign(a_date):
@@ -483,7 +482,8 @@ class Layer(Resource):
         # now we return all the other dates
         for layerdate in self.layerdate_set.all().order_by('date'):
             sdate = layerdate.date
-            if 'TO' not in sdate: # for now we skip ranges
+            # for now we skip ranges
+            if 'TO' not in sdate:
                 pydate = get_parsed_date(sdate)
                 if pydate:
                     date = []
