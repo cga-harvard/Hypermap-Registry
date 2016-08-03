@@ -13,12 +13,14 @@ from shapely.geometry import box
 from hypermap.aggregator.utils import mercator_to_llbbox
 
 from hypermap.aggregator.solr import get_date
-from settings import ES_MAPPING_PRECISION
 
+
+SEARCH_MAPPING_PRECISION = getattr(settings, "SEARCH_MAPPING_PRECISION", "500m")
+SEARCH_URL = getattr(settings, "SEARCH_URL", "http://localhost:9200/")
 
 class ESHypermap(object):
 
-    es_url = settings.SEARCH_URL
+    es_url = SEARCH_URL
     es = Elasticsearch(hosts=[es_url])
     index_name = 'hypermap'
     logger = logging.getLogger("hypermap")
@@ -182,7 +184,7 @@ class ESHypermap(object):
                         "layer_geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
-                            "precision": ES_MAPPING_PRECISION
+                            "precision": SEARCH_MAPPING_PRECISION
                         }
                     }
                 }
