@@ -19,3 +19,6 @@ logs:
 
 down:
 	docker-compose down
+
+test:
+	docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
