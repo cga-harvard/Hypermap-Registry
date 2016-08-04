@@ -203,7 +203,7 @@ def index_all_layers(self):
 def update_endpoint(self, endpoint, greedy_opt=False):
     from hypermap.aggregator.utils import create_services_from_endpoint
     from hypermap.aggregator.models import Endpoint
-    
+
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
 
     # Override the greedy_opt var with the value from the endpoint list 

@@ -4,6 +4,7 @@ import datetime
 import isodate
 import math
 
+import requests
 from dateutil.parser import parse
 from shapely.geometry import box
 
@@ -29,7 +30,11 @@ def parse_datetime(date_str):
     if date_str_parts and date_str_parts[0] == '':
         is_common_era = False
         # for now, only support BCE years
-        date_str = date_str + "-01-01T00:00:00Z"
+
+        # assume the datetime comes complete, but
+        # when it comes only the year, add the missing datetime info:
+        if len(date_str_parts) == 2:
+            date_str = date_str + "-01-01T00:00:00Z"
 
     parsed_datetime = {
         'is_common_era': is_common_era,
@@ -89,12 +94,12 @@ def parse_datetime_range_to_solr(time_filter):
     if start.get("parsed_datetime"):
         left = start.get("parsed_datetime")
         if start.get("is_common_era"):
-            left = start.get("parsed_datetime").isoformat() + 'Z'
+            left = start.get("parsed_datetime").isoformat().replace("+00:00", "") + 'Z'
 
     if end.get("parsed_datetime"):
         right = end.get("parsed_datetime")
         if end.get("is_common_era"):
-            right = end.get("parsed_datetime").isoformat() + 'Z'
+            right = end.get("parsed_datetime").isoformat().replace("+00:00", "") + 'Z'
 
     return "[{0} TO {1}]".format(left, right)
 
@@ -155,6 +160,7 @@ def compute_gap(start, end, time_limit):
     else:
         # at the moment can not do maths with BCE dates.
         # those dates are relatively big, so 100 years are reasonable in those cases.
+        # TODO: calculate duration on those cases.
         return "+100YEARS"
         
 def gap_to_elastic(time_gap):
@@ -201,14 +207,10 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
     now = datetime.datetime.utcnow()
     start, end = parse_datetime_range(time_filter)
 
-    if not start.get("parsed_datetime"):
-        start = {"parsed_datetime": now - datetime.timedelta(days=90), "is_common_era": True}
-    if not end.get("parsed_datetime"):
-        end = {"parsed_datetime": now, "is_common_era": True}
-
     key_range_start = "f.{0}.facet.range.start".format(field)
     key_range_end = "f.{0}.facet.range.end".format(field)
     key_range_gap = "f.{0}.facet.range.gap".format(field)
+    key_range_mincount = "f.{0}.facet.mincount".format(field)
 
     if time_gap:
         gap = gap_to_sorl(time_gap)
@@ -217,11 +219,11 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
 
     value_range_start = start.get("parsed_datetime")
     if start.get("is_common_era"):
-        value_range_start = start.get("parsed_datetime").isoformat() + "Z"
+        value_range_start = start.get("parsed_datetime").isoformat().replace("+00:00", "") + "Z"
 
     value_range_end = start.get("parsed_datetime")
     if end.get("is_common_era"):
-        value_range_end = end.get("parsed_datetime").isoformat() + "Z"
+        value_range_end = end.get("parsed_datetime").isoformat().replace("+00:00", "") + "Z"
 
     value_range_gap = gap
 
@@ -229,7 +231,8 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
         'facet.range': field,
         key_range_start: value_range_start,
         key_range_end: value_range_end,
-        key_range_gap: value_range_gap
+        key_range_gap: value_range_gap,
+        key_range_mincount: 1
     }
 
     return params
@@ -307,3 +310,43 @@ def request_heatmap_facet(field, hm_filter, hm_grid_level, hm_limit):
 
 def request_field_facet(field, limit, ex_filter=True):
     pass
+
+
+def asterisk_to_min_max(field, time_filter, search_engine_endpoint, actual_params=None):
+    """
+    traduce [* TO *] to something like [MIN-INDEXED-DATE TO MAX-INDEXED-DATE]
+    :param field: map the stats to this field.
+    :param time_filter: this is the value to be translated. think in "[* TO 2000]"
+    :param search_engine_endpoint: solr core
+    :param actual_params: (not implemented) to merge with other params.
+    :return: translated time filter
+    """
+
+    if actual_params:
+        raise NotImplemented("actual_params")
+
+    start, end = parse_solr_time_range_as_pair(time_filter)
+    if start == '*' or end == '*':
+        params_stats = {
+            "q": "*:*",
+            "rows": 0,
+            "stats.field": field,
+            "stats": "true",
+            "wt": "json"
+        }
+        res_stats = requests.get(search_engine_endpoint, params=params_stats)
+
+        if res_stats.ok:
+
+            stats_date_field = res_stats.json()["stats"]["stats_fields"][field]
+            date_min = stats_date_field["min"]
+            date_max = stats_date_field["max"]
+
+            if start != '*':
+                date_min = start
+            if end != '*':
+                date_max = end
+
+            time_filter = "[{0} TO {1}]".format(date_min, date_max)
+
+    return time_filter

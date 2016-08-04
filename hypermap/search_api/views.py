@@ -6,7 +6,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from hypermap.aggregator.models import Catalog
 from django.conf import settings
-from .utils import parse_geo_box, request_time_facet, request_heatmap_facet,gap_to_elastic
+from .utils import parse_geo_box, request_time_facet, request_heatmap_facet,gap_to_elastic, \
+    asterisk_to_min_max
 from .serializers import SearchSerializer, CatalogSerializer
 import json
 
@@ -393,6 +394,11 @@ def solr(serializer):
     if a_time_limit > 0:
         params["facet"] = 'on'
         time_filter = a_time_filter or q_time or None
+
+        # traduce * to actual min/max dates.
+        time_filter = asterisk_to_min_max(TIME_FILTER_FIELD, time_filter, search_engine_endpoint)
+
+        # create the range faceting params.
         facet_parms = request_time_facet(TIME_FILTER_FIELD, time_filter, a_time_gap, a_time_limit)
         params.update(facet_parms)
 
