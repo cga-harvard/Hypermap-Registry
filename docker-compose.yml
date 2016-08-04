@@ -17,7 +17,7 @@ services:
         - "5672:5672"
 
   django:
-    image: terranodo/django:onbuild
+    build: .
     links:
       - postgres
       - elasticsearch
@@ -42,7 +42,7 @@ services:
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
 
   celery:
-    image: terranodo/django:onbuild
+    build: .
     links:
       - rabbitmq
       - postgres
