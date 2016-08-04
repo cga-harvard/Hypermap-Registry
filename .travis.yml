@@ -16,7 +16,7 @@ install:
   - docker-compose build django
 
 script:
-  - docker-compose run django python python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
+  - docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
 
 branches:
   only:
