@@ -16,4 +16,4 @@ logs:
 clean:
 	docker-compose down
 
-hypermap: up sync logs
+runserver: up sync logs
