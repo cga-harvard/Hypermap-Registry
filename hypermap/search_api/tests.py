@@ -80,17 +80,17 @@ class SearchApiTestCase(TestCase):
     def test_request_time_facet(self):
         d = utils.request_time_facet("x", "[2000 TO 2014-01-02T11:12:13]", None, 1000)
         self.assertEqual(type(d), dict)
-
-        r = {'f.x.facet.range.end': '2014-01-02T11:12:13Z',
-             'f.x.facet.range.gap': '+6DAYS',
-             'f.x.facet.range.start': '2000-01-01T00:00:00Z',
-             'facet.range': 'x'}
-        self.assertEqual(d, r)
+        self.assertEqual(d['f.x.facet.range.start'], '2000-01-01T00:00:00Z')
+        self.assertEqual(d['f.x.facet.range.end'], '2014-01-02T11:12:13Z')
+        self.assertEqual(d['f.x.facet.range.gap'], '+6DAYS')
+        self.assertEqual(d['facet.range'], 'x')
 
         d = utils.request_time_facet("y", "[-5000000 TO 2016]", "P1D", 1)
-        r = {'f.y.facet.range.end': '2016-01-01T00:00:00Z',
-             'f.y.facet.range.gap': '+1DAYS',
-             'f.y.facet.range.start': '-5000000-01-01T00:00:00Z',
-             'facet.range': 'y'}
+        self.assertEqual(d['f.y.facet.range.start'], '-5000000-01-01T00:00:00Z')
+        self.assertEqual(d['f.y.facet.range.end'], '2016-01-01T00:00:00Z')
+        self.assertEqual(d['f.y.facet.range.gap'], '+1DAYS')
+        self.assertEqual(d['facet.range'], 'y')
 
-        self.assertEqual(d, r)
+    def asterisk_to_min_max(self):
+        # TODO: make mock
+        pass
