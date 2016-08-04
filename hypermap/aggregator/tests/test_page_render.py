@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 
 from django.db.models import signals
 
-from hypermap.aggregator.models import Service, Layer
+from hypermap.aggregator.models import Service, Layer, Catalog
 from hypermap.aggregator.models import layer_post_save, service_post_save
 
 
@@ -19,11 +19,17 @@ class PageRendererTestCase(TestCase):
         signals.post_save.disconnect(layer_post_save, sender=Layer)
         signals.post_save.disconnect(service_post_save, sender=Service)
 
+        catalog, created = Catalog.objects.get_or_create(
+            name="hypermap", slug="hypermap",
+            url_remote="search_api", url_local=None
+        )
+
         for s in range(0, SERVICE_NUMBER):
             service = Service(
                 url='http://%s.fakeurl.com' % s,
                 title='Title %s' % s,
                 type='OGC:WMS',
+                catalog=catalog
             )
             service.save()
             for l in range(0, LAYER_PER_SERVICE_NUMBER):
@@ -33,7 +39,8 @@ class PageRendererTestCase(TestCase):
                     bbox_x1=179,
                     bbox_y0=-89,
                     bbox_y1=89,
-                    service=service
+                    service=service,
+                    catalog=service.catalog
                 )
                 layer.save()
                 service.layer_set.add(layer)

@@ -9,7 +9,7 @@ import unittest
 from httmock import with_httmock
 import mocks.worldmap
 
-from hypermap.aggregator.models import Service
+from hypermap.aggregator.models import Service, Catalog
 from hypermap.aggregator.enums import DATE_DETECTED, DATE_FROM_METADATA
 
 
@@ -18,10 +18,16 @@ class TestWorldMap(unittest.TestCase):
     @with_httmock(mocks.worldmap.resource_get)
     def test_create_worldmap_service(self):
 
+        catalog, created = Catalog.objects.get_or_create(
+            name="hypermap", slug="hypermap",
+            url_remote="search_api", url_local=None
+        )
+
         # create the service
         service = Service(
             type='Hypermap:WorldMap',
-            url='http://worldmap.harvard.edu/'
+            url='http://worldmap.harvard.edu/',
+            catalog=catalog
         )
         service.save()
 
