@@ -1,25 +1,22 @@
-language: python
+sudo: required
+services:
+  - docker
 
-python:
-  - "2.7"
+env:
+  COMPOSE_VERSION: 1.4.1
 
-virtualenv:
-  system_site_packages: true
+before_install:
+  - curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+install:
+  - docker-compose build django
+
+script:
+  - docker-compose run django python python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
 
 branches:
   only:
     - master
-
-install:
-  - sudo apt-get -qq -y update
-  - sudo apt-get install -y python-virtualenv python-imaging
-  - pip install -e .
-
-script:
-  - paver run_tests
-
-notifications:
-  email:
-    - pcorti@gmail.com
-    - jude@cga.harvard.edu
-    - ingenieroariel@gmail.com
+    - registry
