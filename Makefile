@@ -17,9 +17,7 @@ sync:
 logs:
 	docker-compose logs --follow
 
-clean:
+down:
 	docker-compose down
-
-reset: down build
 
 runserver: up sync logs
