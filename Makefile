@@ -19,5 +19,3 @@ logs:
 
 down:
 	docker-compose down
-
-runserver: up sync logs
