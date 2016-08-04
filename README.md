@@ -33,13 +33,6 @@ To run unit tests:
 make test
 ```
 
-If you want to run integration tests, you need to create a solr core named 'hypermap_test', and then:
-
-```
-cd /webapps/hypermap/hypermap
-paver run_integration_tests
-```
-
 ## Start using Hypermap
 
 Login to the home page, http://localhost:8000. It will be empty. You need to add some
