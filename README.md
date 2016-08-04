@@ -6,21 +6,19 @@ HHypermap (Harvard Hypermap) Supervisor is a platform that manages OWS, Esri RES
 
 ## Installation
 
-### Running Hypermap on Vagrant
+### Running Hypermap on Docker
 
-Easiest way to have an HHypermap instance up and running is to use Vagrant.
+Easiest way to have an HHypermap instance up and running is to use Docker.
 
 ```
-git clone git@github.com:cga-harvard/hypermap.git
-# bring up the services
-docker-compose up -d
-# set up the database tables
-docker-compose run django python manage.py migrate --noinput
-# load the default catalog (hypermap)
-docker-compose run django python manage.py loaddata hypermap/aggregator/fixtures/catalog_default.json
-# load a superuser admin / admin
-docker-compose run django python manage.py loaddata hypermap/aggregator/fixtures/user.json
+git clone git@github.com:cga-harvard/HHypermap.git
+cd HHypermap
+make build
+make up
+make sync
+make logs
 ```
+
 Wait for the instance to be provisioned (about 3/4 minutes).
 
 Then connect to: http://localhost:8000 and your instance should be up and running.
@@ -32,8 +30,7 @@ You can edit the files with your IDE from your host, as the directory
 To run unit tests:
 
 ```
-cd /code
-paver run_tests
+make test
 ```
 
 If you want to run integration tests, you need to create a solr core named 'hypermap_test', and then:
