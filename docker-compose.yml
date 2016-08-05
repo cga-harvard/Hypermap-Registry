@@ -27,7 +27,7 @@ services:
     environment:
       - DEBUG=True
       - SEARCH_ENABLED=True
-      - SEARCH_TYPE=elastic
+      - SEARCH_TYPE=elasticsearch
       - SEARCH_URL=http://elasticsearch:9200/
       - DATABASE_ENGINE=django.db.backends.postgresql_psycopg2
       - DATABASE_NAME=postgres
@@ -53,8 +53,8 @@ services:
     environment:
       - DEBUG=True
       - SEARCH_ENABLED=True
-      - SEARCH_TYPE=elastic
-      - SEARCH_URL=http://elastic/
+      - SEARCH_TYPE=elasticsearch
+      - SEARCH_URL=http://elasticsearch:9200/
       - DATABASE_ENGINE=django.db.backends.postgresql_psycopg2
       - DATABASE_NAME=postgres
       - DATABASE_USER=postgres
