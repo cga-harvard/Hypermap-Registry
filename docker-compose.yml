@@ -36,6 +36,8 @@ services:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+      - DEBUG_SERVICES = True
+      - DEBUG_LAYERS_NUMBER = 50
 
   celery:
     build: .
@@ -61,3 +63,5 @@ services:
       - DATABASE_PORT=5432
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
       - C_FORCE_ROOT=1
+      - DEBUG_SERVICES = True
+      - DEBUG_LAYERS_NUMBER = 50      
