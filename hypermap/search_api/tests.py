@@ -1,43 +1,276 @@
+import json
 import requests
+import time
+from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.test import TestCase
 
+from hypermap.aggregator.models import Catalog
 from hypermap.search_api import utils
 
 
 class SearchApiTestCase(TestCase):
-    # TODO: create tests based in local solr endpoint.
+
+    def index(self, data):
+        headers = {"content-type": "application/json"}
+        params = {"commitWithin": 1500}
+        solr_json = json.dumps(data)
+        res = requests.post(self.url_solr_update, data=solr_json, params=params, headers=headers)
+        # solr seems to have a delay indexing the layers.
+        # before to proceed with the tests wait for 2 secs.
+        # otherwise it will return zero docs in the next test.
+        time.sleep(2)
+
 
     def setUp(self):
-        self.search_engine_endpoint = "http://54.221.223.91:8983/solr/hypermap/select"
-        self.search_engine = "solr"
-        self.test_url = "http://localhost:8000/registry/api/search/hypermap"
+        self.url_solr_clear = '%s/update?commit=true' % settings.SEARCH_URL
+        self.url_solr_update = '%s/update/json/docs' % settings.SEARCH_URL
+        self.url_solr_search = '%s/select' % settings.SEARCH_URL
+        self.api_url = "http://localhost:8000{0}".format(reverse("search_api",
+                                                                 args=["hypermap"]))
+        self.default_params = {
+            "search_engine": "solr",
+            "search_engine_endpoint": self.url_solr_search,
+            "q_time": "[* TO *]",
+            "q_geo": "[-90,-180 TO 90,180]",
+            "d_docs_limit": 0,
+            "d_docs_page": 1,
+            "d_docs_sort": "score"
+        }
 
-        # TODO: delete solr documents
-        # TODO: add test solr documents
+        catalog, created = Catalog.objects.get_or_create(
+            name="hypermap", slug="hypermap",
+            url_remote=None, url_local="search_api"
+        )
+
+        #delete solr documents
+        headers = {"content-type": "text/xml"}
+        res = requests.post(self.url_solr_clear,
+                            data="<delete><query>*:*</query></delete>",
+                            headers=headers)
+
+        #add test solr documents
+        self.solr_records = [
+            {
+                "abstract": "Downtown-New-Orleans-Map ",
+                "layer_originator": "warp.worldmap.harvard.edu",
+                "availability": "Online",
+                "min_x": -40.0,
+                "max_x": -20.0,
+                "max_y": -20.0,
+                "min_y": -40.0,
+                "bbox": "ENVELOPE(-40.0,-20.0,-20.0,-40.0)",
+                "title": "1",
+                "domain_name": "warp.worldmap.harvard.edu",
+                "id": 1,
+                "location": "{\"layerInfoPage\": \"/layer/998/\"}",
+                "service_type": "Hypermap:WARPER",
+                "layer_datetype": "From Metadata",
+                "layer_id": 1,
+                "is_public": True,
+                "layer_date": "2000-03-01T00:00:00Z",
+                "name": "1490",
+                "url": "http://warp.worldmap.harvard.edu/maps/wms/1490?",
+                "type": "Layer",
+                "area": 1,
+                "tile_url": "/layers/998/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png",
+                "srs": ["EPSG:3857",
+                        "EPSG:900913",
+                        "EPSG:4326"],
+                "service_id": 1
+            },
+            {
+                "abstract": "Downtown-New-Orleans-Map ",
+                "layer_originator": "warp.worldmap.harvard.edu",
+                "availability": "Online",
+                "min_x": -40,
+                "max_x": -20,
+                "max_y": 40,
+                "min_y": 20,
+                "bbox": "ENVELOPE(-40,-20,40,20)",
+                "title": "20",
+                "domain_name": "warp.worldmap.harvard.edu",
+                "id": 2,
+                "location": "{\"layerInfoPage\": \"/layer/998/\"}",
+                "service_type": "Hypermap:WARPER",
+                "layer_datetype": "From Metadata",
+                "layer_id": 2,
+
+                "is_public": True,
+                "layer_date": "2001-03-01T00:00:00Z",
+                "name": "1490",
+                "url": "http://warp.worldmap.harvard.edu/maps/wms/1490?",
+                "type": "Layer",
+                "area": 2,
+                "tile_url": "/layers/998/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png",
+                "srs": ["EPSG:3857",
+                        "EPSG:900913",
+                        "EPSG:4326"],
+                "service_id": 2
+            },
+            {
+                "abstract": "Downtown-New-Orleans-Map ",
+                "layer_originator": "warp.worldmap.harvard.edu",
+                "availability": "Online",
+                "min_x": 20,
+                "max_x": 40,
+                "max_y": 40,
+                "min_y": 20,
+                "bbox": "ENVELOPE(20,40,40,20)",
+                "title": "3",
+                "domain_name": "warp.worldmap.harvard.edu",
+                "id": 3,
+                "location": "{\"layerInfoPage\": \"/layer/998/\"}",
+                "service_type": "Hypermap:WARPER",
+                "layer_datetype": "From Metadata",
+                "layer_id": 30,
+                "is_public": True,
+                "layer_date": "2002-03-01T00:00:00Z",
+                "name": "1490",
+                "url": "http://warp.worldmap.harvard.edu/maps/wms/1490?",
+                "type": "Layer",
+                "area": 3,
+                "tile_url": "/layers/998/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png",
+                "srs": ["EPSG:3857",
+                        "EPSG:900913",
+                        "EPSG:4326"],
+                "service_id": 3
+            },
+            {
+                "abstract": "Downtown-New-Orleans-Map ",
+                "layer_originator": "warp.worldmap.harvard.edu",
+                "availability": "Online",
+                "min_x": 20,
+                "max_x": 40,
+                "max_y": -20,
+                "min_y": -40,
+                "bbox": "ENVELOPE(20,40,-20,-40)",
+                "title": "Layer with a BCE date",
+                "domain_name": "warp.worldmap.harvard.edu",
+                "id": 4,
+                "location": "{\"layerInfoPage\": \"/layer/998/\"}",
+                "service_type": "Hypermap:WARPER",
+                "layer_datetype": "From Metadata",
+                "layer_id": 4,
+                "is_public": True,
+                "layer_date": "-5000000-01-01T00:00:00Z",
+                "name": "1490",
+                "url": "http://warp.worldmap.harvard.edu/maps/wms/1490?",
+                "type": "Layer",
+                "area": 4,
+                "tile_url": "/layers/998/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png",
+                "srs": ["EPSG:3857",
+                        "EPSG:900913",
+                        "EPSG:4326"],
+                "service_id": 4
+            }
+
+        ]
+
+        self.index(self.solr_records)
+
+    def test_all_match_docs(self):
+        params = self.default_params
+        print "searching on [{}]".format(self.api_url)
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], len(self.solr_records))
 
     def test_q_text(self):
-        params = {
-            "search_engine_endpoint": self.search_engine_endpoint,
-            "search_engine": self.search_engine,
-            "q_text": "a"
-        }
-        res = requests.get(self.test_url, params=params)
-        self.assertEqual(res.status_code, 200)
-        data = res.json()
-        self.assertGreater(data.get("a.matchDocs", 0), 0)
+        params = self.default_params
+        params["q_text"] = "title:1"
+        params["d_docs_limit"] = 100
+
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], 1)
+
+        for doc in results.get("d.docs", []):
+            self.assertEqual(doc["title"], "1")
+
+
+    def test_q_time(self):
+        params = self.default_params
+
+        # test validations
+        params["q_time"] = "[2000-01-01 - 2001-01-01T00:00:00]"
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(400, results.status_code) # requires [X TO Y]
+
+        # test asterisks
+        params["q_time"] = "[* TO *]" # all times
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], len(self.solr_records)) # all records
+
+        # test range
+        params["q_time"] = "[2000-01-01 TO 2001-01-01T00:00:00]" # entire year 2000
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], 1) # 1 in year 2000
+
+        # test complete min and max when q time is asterisks
+        params["q_time"] = "[* TO *]"
+        params["a_time_limit"] = 1
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], len(self.solr_records)) # all
+        self.assertEqual(results["a.time"]["start"], "-5000000-01-01T00:00:00Z") # * to first date
+        # TODO: returning "2100-01-01T00:00:00Z" because BCE dates cant calculate time duration.
+        # self.assertEqual(results["a.time"]["end"], "2002-03-01T00:00:00Z") # * to last date
+
+        # test facets
+        params["q_time"] = "[2000 TO 2022]" # all
+        params["a_time_limit"] = 1 # on faceting
+        params["a_time_gap"] = "P1Y" # on faceting
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], 3) # all
+        self.assertEqual(results["a.time"]["start"], "2000-01-01T00:00:00Z") # 2000 to complete datetime format
+        self.assertEqual(results["a.time"]["end"], "2022-01-01T00:00:00Z") # 2022 to complete datetime format
+        self.assertEqual(len(results["a.time"]["counts"]), 3) # the facet counters are all facets excluding < 2000
 
     def test_q_geo(self):
-        params = {
-            "search_engine_endpoint": self.search_engine_endpoint,
-            "search_engine": self.search_engine,
-            "q_geo": "[-90,-180 TO 90,180]"
-        }
-        res = requests.get(self.test_url, params=params)
-        self.assertEqual(res.status_code, 200)
-        data = res.json()
-        self.assertGreater(data.get("a.matchDocs", 0), 0)
+        params = self.default_params
 
-    def test_parse_datetime_range(self):
+        params["q_geo"] = "[0,0 TO 30,30]" # top right square
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], 1)
+
+        params["q_geo"] = "[-30,-30 TO 0,0]" # bottom left square
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], 1)
+
+        params["q_geo"] = "[-30,-30 TO 30,30]" # big square
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], 4)
+
+        params["q_geo"] = "[-5,-5 TO 5,5]" # center where no layers
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 200)
+        results = results.json()
+        self.assertEqual(results["a.matchDocs"], 0)
+
+        params["q_geo"] = "[-5,-5 5,5]" # bad format
+        results = requests.get(self.api_url, params=params)
+        self.assertEqual(results.status_code, 400) # validate the format
+
+    def test_utilities(self):
+        # test_parse_datetime_range
         start, end = utils.parse_datetime_range("[2013-03-01 TO 2014-05-02T23:00:00]")
         self.assertTrue(start.get("is_common_era"))
         self.assertEqual(start.get("parsed_datetime").year, 2013)
@@ -60,24 +293,23 @@ class SearchApiTestCase(TestCase):
         self.assertEqual(start.get("parsed_datetime"), None)
         self.assertEqual(end.get("parsed_datetime"), None)
 
-
-    def test_parse_ISO8601(self):
+        #test_parse_ISO8601
         quantity, units = utils.parse_ISO8601("P3D")
         self.assertEqual(quantity, 3)
         self.assertEqual(units[0], "DAYS")
 
-    def test_gap_to_sorl(self):
+        # test_gap_to_sorl
         value = utils.gap_to_sorl("P3D")
         self.assertEqual(value, "+3DAYS")
 
-    def test_parse_geo_box(self):
+        # test_parse_geo_box
         value = utils.parse_geo_box("[-90,-180 TO 90,180]")
         self.assertEqual(value.bounds[0], -90)
         self.assertEqual(value.bounds[1], -180)
         self.assertEqual(value.bounds[2], 90)
         self.assertEqual(value.bounds[3], 180)
 
-    def test_request_time_facet(self):
+        # test_request_time_facet
         d = utils.request_time_facet("x", "[2000 TO 2014-01-02T11:12:13]", None, 1000)
         self.assertEqual(type(d), dict)
         self.assertEqual(d['f.x.facet.range.start'], '2000-01-01T00:00:00Z')
@@ -90,7 +322,3 @@ class SearchApiTestCase(TestCase):
         self.assertEqual(d['f.y.facet.range.end'], '2016-01-01T00:00:00Z')
         self.assertEqual(d['f.y.facet.range.gap'], '+1DAYS')
         self.assertEqual(d['facet.range'], 'y')
-
-    def asterisk_to_min_max(self):
-        # TODO: make mock
-        pass
