@@ -55,13 +55,27 @@ class ESHypermap(object):
         return hostname
 
     @staticmethod
+    def get_bbox(layer):
+        candidate_bbox = layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1
+        if not None in candidate_bbox:
+            return [float(coord) for coord in candidate_bbox]
+
+        wkt = layer.wkt_geometry
+        # If a coordinate is None and 'POLYGON'
+        if 'POLYGON' in wkt:
+            from shapely.wkt import loads
+            return loads(wkt).bounds
+
+        return (-180.0, -90.0, 180.0, 90.0)
+
+    @staticmethod
     def layer_to_es(layer):
         category = None
         username = None
         ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.slug, layer.id))
 
         try:
-            bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+            bbox = get_bbox(layer)
             for proj in layer.service.srs.values():
                 if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
