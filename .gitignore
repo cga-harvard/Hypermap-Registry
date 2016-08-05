@@ -77,3 +77,4 @@ development.db
 .idea
 
 env_vars
+solr-config
