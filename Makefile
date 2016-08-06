@@ -1,16 +1,24 @@
-.PHONY: hypermap
-hypermap:
-	cf create-service elephantsql hippo hypermap-database
-	cf create-service searchly small hypermap-elasticsearch -c '{"syslog_drain_url":"syslog://logs4.papertrailapp.com:11296"}'
-	cf create-service cloudamqp tiger hypermap-rabbitmq
-	cf cups hypermap-papertrail -l syslog://logs4.papertrailapp.com:11296
-	cf push -f cf/manifest.yml
+up:
+	# bring up the services
+	docker-compose up -d
 
-.PHONY: clean
-clean:
-	cf delete hypermap -f
-	cf delete hypermap-celery -f
-	cf delete-service hypermap-database -f
-	cf delete-service hypermap-elasticsearch -f
-	cf delete-service hypermap-rabbitmq -f
-	cf delete-service hypermap-papertrail -f
+build:
+	docker-compose build django
+	docker-compose build celery
+
+sync:
+	# set up the database tables
+	docker-compose run django python manage.py migrate --noinput
+	# load the default catalog (hypermap)
+	docker-compose run django python manage.py loaddata hypermap/aggregator/fixtures/catalog_default.json
+	# load a superuser admin / admin
+	docker-compose run django python manage.py loaddata hypermap/aggregator/fixtures/user.json
+
+logs:
+	docker-compose logs --follow
+
+down:
+	docker-compose down
+
+test:
+	docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast

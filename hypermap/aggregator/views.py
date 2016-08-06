@@ -233,7 +233,7 @@ def get_queued_jobs_number():
                            virtual_host=params.virtual_host,
                            insist=False)
     chan = conn.channel()
-    name, jobs, consumers = chan.queue_declare(queue="hypermap", passive=False)
+    name, jobs, consumers = chan.queue_declare(queue=settings.CELERY_DEFAULT_EXCHANGE, passive=False)
     return jobs
 
 
