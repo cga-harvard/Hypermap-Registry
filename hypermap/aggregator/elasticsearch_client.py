@@ -75,7 +75,7 @@ class ESHypermap(object):
         ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.slug, layer.id))
 
         try:
-            bbox = get_bbox(layer)
+            bbox = ESHyperma.get_bbox(layer)
             for proj in layer.service.srs.values():
                 if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
