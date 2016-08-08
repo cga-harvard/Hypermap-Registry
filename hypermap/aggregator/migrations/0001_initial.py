@@ -18,8 +18,10 @@ class Migration(migrations.Migration):
             name='Catalog',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(max_length=255)),
-                ('slug', django_extensions.db.fields.AutoSlugField(populate_from=b'name', editable=False, blank=True)),
+                ('name', models.CharField(help_text=b'Display name in UI', max_length=255)),
+                ('slug', django_extensions.db.fields.AutoSlugField(editable=False, populate_from=b'name', blank=True, help_text=b'Leave empty to be populated from name')),
+                ('url_remote', models.URLField(help_text=b'Only if remote. URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/', max_length=255, null=True, blank=True)),
+                ('url_local', models.CharField(help_text=b'If not remote, add django url name to be reversed', max_length=100, null=True, blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -43,6 +45,7 @@ class Migration(migrations.Migration):
                 ('imported', models.BooleanField(default=False)),
                 ('message', models.TextField(null=True, blank=True)),
                 ('url', models.URLField(unique=True, max_length=255)),
+                ('catalog', models.ForeignKey(blank=True, to='aggregator.Catalog', null=True)),
             ],
         ),
         migrations.CreateModel(
@@ -50,6 +53,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('upload', models.FileField(upload_to=b'endpoint_lists')),
+                ('greedy', models.BooleanField(default=False)),
+                ('catalog', models.ForeignKey(to='aggregator.Catalog', null=True)),
             ],
         ),
         migrations.CreateModel(
@@ -66,6 +71,7 @@ class Migration(migrations.Migration):
                 ('type', models.CharField(max_length=32, choices=[(b'OGC:CSW', b'Catalogue Service for the Web (CSW)'), (b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
                 ('temporal_extent_start', models.CharField(max_length=255, null=True, blank=True)),
                 ('temporal_extent_end', models.CharField(max_length=255, null=True, blank=True)),
+                ('csw_last_updated', models.CharField(default=b'2016-08-08T20:22:44Z', max_length=32, null=True, blank=True)),
                 ('csw_type', models.CharField(default=b'dataset', max_length=32)),
                 ('csw_typename', models.CharField(default=b'csw:Record', max_length=32)),
                 ('csw_schema', models.CharField(default=b'http://www.opengis.net/cat/csw/2.0.2', max_length=64)),
@@ -79,7 +85,7 @@ class Migration(migrations.Migration):
                 ('bbox_y1', models.DecimalField(null=True, max_digits=19, decimal_places=10, blank=True)),
                 ('thumbnail', models.ImageField(null=True, upload_to=b'layers', blank=True)),
                 ('page_url', models.URLField(max_length=255)),
-                ('catalogs', models.ManyToManyField(to='aggregator.Catalog')),
+                ('catalog', models.ForeignKey(blank=True, to='aggregator.Catalog', null=True)),
                 ('keywords', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', blank=True, help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
             options={
@@ -124,12 +130,14 @@ class Migration(migrations.Migration):
                 ('type', models.CharField(max_length=32, choices=[(b'OGC:CSW', b'Catalogue Service for the Web (CSW)'), (b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
                 ('temporal_extent_start', models.CharField(max_length=255, null=True, blank=True)),
                 ('temporal_extent_end', models.CharField(max_length=255, null=True, blank=True)),
+                ('csw_last_updated', models.CharField(default=b'2016-08-08T20:22:44Z', max_length=32, null=True, blank=True)),
                 ('csw_type', models.CharField(default=b'dataset', max_length=32)),
                 ('csw_typename', models.CharField(default=b'csw:Record', max_length=32)),
                 ('csw_schema', models.CharField(default=b'http://www.opengis.net/cat/csw/2.0.2', max_length=64)),
                 ('anytext', models.TextField(null=True, blank=True)),
                 ('wkt_geometry', models.TextField(default=b'POLYGON((-180 -90,-180 90,180 90,180 -90,-180 -90))')),
                 ('xml', models.TextField(default=b'<csw:Record xmlns:csw="http://www.opengis.net/cat/2.0.2"/>', null=True, blank=True)),
+                ('catalog', models.ForeignKey(blank=True, to='aggregator.Catalog', null=True)),
                 ('keywords', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', blank=True, help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
             options={
