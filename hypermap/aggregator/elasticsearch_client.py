@@ -165,6 +165,10 @@ class ESHypermap(object):
                 if es_date is not None:
                     es_record['layer_date'] = es_date
                     es_record['layer_datetype'] = type
+
+                if layer.get_tile_url():
+                    es_record['tile_url'] = layer.get_tile_url()
+
                 ESHypermap.logger.info(es_record)
                 # TODO: cache index creation.
                 ESHypermap.create_indices(layer.catalog.slug)
