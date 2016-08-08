@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
                 ('active', models.BooleanField(default=True)),
                 ('url', models.URLField(max_length=255)),
                 ('is_public', models.BooleanField(default=True)),
-                ('type', models.CharField(max_length=32, choices=[(b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
+                ('type', models.CharField(max_length=32, choices=[(b'OGC:CSW', b'Catalogue Service for the Web (CSW)'), (b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
                 ('temporal_extent_start', models.CharField(max_length=255, null=True, blank=True)),
                 ('temporal_extent_end', models.CharField(max_length=255, null=True, blank=True)),
                 ('csw_type', models.CharField(default=b'dataset', max_length=32)),
@@ -121,7 +121,7 @@ class Migration(migrations.Migration):
                 ('active', models.BooleanField(default=True)),
                 ('url', models.URLField(max_length=255)),
                 ('is_public', models.BooleanField(default=True)),
-                ('type', models.CharField(max_length=32, choices=[(b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
+                ('type', models.CharField(max_length=32, choices=[(b'OGC:CSW', b'Catalogue Service for the Web (CSW)'), (b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
                 ('temporal_extent_start', models.CharField(max_length=255, null=True, blank=True)),
                 ('temporal_extent_end', models.CharField(max_length=255, null=True, blank=True)),
                 ('csw_type', models.CharField(default=b'dataset', max_length=32)),
@@ -154,18 +154,18 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
+            model_name='service',
+            name='srs',
+            field=models.ManyToManyField(to='aggregator.SpatialReferenceSystem', blank=True),
+        ),
+        migrations.AddField(
             model_name='layer',
             name='service',
             field=models.ForeignKey(to='aggregator.Service'),
         ),
         migrations.AddField(
-            model_name='layer',
-            name='srs',
-            field=models.ManyToManyField(to='aggregator.SpatialReferenceSystem'),
-        ),
-        migrations.AddField(
             model_name='endpoint',
             name='endpoint_list',
-            field=models.ForeignKey(to='aggregator.EndpointList'),
+            field=models.ForeignKey(blank=True, to='aggregator.EndpointList', null=True),
         ),
     ]

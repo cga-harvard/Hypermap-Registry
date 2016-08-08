@@ -466,7 +466,7 @@ class Layer(Resource):
     catalog = models.ForeignKey(Catalog, blank=True, null=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.id, self.name)
+        return '%s' % self.id
 
     def get_url_endpoint(self):
         """
@@ -498,31 +498,48 @@ class Layer(Resource):
                 return True
 
     def get_layer_dates(self):
+
+        def get_date_sign(a_date):
+            sign = '+'
+            if sdate[0] == '-':
+                sign = '-'
+            return sign
+
+        # string must be parsed, and check if they have a negative value in front of it
         dates = []
+        # get dates from layerwm
         if hasattr(self, 'layerwm'):
             if self.layerwm.temporal_extent_start:
-                pydate = get_parsed_date(self.layerwm.temporal_extent_start)
+                sdate = self.layerwm.temporal_extent_start
+                pydate = get_parsed_date(sdate)
                 if pydate:
                     start_date = []
+                    start_date.append(get_date_sign(sdate))
                     start_date.append(pydate)
                     start_date.append(1)
                     dates.append(start_date)
-            if self.layerwm.temporal_extent_start:
-                pydate = get_parsed_date(self.layerwm.temporal_extent_end)
+            if self.layerwm.temporal_extent_end:
+                sdate = self.layerwm.temporal_extent_end
+                pydate = get_parsed_date(sdate)
                 if pydate:
                     end_date = []
+                    end_date.append(get_date_sign(sdate))
                     end_date.append(pydate)
                     end_date.append(1)
                     dates.append(end_date)
+        # now we return all the other dates
         for layerdate in self.layerdate_set.all().order_by('date'):
             sdate = layerdate.date
+            # for now we skip ranges
             if 'TO' not in sdate:
                 pydate = get_parsed_date(sdate)
                 if pydate:
                     date = []
+                    date.append(get_date_sign(sdate))
                     date.append(pydate)
                     date.append(layerdate.type)
                     dates.append(date)
+        print dates
         return dates
 
     def update_thumbnail(self):
