@@ -471,10 +471,10 @@ class Layer(Resource):
     def get_url_endpoint(self):
         """
         Returns the Hypermap endpoint for a layer.
-        This endpoint will be the WMTS MapProxy endpoint, only for WM and Esri we use original endpoints.
+        This endpoint will be the WMTS MapProxy endpoint, only for WM we use the original endpoint.
         """
         endpoint = self.url
-        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
+        if self.type not in ('Hypermap:WorldMap',):
             endpoint = '%s/registry/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL.rstrip('/'),
                                                                                      self.id)
         return endpoint
@@ -483,8 +483,8 @@ class Layer(Resource):
         """
         Returns the tile url MapProxy endpoint for the layer.
         """
-        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
-            return '/layers/%s/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png' % self.id
+        if self.type not in ('Hypermap:WorldMap',):
+            return '/layers/%s/map/wmts/%s/default_grid/{z}/{y}/{x}.png' % (self.id, self.name)
         else:
             return None
 
