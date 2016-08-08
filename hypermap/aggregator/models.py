@@ -436,7 +436,7 @@ class Catalog(models.Model):
         :return: url or exception
         """
 
-        if self.url:
+        if self.url and len(self.url) > 0:
             return self.url
 
         return reverse('search_api', args=[self.slug])
