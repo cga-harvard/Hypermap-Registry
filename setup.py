@@ -65,7 +65,6 @@ setup(
         'django-debug-toolbar',
         'django-pagination',
         'django-taggit',
-        'django-wsgi',
         'django-extensions',
         'dj-database-url',
         'django-basic-authentication-decorator',
