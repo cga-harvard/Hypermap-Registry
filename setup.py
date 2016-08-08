@@ -61,7 +61,7 @@ setup(
         'amqplib',
         'arcrest',
         'celery',
-        'Django>=1.8.7',
+        'Django>=1.8, <1.9',
         'django-debug-toolbar',
         'django-pagination',
         'django-taggit',
