@@ -21,7 +21,7 @@ class PageRendererTestCase(TestCase):
 
         catalog, created = Catalog.objects.get_or_create(
             name="hypermap", slug="hypermap",
-            url_remote="search_api", url_local=None
+            url="search_api"
         )
 
         for s in range(0, SERVICE_NUMBER):
