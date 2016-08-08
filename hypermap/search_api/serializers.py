@@ -189,4 +189,4 @@ class CatalogSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Catalog
-        fields = ('id', 'slug', 'name', 'url_remote', 'url_local', 'search_url')
+        fields = ('id', 'slug', 'name', 'url', 'search_url')

@@ -419,14 +419,9 @@ class Catalog(models.Model):
         editable=True,
         help_text="Leave empty to be populated from name"
     )
-    url_remote = models.URLField(
+    url = models.URLField(
         max_length=255,
         help_text="Only if remote. URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/",
-        null=True, blank=True
-    )
-    url_local = models.CharField(
-        max_length=100,
-        help_text="If not remote, add django url name to be reversed",
         null=True, blank=True
     )
 
@@ -441,13 +436,10 @@ class Catalog(models.Model):
         :return: url or exception
         """
 
-        if self.url_remote:
-            return self.url_remote
+        if self.url:
+            return self.url
 
-        try:
-            return reverse(self.url_local, args=[self.slug])
-        except NoReverseMatch as e:
-            return str(e)
+        return reverse('search_api', args=[self.slug])
 
 
 class Layer(Resource):
