@@ -14,7 +14,8 @@ from djmp.views import get_mapproxy
 
 from models import Service, Layer
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
-                   index_service, index_all_layers, index_layer, clear_index)
+                   index_service, index_all_layers, index_layer, clear_index
+                   SEARCH_TYPE, SEARCH_URL)
 from enums import SERVICE_TYPES
 
 from hypermap import celeryapp
@@ -39,7 +40,7 @@ def serialize_checks(check_set):
 @login_required
 def domains(request):
     url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=domain_name,service_id&wt=json&indent=true&rows=0'
-           % settings.SEARCH_URL)
+           % SEARCH_URL)
     print url
     response = urllib2.urlopen(url)
     data = response.read().replace('\n', '')
@@ -124,8 +125,8 @@ def service_detail(request, catalog_slug, service_id):
                 index_service.delay(service)
 
     return render(request, 'aggregator/service_detail.html', {'service': service,
-                                                              'SEARCH_TYPE': settings.SEARCH_TYPE,
-                                                              'SEARCH_URL': settings.SEARCH_URL.rstrip('/')})
+                                                              'SEARCH_TYPE': SEARCH_TYPE,
+                                                              'SEARCH_URL': SEARCH_URL.rstrip('/')})
 
 
 def service_checks(request, catalog_slug, service_id):
@@ -157,8 +158,8 @@ def layer_detail(request, catalog_slug, layer_id):
                 index_layer.delay(layer)
 
     return render(request, 'aggregator/layer_detail.html', {'layer': layer,
-                                                            'SEARCH_TYPE': settings.SEARCH_TYPE,
-                                                            'SEARCH_URL': settings.SEARCH_URL.rstrip('/')})
+                                                            'SEARCH_TYPE': SEARCH_TYPE,
+                                                            'SEARCH_URL': SEARCH_URL.rstrip('/')})
 
 
 def layer_checks(request, catalog_slug, layer_id):

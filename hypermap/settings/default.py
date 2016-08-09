@@ -257,7 +257,7 @@ REGISTRY_WORLDMAP_PASSWORD = os.getenv('REGISTRY_WORLDMAP_PASSWORD', 'secret')
 # hypermap registry settings
 # If it's > 0, only reads n layers from service, for debugging.
 REGISTRY_LIMIT_LAYERS = int(os.getenv('', '-1'))
-REGISTRY_MAPPING_PRECISION = os.getenv("REGISTRY_MAPPING_PRECISION", "2000m")
+REGISTRY_MAPPING_PRECISION = os.getenv("REGISTRY_MAPPING_PRECISION", "500m")
 MAPPROXY_CACHE_DIR = os.getenv('MAPPROXY_CACHE_DIR', '/tmp/mapproxy/')
 MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 
@@ -266,9 +266,3 @@ MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 # elasticsearch+http://localhost:9200/
 # elasticsearch+https://user:pass/domain:port/
 REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
-if REGISTRY_SEARCH_URL is None:
-    SEARCH_ENABLED = False
-else:
-    SEARCH_ENABLED = True
-    SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
-    SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]

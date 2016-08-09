@@ -5,12 +5,22 @@ from django.conf import settings
 from celery import shared_task
 
 REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
+if REGISTRY_SEARCH_URL is None:
+    SEARCH_ENABLED = False
+    SEARCH_TYPE = None
+    SEARCH_URL = None
+else:
+    SEARCH_ENABLED = True
+    SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+    SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
+
 
 if REGISTRY_LIMIT_LAYERS > 0:
     DEBUG_SERVICES = True
     DEBUG_LAYERS_NUMBER = REGISTRY_LIMIT_LAYERS
 else:
     DEBUG_SERVICES = False
+    DEBUG_LAYERS_NUMBER = -1
 
 @shared_task(bind=True)
 def check_all_services(self):
@@ -91,12 +101,12 @@ def check_layer(self, layer):
 
 @shared_task(name="clear_index")
 def clear_index():
-    if settings.SEARCH_TYPE == 'solr':
+    if SEARCH_TYPE == 'solr':
         print 'Clearing the solr core and indexes'
         from hypermap.aggregator.solr import SolrHypermap
         solrobject = SolrHypermap()
         solrobject.clear_solr()
-    elif settings.SEARCH_TYPE == 'elasticsearch':
+    elif SEARCH_TYPE == 'elasticsearch':
         print 'Clearing the ES indexes'
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         esobject = ESHypermap()
@@ -153,7 +163,7 @@ def index_service(self, service):
 def index_layer(self, layer):
     # TODO: Make this function more DRY
     # by abstracting the common bits.
-    if settings.SEARCH_TYPE == 'solr':
+    if SEARCH_TYPE == 'solr':
         from hypermap.aggregator.solr import SolrHypermap
         print 'Syncing layer %s to solr' % layer.name
         try:
@@ -170,7 +180,7 @@ def index_layer(self, layer):
         except:
             print 'There was an exception here!'
             self.retry(layer)
-    elif settings.SEARCH_TYPE == 'elasticsearch':
+    elif SEARCH_TYPE == 'elasticsearch':
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         print 'Syncing layer %s to es' % layer.name
         esobject = ESHypermap()
