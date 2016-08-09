@@ -5,6 +5,8 @@ from django.conf import settings
 from celery import shared_task
 
 REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
+REGISTRY_SEARCH_URL = getattr(settings, 'REGISTRY_SEARCH_URL', None)
+
 if REGISTRY_SEARCH_URL is None:
     SEARCH_ENABLED = False
     SEARCH_TYPE = None
