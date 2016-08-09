@@ -293,7 +293,7 @@ class Service(Resource):
         """
         Index all layers for this service.
         """
-        if settings.SEARCH_ENABLED:
+        if settings.REGISTRY_SEARCH_URL is not None:
             for layer in self.layer_set.all():
                 index_layer(layer)
 
@@ -705,7 +705,7 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            if settings.SEARCH_ENABLED:
+            if settings.REGISTRY_SEARCH_URL is not None:
                 if not settings.REGISTRY_SKIP_CELERY:
                     index_layer.delay(self)
                 else:
