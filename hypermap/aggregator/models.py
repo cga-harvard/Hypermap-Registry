@@ -592,7 +592,9 @@ class Layer(Resource):
                                 format=image_format
                             )
         elif self.type == 'Hypermap:WorldMap':
-            ows = WebMapService(self.url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
+            ows = WebMapService(self.url,
+                                username=settings.REGISTRY_WORLDMAP_USERNAME,
+                                password=settings.REGISTRY_WORLDMAP_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
             if image_format not in op_getmap.formatOptions:
