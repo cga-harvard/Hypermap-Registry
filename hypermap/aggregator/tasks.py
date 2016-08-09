@@ -49,7 +49,7 @@ def check_service(self, service):
     status_update(2)
     count = 3
 
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         for layer in layer_to_process:
             # update state
             status_update(count)
@@ -68,7 +68,7 @@ def check_layer(self, layer):
     success, message = layer.check_available()
     # every time a layer is checked it should be indexed
     if success and settings.SEARCH_ENABLED:
-        if not settings.SKIP_CELERY_TASK:
+        if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer)
         else:
             index_layer(layer)
@@ -135,7 +135,7 @@ def index_service(self, service):
     for layer in layer_to_process:
         # update state
         status_update(count)
-        if not settings.SKIP_CELERY_TASK:
+        if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer)
         else:
             index_layer(layer)
@@ -192,7 +192,7 @@ def index_all_layers(self):
                 state='PROGRESS',
                 meta={'current': count, 'total': total}
             )
-        if not settings.SKIP_CELERY_TASK:
+        if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer)
         else:
             index_layer(layer)
@@ -225,7 +225,7 @@ def update_endpoints(self, endpoint_list):
     endpoint_to_process = endpoint_list.endpoint_set.filter(processed=False)
     total = endpoint_to_process.count()
     count = 0
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         for endpoint in endpoint_to_process:
             update_endpoint.delay(endpoint)
         # update state

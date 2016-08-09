@@ -697,7 +697,7 @@ class Layer(Resource):
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
             if settings.SEARCH_ENABLED:
-                if not settings.SKIP_CELERY_TASK:
+                if not settings.REGISTRY_SKIP_CELERY:
                     index_layer.delay(self)
                 else:
                     index_layer(self)
@@ -1369,7 +1369,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
                 endpoint = Endpoint(url=url, endpoint_list=instance)
                 endpoint.catalog = instance.catalog
                 endpoint.save()
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoints.delay(instance)
     else:
         update_endpoints(instance)
@@ -1382,7 +1382,7 @@ def endpoint_post_save(instance, *args, **kwargs):
         endpoint = Endpoint(url=instance.url)
         endpoint.save()
         signals.post_save.connect(endpoint_post_save, sender=Endpoint)
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoint.delay(instance)
     else:
         update_endpoint(instance)
@@ -1404,7 +1404,7 @@ def service_post_save(instance, *args, **kwargs):
     Used to do a service full check when saving it.
     """
     # check service
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         check_service.delay(instance)
     else:
         check_service(instance)
@@ -1414,7 +1414,7 @@ def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         check_layer.delay(instance)
     else:
         check_layer(instance)

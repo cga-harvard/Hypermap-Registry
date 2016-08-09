@@ -108,17 +108,17 @@ def service_detail(request, catalog_slug, service_id):
 
     if request.method == 'POST':
         if 'check' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 check_service(service)
             else:
                 check_service.delay(service)
         if 'remove' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 remove_service_checks(service)
             else:
                 remove_service_checks.delay(service)
         if 'index' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 index_service(service)
             else:
                 index_service.delay(service)
@@ -144,14 +144,14 @@ def layer_detail(request, catalog_slug, layer_id):
 
     if request.method == 'POST':
         if 'check' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 check_layer(layer)
             else:
                 check_layer.delay(layer)
         if 'remove' in request.POST:
             layer.check_set.all().delete()
         if 'index' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 index_layer(layer)
             else:
                 index_layer.delay(layer)
@@ -209,17 +209,17 @@ def celery_monitor(request):
 
     if request.method == 'POST':
         if 'check_all' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 check_all_services()
             else:
                 check_all_services.delay()
         if 'index_all' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 index_all_layers()
             else:
                 index_all_layers.delay()
         if 'clear_index' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 clear_index()
             else:
                 clear_index.delay()
