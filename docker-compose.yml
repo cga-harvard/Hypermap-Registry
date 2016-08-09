@@ -49,6 +49,8 @@ services:
       - C_FORCE_ROOT=1
 
   nginx:
-    image: nginx
+    image: terranodo/nginx
+    links:
+      - django
     ports:
       - "80:80"
