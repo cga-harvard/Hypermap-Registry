@@ -18,7 +18,7 @@ class TestWMS(unittest.TestCase):
     def test_create_wms_service(self):
         catalog, created = Catalog.objects.get_or_create(
             name="hypermap", slug="hypermap",
-            url_remote="search_api", url_local=None
+            url="search_api"
         )
 
         # create the service
