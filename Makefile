@@ -27,3 +27,5 @@ test:
 	docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
 
 reset: down up wait sync
+
+hardreset: build reset
