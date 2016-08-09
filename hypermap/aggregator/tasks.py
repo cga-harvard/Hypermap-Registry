@@ -4,6 +4,25 @@ from django.conf import settings
 
 from celery import shared_task
 
+REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
+REGISTRY_SEARCH_URL = getattr(settings, 'REGISTRY_SEARCH_URL', None)
+
+if REGISTRY_SEARCH_URL is None:
+    SEARCH_ENABLED = False
+    SEARCH_TYPE = None
+    SEARCH_URL = None
+else:
+    SEARCH_ENABLED = True
+    SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+    SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
+
+
+if REGISTRY_LIMIT_LAYERS > 0:
+    DEBUG_SERVICES = True
+    DEBUG_LAYERS_NUMBER = REGISTRY_LIMIT_LAYERS
+else:
+    DEBUG_SERVICES = False
+    DEBUG_LAYERS_NUMBER = -1
 
 @shared_task(bind=True)
 def check_all_services(self):
@@ -40,8 +59,8 @@ def check_service(self, service):
     # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
 
-    if settings.DEBUG_SERVICES:
-        layer_to_process = layer_to_process[0:settings.DEBUG_LAYERS_NUMBER]
+    if DEBUG_SERVICES:
+        layer_to_process = layer_to_process[0:DEBUG_LAYERS_NUMBER]
 
     total = layer_to_process.count() + 2
     status_update(1)
@@ -49,7 +68,7 @@ def check_service(self, service):
     status_update(2)
     count = 3
 
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         for layer in layer_to_process:
             # update state
             status_update(count)
@@ -68,7 +87,7 @@ def check_layer(self, layer):
     success, message = layer.check_available()
     # every time a layer is checked it should be indexed
     if success and settings.SEARCH_ENABLED:
-        if not settings.SKIP_CELERY_TASK:
+        if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer)
         else:
             index_layer(layer)
@@ -84,12 +103,12 @@ def check_layer(self, layer):
 
 @shared_task(name="clear_index")
 def clear_index():
-    if settings.SEARCH_TYPE == 'solr':
+    if SEARCH_TYPE == 'solr':
         print 'Clearing the solr core and indexes'
         from hypermap.aggregator.solr import SolrHypermap
         solrobject = SolrHypermap()
         solrobject.clear_solr()
-    elif settings.SEARCH_TYPE == 'elasticsearch':
+    elif SEARCH_TYPE == 'elasticsearch':
         print 'Clearing the ES indexes'
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         esobject = ESHypermap()
@@ -135,7 +154,7 @@ def index_service(self, service):
     for layer in layer_to_process:
         # update state
         status_update(count)
-        if not settings.SKIP_CELERY_TASK:
+        if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer)
         else:
             index_layer(layer)
@@ -146,7 +165,7 @@ def index_service(self, service):
 def index_layer(self, layer):
     # TODO: Make this function more DRY
     # by abstracting the common bits.
-    if settings.SEARCH_TYPE == 'solr':
+    if SEARCH_TYPE == 'solr':
         from hypermap.aggregator.solr import SolrHypermap
         print 'Syncing layer %s to solr' % layer.name
         try:
@@ -163,7 +182,7 @@ def index_layer(self, layer):
         except:
             print 'There was an exception here!'
             self.retry(layer)
-    elif settings.SEARCH_TYPE == 'elasticsearch':
+    elif SEARCH_TYPE == 'elasticsearch':
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         print 'Syncing layer %s to es' % layer.name
         esobject = ESHypermap()
@@ -192,7 +211,7 @@ def index_all_layers(self):
                 state='PROGRESS',
                 meta={'current': count, 'total': total}
             )
-        if not settings.SKIP_CELERY_TASK:
+        if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer)
         else:
             index_layer(layer)
@@ -225,7 +244,7 @@ def update_endpoints(self, endpoint_list):
     endpoint_to_process = endpoint_list.endpoint_set.filter(processed=False)
     total = endpoint_to_process.count()
     count = 0
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         for endpoint in endpoint_to_process:
             update_endpoint.delay(endpoint)
         # update state

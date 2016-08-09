@@ -15,8 +15,11 @@ from hypermap.aggregator.utils import mercator_to_llbbox
 from hypermap.aggregator.solr import get_date
 
 
-SEARCH_MAPPING_PRECISION = getattr(settings, "SEARCH_MAPPING_PRECISION", "500m")
-SEARCH_URL = getattr(settings, "SEARCH_URL", "http://localhost:9200/")
+REGISTRY_MAPPING_PRECISION = getattr(settings, "REGISTRY_MAPPING_PRECISION", "500m")
+REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+http://localhost:9200")
+
+SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 
 class ESHypermap(object):
 
@@ -202,7 +205,7 @@ class ESHypermap(object):
                         "layer_geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
-                            "precision": SEARCH_MAPPING_PRECISION
+                            "precision": REGISTRY_MAPPING_PRECISION
                         }
                     }
                 }

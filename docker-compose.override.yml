@@ -9,8 +9,7 @@ services:
       - '.:/usr/src/app'
     environment:
       - DEBUG=True
-      - DEBUG_SERVICES = True
-      - DEBUG_LAYERS_NUMBER = 50
+      - REGISTRY_LIMIT_LAYERS=10
     ports:
       - "8000:8000"
 
@@ -18,6 +17,9 @@ services:
     build: .
     volumes:
       - '.:/usr/src/app'
+    environment:
+      - DEBUG=True
+      - REGISTRY_LIMIT_LAYERS=10
 
   elasticsearch:
     ports:

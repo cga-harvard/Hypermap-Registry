@@ -34,6 +34,13 @@ from utils import get_esri_extent, get_esri_service_name, format_float, flip_coo
 
 from hypermap.dynasty.utils import get_mined_dates
 
+REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
+
+if REGISTRY_LIMIT_LAYERS > 0:
+    DEBUG_SERVICES = True
+    DEBUG_LAYERS_NUMBER = REGISTRY_LIMIT_LAYERS
+else:
+    DEBUG_SERVICES = False
 
 def get_parsed_date(sdate):
     try:
@@ -286,7 +293,7 @@ class Service(Resource):
         """
         Index all layers for this service.
         """
-        if settings.SEARCH_ENABLED:
+        if settings.REGISTRY_SEARCH_URL is not None:
             for layer in self.layer_set.all():
                 index_layer(layer)
 
@@ -585,7 +592,9 @@ class Layer(Resource):
                                 format=image_format
                             )
         elif self.type == 'Hypermap:WorldMap':
-            ows = WebMapService(self.url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
+            ows = WebMapService(self.url,
+                                username=settings.REGISTRY_WORLDMAP_USERNAME,
+                                password=settings.REGISTRY_WORLDMAP_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
             if image_format not in op_getmap.formatOptions:
@@ -696,8 +705,8 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            if settings.SEARCH_ENABLED:
-                if not settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SEARCH_URL is not None:
+                if not settings.REGISTRY_SKIP_CELERY:
                     index_layer.delay(self)
                 else:
                     index_layer(self)
@@ -959,7 +968,7 @@ def update_layers_wms(service):
         layer_n = layer_n + 1
         # exits if DEBUG_SERVICES
         print "Updating layer n. %s/%s" % (layer_n, total)
-        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+        if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
             return
 
 
@@ -1026,7 +1035,7 @@ def update_layers_wmts(service):
         layer_n = layer_n + 1
         # exits if DEBUG_SERVICES
         print "Updating layer n. %s/%s" % (layer_n, total)
-        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+        if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
             return
 
 
@@ -1130,7 +1139,7 @@ def update_layers_wm(service):
             layer_n = layer_n + 1
             # exits if DEBUG_SERVICES
             print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
                 return
 
 
@@ -1205,7 +1214,7 @@ def update_layers_warper(service):
             layer_n = layer_n + 1
             # exits if DEBUG_SERVICES
             print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
                 return
 
 
@@ -1301,7 +1310,7 @@ def update_layers_esri_mapserver(service):
             layer_n = layer_n + 1
             # exits if DEBUG_SERVICES
             print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
                 return
 
 
@@ -1369,7 +1378,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
                 endpoint = Endpoint(url=url, endpoint_list=instance)
                 endpoint.catalog = instance.catalog
                 endpoint.save()
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoints.delay(instance)
     else:
         update_endpoints(instance)
@@ -1382,7 +1391,7 @@ def endpoint_post_save(instance, *args, **kwargs):
         endpoint = Endpoint(url=instance.url)
         endpoint.save()
         signals.post_save.connect(endpoint_post_save, sender=Endpoint)
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoint.delay(instance)
     else:
         update_endpoint(instance)
@@ -1404,7 +1413,7 @@ def service_post_save(instance, *args, **kwargs):
     Used to do a service full check when saving it.
     """
     # check service
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         check_service.delay(instance)
     else:
         check_service(instance)
@@ -1414,7 +1423,7 @@ def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         check_layer.delay(instance)
     else:
         check_layer(instance)

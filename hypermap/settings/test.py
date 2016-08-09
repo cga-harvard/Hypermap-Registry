@@ -1,6 +1,6 @@
 from .default import *  # noqa
 
-SKIP_CELERY_TASK = True
+REGISTRY_SKIP_CELERY = True
 
 DATABASES = {
     'default': {

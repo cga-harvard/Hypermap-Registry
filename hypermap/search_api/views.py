@@ -21,7 +21,11 @@ USER_FIELD = "layer_originator"
 TEXT_FIELD = "title"
 TIME_SORT_FIELD = "layer_date"
 GEO_SORT_FIELD = "bbox"
-SEARCH_URL = settings.SEARCH_URL
+
+REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+http://localhost:9200")
+
+SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 
 
 def elasticsearch(serializer, catalog):
