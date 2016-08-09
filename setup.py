@@ -42,7 +42,7 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
 
 setup(
     name='django-registry',
-    version='0.2.4',
+    version='0.2.5',
     author='',
     author_email='',
     url='https://github.com/cga-harvard/HHypermap',
@@ -73,7 +73,7 @@ setup(
         'pycsw>=2.0.0',
         'flake8',
         'httmock',
-        'djmp>=0.2.1',
+        'djmp>=0.2.5',
         'MapProxy>=1.9',
         'djangorestframework',
         'django-celery',

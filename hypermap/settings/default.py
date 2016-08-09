@@ -14,6 +14,8 @@ import os
 import os.path
 import sys
 from datetime import timedelta
+import dj_database_url
+from urlparse import urlparse
 
 
 def str2bool(v):
@@ -37,21 +39,14 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', [BASE_URL, ])
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'mc0+7x(mor+4-acs$m-w6qj(i&^*6uiyb+6v^)i4w(fo*8qgu5'
+SECRET_KEY = os.getenv('SECRET_KEY',
+                       'mc0+7x(mor+4-acs$m-w6qj(i&^*6uiyb+6v^)i4w(fo*8qgu5')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-TEMPLATE_DEBUG = True
-
-ALLOWED_HOSTS = []
-
-SEARCH_ENABLED = str2bool(os.getenv('SEARCH_ENABLED', 'False'))
-SEARCH_TYPE = os.getenv('SEARCH_TYPE', 'solr')
-SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
+DEBUG = str2bool(os.getenv('DEBUG', 'True'))
+TEMPLATE_DEBUG = str2bool(os.getenv('TEMPLATE_DEBUG', 'False'))
 
 # Application definition
-
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -96,16 +91,9 @@ ROOT_URLCONF = 'hypermap.urls'
 
 WSGI_APPLICATION = 'hypermap.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.getenv('DATABASE_NAME', 'development.db'),
-        'USER': os.getenv('DATABASE_USER', 'hypermap'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'hypermap'),
-        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DATABASE_PORT', '5432'),
-    }
-}
+
+DATABASE_URL = os.getenv(DATABASE_URL, 'sqlite:///development.db')
+DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -123,25 +111,26 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
-STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
-STATIC_URL = '/static/'
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
-)
+STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(PROJECT_DIR, 'static'))
+STATIC_URL = os.getenv('STATIC_URL', '/static/')
+
+STATICFILES_DIRS = os.getenv('STATICFILES_DIRS',
+       (os.path.join(BASE_DIR, "static"),)
+       )
 
 # media files
-MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(PROJECT_DIR, 'media'))
+MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 
-MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 
-CELERY_ALWAYS_EAGER = False
-CELERY_DEFAULT_EXCHANGE = 'hypermap'
+CELERY_ALWAYS_EAGER = str2bool(os.getenv('CELERY_ALWAYS_EAGER', 'False'))
+CELERY_DEFAULT_EXCHANGE = os.getenv('CELERY_DEFAULT_EXCHANGE, 'hypermap')
 
 # Celery and RabbitMQ stuff
-CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
-CELERY_RESULT_BACKEND = 'cache+memcached://127.0.0.1:11211/'
-CELERYD_PREFETCH_MULTIPLIER = 25
+CELERYBEAT_SCHEDULER = os.getenv('CELERYBEAT_SCHEDULER', 'djcelery.schedulers.DatabaseScheduler')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'cache')
+CELERY_CACHE_BACKEND = os.getenv('CELERY_CACHE_BACKEND', 'memory')
+CELERYD_PREFETCH_MULTIPLIER = int(os.getenv('CELERYD_PREFETCH_MULTIPLIER', '25'))
 
 CELERYBEAT_SCHEDULE = {
     'Check All Services': {
@@ -150,7 +139,7 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
-CELERY_TIMEZONE = 'UTC'
+CELERY_TIMEZONE = os.getenv('CELERY_TIMEZONE', 'UTC')
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@localhost:5672//')
 
 LOGGING = {
@@ -203,15 +192,9 @@ LOGGING = {
         }
     }
 
-# we need to get rid of this once we figure out how to bypass the broker in tests
-SKIP_CELERY_TASK = str2bool(os.getenv('SKIP_CELERY_TASK', 'False'))
 
 # taggit
-TAGGIT_CASE_INSENSITIVE = True
-
-# WorldMap Service credentials (override this in local_settings or _ubuntu in production)
-WM_USERNAME = os.getenv('WM_USERNAME', 'hypermap')
-WM_PASSWORD = os.getenv('WM_PASSWORD', 'secret')
+TAGGIT_CASE_INSENSITIVE = str2bool(os.getenv('TAGGIT_CASE_INSENSITIVE', 'True'))
 
 # pycsw settings
 REGISTRY_PYCSW = {
@@ -264,12 +247,28 @@ REGISTRY_PYCSW = {
     }
 }
 
-# hypermap settings
+# we need to get rid of this once we figure out how to bypass the broker in tests
+REGISTRY_SKIP_CELERY = str2bool(os.getenv('REGISTRY_SKIP_CELERY', 'False'))
 
-# if DEBUG_SERVICES is set to True, only first DEBUG_LAYERS_NUMBER layers
-# for each service are updated and checked
-DEBUG_SERVICES = str2bool(os.getenv('DEBUG_SERVICES', 'False'))
-DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '20'))
+# WorldMap Service credentials (override this in local_settings or _ubuntu in production)
+REGISTRY_WORLDMAP_USERNAME = os.getenv('REGISTRY_WORLDMAP_USERNAME', 'hypermap')
+REGISTRY_WORLDMAP_PASSWORD = os.getenv('REGISTRY_WORLDMAP_PASSWORD', 'secret')
 
-FILE_CACHE_DIRECTORY = os.getenv('FILE_CACHE_DIRECTORY', '/tmp/mapproxy/')
-ES_MAPPING_PRECISION = os.getenv("ES_MAPPING_PRECISION", "2000m")
+# hypermap registry settings
+# If it's > 0, only reads n layers from service, for debugging.
+REGISTRY_LIMIT_LAYERS = int(os.getenv('', '-1'))
+REGISTRY_MAPPING_PRECISION = os.getenv("REGISTRY_MAPPING_PRECISION", "2000m")
+MAPPROXY_CACHE_DIR = os.getenv('MAPPROXY_CACHE_DIR', '/tmp/mapproxy/')
+MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
+
+# REGISTRY_SEARCH_URL Examples:
+# solr+http://127.0.0.1:8983/solr/search
+# elasticsearch+http://localhost:9200/
+# elasticsearch+https://user:pass/domain:port/
+REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
+if REGISTRY_SEARCH_URL is None:
+    SEARCH_ENABLED = False
+else:
+    SEARCH_ENABLED = True
+    SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+    SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
