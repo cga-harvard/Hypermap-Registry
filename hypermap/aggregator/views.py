@@ -14,7 +14,7 @@ from djmp.views import get_mapproxy
 
 from models import Service, Layer
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
-                   index_service, index_all_layers, index_layer, clear_index
+                   index_service, index_all_layers, index_layer, clear_index,
                    SEARCH_TYPE, SEARCH_URL)
 from enums import SERVICE_TYPES
 

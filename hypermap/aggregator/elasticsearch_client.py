@@ -205,7 +205,7 @@ class ESHypermap(object):
                         "layer_geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
-                            "precision": SEARCH_MAPPING_PRECISION
+                            "precision": REGISTRY_MAPPING_PRECISION
                         }
                     }
                 }

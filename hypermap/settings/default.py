@@ -93,6 +93,7 @@ WSGI_APPLICATION = 'hypermap.wsgi.application'
 
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///development.db')
+DATABASES = {}
 DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 
 # Internationalization
