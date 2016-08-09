@@ -27,7 +27,7 @@ services:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-
+      - ALLOWED_HOSTS=['django',]
   celery:
     image: terranodo/registry
     links:
