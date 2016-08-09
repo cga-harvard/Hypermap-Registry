@@ -92,7 +92,7 @@ ROOT_URLCONF = 'hypermap.urls'
 WSGI_APPLICATION = 'hypermap.wsgi.application'
 
 
-DATABASE_URL = os.getenv(DATABASE_URL, 'sqlite:///development.db')
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///development.db')
 DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 
 # Internationalization
@@ -124,7 +124,7 @@ MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 
 
 CELERY_ALWAYS_EAGER = str2bool(os.getenv('CELERY_ALWAYS_EAGER', 'False'))
-CELERY_DEFAULT_EXCHANGE = os.getenv('CELERY_DEFAULT_EXCHANGE, 'hypermap')
+CELERY_DEFAULT_EXCHANGE = os.getenv('CELERY_DEFAULT_EXCHANGE', 'hypermap')
 
 # Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = os.getenv('CELERYBEAT_SCHEDULER', 'djcelery.schedulers.DatabaseScheduler')
