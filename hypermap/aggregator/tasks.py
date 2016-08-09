@@ -4,6 +4,13 @@ from django.conf import settings
 
 from celery import shared_task
 
+REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
+
+if REGISTRY_LIMIT_LAYERS > 0:
+    DEBUG_SERVICES = True
+    DEBUG_LAYERS_NUMBER = REGISTRY_LIMIT_LAYERS
+else:
+    DEBUG_SERVICES = False
 
 @shared_task(bind=True)
 def check_all_services(self):
@@ -40,8 +47,8 @@ def check_service(self, service):
     # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
 
-    if settings.DEBUG_SERVICES:
-        layer_to_process = layer_to_process[0:settings.DEBUG_LAYERS_NUMBER]
+    if DEBUG_SERVICES:
+        layer_to_process = layer_to_process[0:DEBUG_LAYERS_NUMBER]
 
     total = layer_to_process.count() + 2
     status_update(1)
