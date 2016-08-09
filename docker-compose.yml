@@ -13,19 +13,12 @@ services:
      image: rabbitmq
 
   django:
-    build: .
+    image: terranodo/registry
     links:
       - postgres
       - elasticsearch
       - rabbitmq
-    ports:
-      - "8000:8000"
-    # Loading the app is defined here to allow for autoreload on changes it is
-    # mounted on top of the old copy that docker added when creating the image.
-    volumes:
-      - .:/usr/src/app
     environment:
-      - DEBUG=True
       - SEARCH_ENABLED=True
       - SEARCH_TYPE=elasticsearch
       - SEARCH_URL=http://elasticsearch:9200/
@@ -36,22 +29,15 @@ services:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-      - DEBUG_SERVICES = True
-      - DEBUG_LAYERS_NUMBER = 50
 
   celery:
-    build: .
+    image: terranodo/registry
     links:
       - rabbitmq
       - postgres
       - elasticsearch
     command: celery worker --app=hypermap.celeryapp:app -B -l INFO
-    # Loading the app is defined here to allow for autoreload on changes it is
-    # mounted on top of the old copy that docker added when creating the image.
-    volumes:
-      - .:/usr/src/app
     environment:
-      - DEBUG=True
       - SEARCH_ENABLED=True
       - SEARCH_TYPE=elasticsearch
       - SEARCH_URL=http://elasticsearch:9200/
@@ -63,5 +49,8 @@ services:
       - DATABASE_PORT=5432
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
       - C_FORCE_ROOT=1
-      - DEBUG_SERVICES = True
-      - DEBUG_LAYERS_NUMBER = 50      
+
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
