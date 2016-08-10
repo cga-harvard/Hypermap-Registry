@@ -87,7 +87,7 @@ def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
     success, message = layer.check_available()
     # every time a layer is checked it should be indexed
-    if success and settings.SEARCH_ENABLED:
+    if success and SEARCH_ENABLED:
         if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer)
         else:
