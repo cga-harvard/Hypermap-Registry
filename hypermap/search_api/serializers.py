@@ -1,4 +1,4 @@
-from ..hypermap.aggregator.models import Catalog
+from hypermap.aggregator.models import Catalog
 from . import utils
 from rest_framework import serializers
 
