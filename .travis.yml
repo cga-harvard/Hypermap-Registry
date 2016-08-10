@@ -11,9 +11,13 @@ before_install:
   - curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
+  - apt-get install -y python-flake8
 
 install:
   - docker-compose build django
+
+before_script:
+  - flake8 hypermap
 
 script:
   - docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
