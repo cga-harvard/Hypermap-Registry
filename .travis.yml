@@ -17,7 +17,7 @@ install:
   - docker-compose build django
 
 before_script:
-  - flake8 hypermap
+  - flake8 hypermap --ignore=E121,E123,E126,E226,E24,E704,W503,W504
 
 script:
   - docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
