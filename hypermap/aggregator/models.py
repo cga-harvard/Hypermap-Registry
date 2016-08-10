@@ -587,12 +587,12 @@ class Layer(Resource):
                 else:
                     raise NotImplementedError(format_error_message)
             img = ows.gettile(
-                                layer=self.name,
-                                tilematrixset=ows_layer.tilematrixsets[0],
-                                tilematrix='0',
-                                row='0',
-                                column='0',
-                                format=image_format
+                            layer=self.name,
+                            tilematrixset=ows_layer.tilematrixsets[0],
+                            tilematrix='0',
+                            row='0',
+                            column='0',
+                            format=image_format
                             )
         elif self.type == 'Hypermap:WorldMap':
             ows = WebMapService(self.url,
@@ -1246,7 +1246,8 @@ def update_layers_esri_mapserver(service):
         if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
             # we need to change the url
             # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
-            # http://cga1.cga.harvard.edu/arcgis/services/ecuador/ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
+            # http://cga1.cga.harvard.edu/arcgis/services/ecuador/
+            # ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
             wms_url = service.url.replace('/rest/services/', '/services/')
             if '?f=pjson' in wms_url:
                 wms_url = wms_url.replace('?f=pjson', 'WMSServer?')

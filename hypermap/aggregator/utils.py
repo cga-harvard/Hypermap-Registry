@@ -31,9 +31,9 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         if request.status_code == 200:
             print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
             service = Service(
-                 type=service_type, url=endpoint, title=title, abstract=abstract,
-                 csw_type='service', catalog=catalog
-            )
+                        type=service_type, url=endpoint, title=title, abstract=abstract,
+                        csw_type='service', catalog=catalog
+                        )
             service.save()
             return service
         else:

@@ -296,11 +296,11 @@ def layer_mapproxy(request, catalog_slug, layer_id, path_info):
 
     params = {}
     headers = {
-       'X-Script-Name': '/layer/%s/map' % layer.id,
-       'X-Forwarded-Host': request.META['HTTP_HOST'],
-       'HTTP_HOST': request.META['HTTP_HOST'],
-       'SERVER_NAME': request.META['SERVER_NAME'],
-    }
+            'X-Script-Name': '/layer/%s/map' % layer.id,
+            'X-Forwarded-Host': request.META['HTTP_HOST'],
+            'HTTP_HOST': request.META['HTTP_HOST'],
+            'SERVER_NAME': request.META['SERVER_NAME'],
+            }
 
     if path_info == '/config':
         response = HttpResponse(yaml_config, content_type='text/plain')

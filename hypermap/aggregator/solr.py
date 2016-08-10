@@ -114,26 +114,26 @@ class SolrHypermap(object):
                 originator = domain
             # now we add the index
             solr_record = {
-                            'id': layer.id,
-                            'type': 'Layer',
-                            'layer_id': layer.id,
-                            'name': layer.name,
-                            'title': layer.title,
-                            'layer_originator': originator,
-                            'service_id': layer.service.id,
-                            'service_type': layer.service.type,
-                            'layer_category': category,
-                            'layer_username': username,
-                            'url': layer.url,
-                            'reliability': layer.reliability,
-                            'recent_reliability': layer.recent_reliability,
-                            'last_status': layer.last_status,
-                            'is_public': layer.is_public,
-                            'availability': 'Online',
-                            'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
-                            'abstract': abstract,
-                            'domain_name': layer.service.get_domain
-                            }
+                           'id': layer.id,
+                           'type': 'Layer',
+                           'layer_id': layer.id,
+                           'name': layer.name,
+                           'title': layer.title,
+                           'layer_originator': originator,
+                           'service_id': layer.service.id,
+                           'service_type': layer.service.type,
+                           'layer_category': category,
+                           'layer_username': username,
+                           'url': layer.url,
+                           'reliability': layer.reliability,
+                           'recent_reliability': layer.recent_reliability,
+                           'last_status': layer.last_status,
+                           'is_public': layer.is_public,
+                           'availability': 'Online',
+                           'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
+                           'abstract': abstract,
+                           'domain_name': layer.service.get_domain
+                           }
 
             solr_date, date_type = get_date(layer)
             if solr_date is not None:

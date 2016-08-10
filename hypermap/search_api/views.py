@@ -7,8 +7,8 @@ from rest_framework.viewsets import ModelViewSet
 from hypermap.aggregator.models import Catalog
 from django.conf import settings
 from .utils import parse_geo_box, request_time_facet, \
-                   request_heatmap_facet, gap_to_elastic, \
-                   asterisk_to_min_max
+                request_heatmap_facet, gap_to_elastic, \
+                asterisk_to_min_max
 from .serializers import SearchSerializer, CatalogSerializer
 import json
 
