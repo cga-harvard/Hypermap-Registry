@@ -15,7 +15,6 @@ import os.path
 import sys
 from datetime import timedelta
 import dj_database_url
-from urlparse import urlparse
 
 
 def str2bool(v):
@@ -116,8 +115,8 @@ STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(PROJECT_DIR, 'static'))
 STATIC_URL = os.getenv('STATIC_URL', '/static/')
 
 STATICFILES_DIRS = os.getenv('STATICFILES_DIRS',
-       (os.path.join(BASE_DIR, "static"),)
-       )
+                             (os.path.join(BASE_DIR, "static"),)
+                             )
 
 # media files
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(PROJECT_DIR, 'media'))

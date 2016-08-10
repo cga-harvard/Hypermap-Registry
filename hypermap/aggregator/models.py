@@ -14,7 +14,7 @@ from django.contrib.contenttypes import generic
 from django.db.models import Avg, Min, Max
 from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.core.urlresolvers import reverse
 from django_extensions.db.fields import AutoSlugField
 
 from taggit.managers import TaggableManager
@@ -38,9 +38,11 @@ REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
 
 if REGISTRY_LIMIT_LAYERS > 0:
     DEBUG_SERVICES = True
-    DEBUG_LAYERS_NUMBER = REGISTRY_LIMIT_LAYERS
+    DEBUG_LAYER_NUMBER = REGISTRY_LIMIT_LAYERS
 else:
     DEBUG_SERVICES = False
+    DEBUG_LAYER_NUMBER = -1
+
 
 def get_parsed_date(sdate):
     try:
@@ -428,7 +430,8 @@ class Catalog(models.Model):
     )
     url = models.URLField(
         max_length=255,
-        help_text="Only if remote. URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/",
+        help_text=("Only if remote. URL where the API for the search backend is served."
+                   "ex: http://localhost:8000/registry/api/search/"),
         null=True, blank=True
     )
 

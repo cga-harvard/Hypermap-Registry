@@ -1,14 +1,11 @@
-import re
-
-from hypermap.aggregator.models import Catalog
+from ..hypermap.aggregator.models import Catalog
 from . import utils
 from rest_framework import serializers
 
 
-
 class SearchSerializer(serializers.Serializer):
 
-    #TODO: remove this after catalogs integration:
+    # TODO: remove this after catalogs integration:
     search_engine = serializers.ChoiceField(
         required=False,
         help_text="Where will be running the search.",
@@ -18,7 +15,7 @@ class SearchSerializer(serializers.Serializer):
         required=False,
         help_text="Endpoint URL",
     )
-    #TODO:END.
+    # TODO:END.
 
     q_time = serializers.CharField(
         required=False,
@@ -72,15 +69,18 @@ class SearchSerializer(serializers.Serializer):
     )
     a_time_filter = serializers.CharField(
         required=False,
-        help_text="From what time range to divide by a.time.gap into intervals. Defaults to q.time and otherwise 90 days."
+        help_text=("From what time range to divide by a.time.gap into intervals."
+                   "Defaults to q.time and otherwise 90 days.")
     )
 
     a_hm_limit = serializers.IntegerField(
         required=False,
-        help_text="Non-0 triggers heatmap/grid faceting. This number is a soft maximum on thenumber of cells it should have. "
-                  "There may be as few as 1/4th this number in return. Note that a.hm.gridLevel can effectively ignore "
-                  "this value. The response heatmap contains a counts grid that can be null or contain null rows when "
-                  "all its values would be 0. See Solr docs for more details on the response format.",
+        help_text=("Non-0 triggers heatmap/grid faceting. "
+                   "This number is a soft maximum on thenumber of cells it should have. "
+                   "There may be as few as 1/4th this number in return. "
+                   "Note that a.hm.gridLevel can effectively ignore this value. "
+                   "The response heatmap contains a counts grid that can be null or contain null rows when "
+                   "all its values would be 0. See Solr docs for more details on the response format."),
         default=0
     )
     a_hm_gridlevel = serializers.IntegerField(
@@ -111,24 +111,7 @@ class SearchSerializer(serializers.Serializer):
         default=0
     )
 
-
-
-
     def validate_q_time(self, value):
-        """
-        Would be for example: [2013-03-01 TO 2013-04-01T00:00:00] and/or [* TO *]
-        Returns a valid sorl value. [2013-03-01T00:00:00Z TO 2013-04-01T00:00:00Z] and/or [* TO *]
-        """
-        if value:
-            try:
-                range = utils.parse_datetime_range_to_solr(value)
-                return range
-            except Exception as e:
-                raise serializers.ValidationError(e.message)
-
-        return value
-
-    def validate_a_time_filter(self, value):
         """
         Would be for example: [2013-03-01 TO 2013-04-01T00:00:00] and/or [* TO *]
         Returns a valid sorl value. [2013-03-01T00:00:00Z TO 2013-04-01T00:00:00Z] and/or [* TO *]

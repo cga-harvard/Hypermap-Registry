@@ -1,4 +1,6 @@
 from .default import *  # noqa
+from .default import BASE_DIR
+import os
 
 REGISTRY_SKIP_CELERY = True
 

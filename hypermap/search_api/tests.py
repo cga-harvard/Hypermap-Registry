@@ -60,7 +60,6 @@ class SearchApiTestCase(TestCase):
         self.assertEqual(start.get("parsed_datetime"), None)
         self.assertEqual(end.get("parsed_datetime"), None)
 
-
     def test_parse_ISO8601(self):
         quantity, units = utils.parse_ISO8601("P3D")
         self.assertEqual(quantity, 3)

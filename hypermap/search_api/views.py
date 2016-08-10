@@ -6,8 +6,9 @@ from rest_framework.viewsets import ModelViewSet
 
 from hypermap.aggregator.models import Catalog
 from django.conf import settings
-from .utils import parse_geo_box, request_time_facet, request_heatmap_facet,gap_to_elastic, \
-    asterisk_to_min_max
+from .utils import parse_geo_box, request_time_facet, \
+                   request_heatmap_facet, gap_to_elastic, \
+                   asterisk_to_min_max
 from .serializers import SearchSerializer, CatalogSerializer
 import json
 
@@ -51,7 +52,7 @@ def elasticsearch(serializer, catalog):
     a_time_limit = serializer.validated_data.get("a_time_limit")
     original_response = serializer.validated_data.get("original_response")
 
-    ## Dict for search on Elastic engine
+    # Dict for search on Elastic engine
     must_array = []
     filter_dic = {}
     aggs_dic = {}
@@ -145,10 +146,8 @@ def elasticsearch(serializer, catalog):
 
     if d_docs_sort == "distance":
         if q_geo:
-            distance_x = float(((float(Xmin) - float(Xmax)) ** 2.0) ** (0.5))
-            distance_y = float(((float(Ymin) - float(Ymax)) ** 2.0) ** (0.5))
-            X_middle = float(Xmin) + (distance_x / 2.0)
-            Y_middle = float(Ymin) + (distance_y / 2.0)
+            # distance_x = float(((float(Xmin) - float(Xmax)) ** 2.0) ** (0.5))
+            # distance_y = float(((float(Ymin) - float(Ymax)) ** 2.0) ** (0.5))
             msg = ("Sorting by distance is different on ElasticSearch than Solr, because this"
                    "feature on elastic is unavailable to geo_shape type.ElasticSearch docs said:"
                    "Due to the complex input structure and index representation of shapes,"
@@ -183,7 +182,7 @@ def elasticsearch(serializer, catalog):
         aggs_dic['popular_users'] = users_limit
 
     if a_time_limit:
-        ### Work in progress
+        # Work in progress
         if q_time:
             if not a_time_gap:
                 # getting time limit histogram.
@@ -289,7 +288,7 @@ def elasticsearch(serializer, catalog):
             data['a.time'] = a_gap
 
         if 'range' in aggs:
-            ### Work in progress 
+            # Work in progress
             # Pay attention in the following code lines: Make it better!!!!
             time_count = []
             time_resp = aggs["range"]["buckets"]
@@ -322,7 +321,6 @@ def elasticsearch(serializer, catalog):
     data["d.docs"] = docs
 
     return data
-
 
 
 def solr(serializer):
@@ -379,9 +377,12 @@ def solr(serializer):
         filters.append("{0}:{1}".format(TIME_FILTER_FIELD, q_time))
     if q_geo:
         filters.append("{0}:{1}".format(GEO_FILTER_FIELD, q_geo))
+
     if q_user:
         filters.append("{{!field f={0} tag={0}}}{1}".format(USER_FIELD, q_user))
-    if filters: params["fq"] = filters
+
+    if filters:
+        params["fq"] = filters
 
     # query params for ordering
     if d_docs_sort == 'score' and q_text:
@@ -569,4 +570,3 @@ class Search(APIView):
 class CatalogViewSet(ModelViewSet):
     queryset = Catalog.objects.all()
     serializer_class = CatalogSerializer
-

@@ -21,6 +21,7 @@ REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+ht
 SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
 SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 
+
 class ESHypermap(object):
 
     es_url = SEARCH_URL
@@ -29,7 +30,7 @@ class ESHypermap(object):
     logger = logging.getLogger("hypermap")
 
     def __init__(self):
-        #TODO: this create_indices() should not happen here:
+        # TODO: this create_indices() should not happen here:
         # ES creates the indexes automaticaly.
         super(ESHypermap, self).__init__()
 
@@ -60,7 +61,7 @@ class ESHypermap(object):
     @staticmethod
     def get_bbox(layer):
         candidate_bbox = layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1
-        if not None in candidate_bbox:
+        if None not in candidate_bbox:
             return [float(coord) for coord in candidate_bbox]
 
         wkt = layer.wkt_geometry
@@ -95,8 +96,6 @@ class ESHypermap(object):
                     minY, maxY = maxY, minY
                 if (minX > maxX):
                     minX, maxX = maxX, minX
-                centerY = (maxY + minY) / 2.0
-                centerX = (maxX + minX) / 2.0
                 halfWidth = (maxX - minX) / 2.0
                 halfHeight = (maxY - minY) / 2.0
                 area = (halfWidth * 2) * (halfHeight * 2)

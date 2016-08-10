@@ -20,6 +20,7 @@ def is_range_common_era(start, end):
     return all([start.get("is_common_era"),
                 end.get("is_common_era")])
 
+
 def parse_datetime(date_str):
     """
     Parses a date string to date object.
@@ -67,6 +68,7 @@ def parse_solr_time_range_as_pair(time_filter):
         return matcher.group(1), matcher.group(2)
     else:
         raise Exception("Regex {0} couldn't parse {1}".format(pattern, time_filter))
+
 
 def parse_datetime_range(time_filter):
     """
@@ -162,10 +164,11 @@ def compute_gap(start, end, time_limit):
         # those dates are relatively big, so 100 years are reasonable in those cases.
         # TODO: calculate duration on those cases.
         return "+100YEARS"
-        
+
+
 def gap_to_elastic(time_gap):
-    ##elastic units link: https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#time-units
-     elastic_units = {
+    # elastic units link: https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#time-units
+    elastic_units = {
         "YEARS": 'y',
         "MONTHS": 'M',
         "WEEKS": 'w',
@@ -173,10 +176,10 @@ def gap_to_elastic(time_gap):
         "HOURS": 'h',
         "MINUTES": 'm',
         "SECONDS": 's'
-     }
-     quantity, unit = parse_ISO8601(time_gap)
-     interval = "{0}{1}".format(str(quantity),elastic_units[unit[0]])
-     return interval
+    }
+    quantity, unit = parse_ISO8601(time_gap)
+    interval = "{0}{1}".format(str(quantity), elastic_units[unit[0]])
+    return interval
 
 
 def gap_to_sorl(time_gap):
@@ -197,14 +200,17 @@ def request_time_facet(field, time_filter, time_gap, time_limit=100):
     time facet query builder
     :param field: map the query to this field.
     :param time_limit: Non-0 triggers time/date range faceting. This value is the maximum number of time ranges to
-    return when a.time.gap is unspecified. This is a soft maximum; less will usually be returned. A suggested value is 100.
-    Note that a.time.gap effectively ignores this value. See Solr docs for more details on the query/response format.
-    :param time_filter: From what time range to divide by a.time.gap into intervals. Defaults to q.time and otherwise 90 days.
-    :param time_gap: The consecutive time interval/gap for each time range. Ignores a.time.limit.The format is based
-    on a subset of the ISO-8601 duration format
-    :return: facet.range=manufacturedate_dt&f.manufacturedate_dt.facet.range.start=2006-02-11T15:26:37Z&f.manufacturedate_dt.facet.range.end=2006-02-14T15:26:37Z&f.manufacturedate_dt.facet.range.gap=+1DAY
+    return when a.time.gap is unspecified. This is a soft maximum; less will usually be returned.
+    A suggested value is 100.
+    Note that a.time.gap effectively ignores this value.
+    See Solr docs for more details on the query/response format.
+    :param time_filter: From what time range to divide by a.time.gap into intervals.
+    Defaults to q.time and otherwise 90 days.
+    :param time_gap: The consecutive time interval/gap for each time range. Ignores a.time.limit.
+    The format is based on a subset of the ISO-8601 duration format
+    :return: facet.range=manufacturedate_dt&f.manufacturedate_dt.facet.range.start=2006-02-11T15:26:37Z&f.
+    manufacturedate_dt.facet.range.end=2006-02-14T15:26:37Z&f.manufacturedate_dt.facet.range.gap=+1DAY
     """
-    now = datetime.datetime.utcnow()
     start, end = parse_datetime_range(time_filter)
 
     key_range_start = "f.{0}.facet.range.start".format(field)
@@ -255,6 +261,7 @@ def parse_lat_lon(point_str):
     lat, lon = map(float, point_str.split(','))
     return lat, lon
 
+
 def parse_geo_box(geo_box_str):
     """
     parses [-90,-180 TO 90,180] to a shapely.geometry.box
@@ -304,7 +311,7 @@ def request_heatmap_facet(field, hm_filter, hm_grid_level, hm_limit):
         params['facet.heatmap.distErr'] = str(float(cell_side_length_degrees))
         # TODO: not sure about if returning correct param values.
 
-    #get_params = urllib.urlencode(params)
+    # get_params = urllib.urlencode(params)
     return params
 
 

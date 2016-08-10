@@ -24,6 +24,7 @@ else:
     DEBUG_SERVICES = False
     DEBUG_LAYERS_NUMBER = -1
 
+
 @shared_task(bind=True)
 def check_all_services(self):
     from hypermap.aggregator.models import Service
@@ -225,11 +226,11 @@ def update_endpoint(self, endpoint, greedy_opt=False):
 
     print 'Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url)
 
-    # Override the greedy_opt var with the value from the endpoint list 
+    # Override the greedy_opt var with the value from the endpoint list
     # if it's available.
     if endpoint.endpoint_list:
         greedy_opt = endpoint.endpoint_list.greedy
- 
+
     imported, message = create_services_from_endpoint(endpoint.url, greedy_opt=greedy_opt, catalog=endpoint.catalog)
 
     # this update will not execute the endpoint_post_save signal.

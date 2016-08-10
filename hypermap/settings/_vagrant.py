@@ -1,4 +1,8 @@
-from settings.default import *  # noqa
+from .default import *  # noqa
+from .default import MIDDLEWARE_CLASSES
+from .default import INSTALLED_APPS
+import os
+
 
 SITE_URL = 'http://192.168.33.15:8000/'
 
