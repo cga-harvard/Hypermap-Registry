@@ -35,7 +35,7 @@ services:
       - ALLOWED_HOSTS=['django',]
       - C_FORCE_ROOT=1
 
-  ui:
+  maploom:
     image: terranodo/maploom
     command: grunt serve
 
@@ -43,6 +43,6 @@ services:
     image: terranodo/nginx:3k8k
     links:
       - django
-      - ui
+      - maploom
     ports:
       - "80:80"
