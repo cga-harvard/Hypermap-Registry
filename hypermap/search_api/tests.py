@@ -39,8 +39,7 @@ class SearchApiTestCase(TestCase):
         }
 
         catalog, created = Catalog.objects.get_or_create(
-            name="hypermap", slug="hypermap",
-            url_remote=None, url_local="search_api"
+            name="hypermap", slug="hypermap"
         )
 
         #delete solr documents

@@ -14,7 +14,7 @@ from django.contrib.contenttypes import generic
 from django.db.models import Avg, Min, Max
 from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.core.urlresolvers import reverse
 from django_extensions.db.fields import AutoSlugField
 
 from taggit.managers import TaggableManager
@@ -33,6 +33,15 @@ from tasks import update_endpoint, update_endpoints, check_service, check_layer,
 from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
+
+REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
+
+if REGISTRY_LIMIT_LAYERS > 0:
+    DEBUG_SERVICES = True
+    DEBUG_LAYER_NUMBER = REGISTRY_LIMIT_LAYERS
+else:
+    DEBUG_SERVICES = False
+    DEBUG_LAYER_NUMBER = -1
 
 
 def get_parsed_date(sdate):
@@ -286,7 +295,7 @@ class Service(Resource):
         """
         Index all layers for this service.
         """
-        if settings.SEARCH_ENABLED:
+        if settings.REGISTRY_SEARCH_URL is not None:
             for layer in self.layer_set.all():
                 index_layer(layer)
 
@@ -419,14 +428,10 @@ class Catalog(models.Model):
         editable=True,
         help_text="Leave empty to be populated from name"
     )
-    url_remote = models.URLField(
+    url = models.URLField(
         max_length=255,
-        help_text="Only if remote. URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/",
-        null=True, blank=True
-    )
-    url_local = models.CharField(
-        max_length=100,
-        help_text="If not remote, add django url name to be reversed",
+        help_text=("Only if remote. URL where the API for the search backend is served."
+                   "ex: http://localhost:8000/registry/api/search/"),
         null=True, blank=True
     )
 
@@ -441,13 +446,10 @@ class Catalog(models.Model):
         :return: url or exception
         """
 
-        if self.url_remote:
-            return self.url_remote
+        if self.url and len(self.url) > 0:
+            return self.url
 
-        try:
-            return reverse(self.url_local, args=[self.slug])
-        except NoReverseMatch as e:
-            return str(e)
+        return reverse('search_api', args=[self.slug])
 
 
 class Layer(Resource):
@@ -466,15 +468,15 @@ class Layer(Resource):
     catalog = models.ForeignKey(Catalog, blank=True, null=True)
 
     def __unicode__(self):
-        return '%s - %s' % (self.id, self.name)
+        return '%s' % self.id
 
     def get_url_endpoint(self):
         """
         Returns the Hypermap endpoint for a layer.
-        This endpoint will be the WMTS MapProxy endpoint, only for WM and Esri we use original endpoints.
+        This endpoint will be the WMTS MapProxy endpoint, only for WM we use the original endpoint.
         """
         endpoint = self.url
-        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
+        if self.type not in ('Hypermap:WorldMap',):
             endpoint = '%s/registry/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL.rstrip('/'),
                                                                                      self.id)
         return endpoint
@@ -483,8 +485,8 @@ class Layer(Resource):
         """
         Returns the tile url MapProxy endpoint for the layer.
         """
-        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
-            return '/layers/%s/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png' % self.id
+        if self.type not in ('Hypermap:WorldMap',):
+            return '/layers/%s/map/wmts/%s/default_grid/{z}/{y}/{x}.png' % (self.id, self.name)
         else:
             return None
 
@@ -498,31 +500,48 @@ class Layer(Resource):
                 return True
 
     def get_layer_dates(self):
+
+        def get_date_sign(a_date):
+            sign = '+'
+            if sdate[0] == '-':
+                sign = '-'
+            return sign
+
+        # string must be parsed, and check if they have a negative value in front of it
         dates = []
+        # get dates from layerwm
         if hasattr(self, 'layerwm'):
             if self.layerwm.temporal_extent_start:
-                pydate = get_parsed_date(self.layerwm.temporal_extent_start)
+                sdate = self.layerwm.temporal_extent_start
+                pydate = get_parsed_date(sdate)
                 if pydate:
                     start_date = []
+                    start_date.append(get_date_sign(sdate))
                     start_date.append(pydate)
                     start_date.append(1)
                     dates.append(start_date)
-            if self.layerwm.temporal_extent_start:
-                pydate = get_parsed_date(self.layerwm.temporal_extent_end)
+            if self.layerwm.temporal_extent_end:
+                sdate = self.layerwm.temporal_extent_end
+                pydate = get_parsed_date(sdate)
                 if pydate:
                     end_date = []
+                    end_date.append(get_date_sign(sdate))
                     end_date.append(pydate)
                     end_date.append(1)
                     dates.append(end_date)
+        # now we return all the other dates
         for layerdate in self.layerdate_set.all().order_by('date'):
             sdate = layerdate.date
+            # for now we skip ranges
             if 'TO' not in sdate:
                 pydate = get_parsed_date(sdate)
                 if pydate:
                     date = []
+                    date.append(get_date_sign(sdate))
                     date.append(pydate)
                     date.append(layerdate.type)
                     dates.append(date)
+        print dates
         return dates
 
     def update_thumbnail(self):
@@ -568,15 +587,17 @@ class Layer(Resource):
                 else:
                     raise NotImplementedError(format_error_message)
             img = ows.gettile(
-                                layer=self.name,
-                                tilematrixset=ows_layer.tilematrixsets[0],
-                                tilematrix='0',
-                                row='0',
-                                column='0',
-                                format=image_format
+                            layer=self.name,
+                            tilematrixset=ows_layer.tilematrixsets[0],
+                            tilematrix='0',
+                            row='0',
+                            column='0',
+                            format=image_format
                             )
         elif self.type == 'Hypermap:WorldMap':
-            ows = WebMapService(self.url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
+            ows = WebMapService(self.url,
+                                username=settings.REGISTRY_WORLDMAP_USERNAME,
+                                password=settings.REGISTRY_WORLDMAP_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
             if image_format not in op_getmap.formatOptions:
@@ -687,8 +708,8 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            if settings.SEARCH_ENABLED:
-                if not settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SEARCH_URL is not None:
+                if not settings.REGISTRY_SKIP_CELERY:
                     index_layer.delay(self)
                 else:
                     index_layer(self)
@@ -950,7 +971,7 @@ def update_layers_wms(service):
         layer_n = layer_n + 1
         # exits if DEBUG_SERVICES
         print "Updating layer n. %s/%s" % (layer_n, total)
-        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+        if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
             return
 
 
@@ -1017,7 +1038,7 @@ def update_layers_wmts(service):
         layer_n = layer_n + 1
         # exits if DEBUG_SERVICES
         print "Updating layer n. %s/%s" % (layer_n, total)
-        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+        if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
             return
 
 
@@ -1121,7 +1142,7 @@ def update_layers_wm(service):
             layer_n = layer_n + 1
             # exits if DEBUG_SERVICES
             print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
                 return
 
 
@@ -1196,7 +1217,7 @@ def update_layers_warper(service):
             layer_n = layer_n + 1
             # exits if DEBUG_SERVICES
             print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
                 return
 
 
@@ -1225,7 +1246,8 @@ def update_layers_esri_mapserver(service):
         if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
             # we need to change the url
             # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
-            # http://cga1.cga.harvard.edu/arcgis/services/ecuador/ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
+            # http://cga1.cga.harvard.edu/arcgis/services/ecuador/
+            # ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
             wms_url = service.url.replace('/rest/services/', '/services/')
             if '?f=pjson' in wms_url:
                 wms_url = wms_url.replace('?f=pjson', 'WMSServer?')
@@ -1292,7 +1314,7 @@ def update_layers_esri_mapserver(service):
             layer_n = layer_n + 1
             # exits if DEBUG_SERVICES
             print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
                 return
 
 
@@ -1360,7 +1382,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
                 endpoint = Endpoint(url=url, endpoint_list=instance)
                 endpoint.catalog = instance.catalog
                 endpoint.save()
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoints.delay(instance)
     else:
         update_endpoints(instance)
@@ -1373,7 +1395,7 @@ def endpoint_post_save(instance, *args, **kwargs):
         endpoint = Endpoint(url=instance.url)
         endpoint.save()
         signals.post_save.connect(endpoint_post_save, sender=Endpoint)
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoint.delay(instance)
     else:
         update_endpoint(instance)
@@ -1395,7 +1417,7 @@ def service_post_save(instance, *args, **kwargs):
     Used to do a service full check when saving it.
     """
     # check service
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         check_service.delay(instance)
     else:
         check_service(instance)
@@ -1405,7 +1427,7 @@ def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         check_layer.delay(instance)
     else:
         check_layer(instance)

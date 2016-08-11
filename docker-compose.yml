@@ -6,62 +6,38 @@ services:
 
   elasticsearch:
    image: elasticsearch
-   ports:
-        - "9200:9200"
 
   rabbitmq:
      image: rabbitmq
 
   django:
-    build: .
+    image: terranodo/registry
     links:
       - postgres
       - elasticsearch
       - rabbitmq
-    ports:
-      - "8000:8000"
-    # Loading the app is defined here to allow for autoreload on changes it is
-    # mounted on top of the old copy that docker added when creating the image.
-    volumes:
-      - .:/usr/src/app
     environment:
-      - DEBUG=True
-      - SEARCH_ENABLED=True
-      - SEARCH_TYPE=elastic
-      - SEARCH_URL=http://elasticsearch:9200/
-      - DATABASE_ENGINE=django.db.backends.postgresql_psycopg2
-      - DATABASE_NAME=postgres
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
+      - REGISTRY_SEARCH_URL=elasticsearch+http://elasticsearch:9200/
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-      - DEBUG_SERVICES = True
-      - DEBUG_LAYERS_NUMBER = 50
-
+      - ALLOWED_HOSTS=['django',]
   celery:
-    build: .
+    image: terranodo/registry
     links:
       - rabbitmq
       - postgres
       - elasticsearch
     command: celery worker --app=hypermap.celeryapp:app -B -l INFO
-    # Loading the app is defined here to allow for autoreload on changes it is
-    # mounted on top of the old copy that docker added when creating the image.
-    volumes:
-      - .:/usr/src/app
     environment:
-      - DEBUG=True
-      - SEARCH_ENABLED=True
-      - SEARCH_TYPE=elastic
-      - SEARCH_URL=http://elastic/
-      - DATABASE_ENGINE=django.db.backends.postgresql_psycopg2
-      - DATABASE_NAME=postgres
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
+      - REGISTRY_SEARCH_URL=elasticsearch+http://elasticsearch:9200/
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+      - ALLOWED_HOSTS=['django',]
       - C_FORCE_ROOT=1
-      - DEBUG_SERVICES = True
-      - DEBUG_LAYERS_NUMBER = 50      
+
+  nginx:
+    image: terranodo/nginx
+    links:
+      - django
+    ports:
+      - "80:80"

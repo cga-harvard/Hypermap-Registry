@@ -1,1 +1,1 @@
-[{"fields": {"url_local": "search_api", "url_remote": "", "name": "Hypermap", "slug": "hypermap"}, "model": "aggregator.catalog", "pk": 1}]
+[{"fields": {"url": null, "name": "Hypermap", "slug": "hypermap"}, "model": "aggregator.catalog", "pk": 1}]

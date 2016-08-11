@@ -22,7 +22,7 @@ def create_wms_service():
 
     catalog, created = Catalog.objects.get_or_create(
         name="hypermap", slug="hypermap",
-        url_remote="search_api", url_local=None
+        url="search_api"
     )
 
     service = Service(
@@ -38,7 +38,7 @@ def create_warper_service():
 
     catalog, created = Catalog.objects.get_or_create(
         name="hypermap", slug="hypermap",
-        url_remote="search_api", url_local=None
+        url="search_api"
     )
 
     service = Service(
@@ -53,7 +53,7 @@ def create_warper_service():
 def create_wm_service():
     catalog, created = Catalog.objects.get_or_create(
         name="hypermap", slug="hypermap",
-        url_remote="search_api", url_local=None
+        url="search_api"
     )
     service = Service(
         type='Hypermap:WorldMap',

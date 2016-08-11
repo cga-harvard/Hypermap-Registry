@@ -31,9 +31,9 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         if request.status_code == 200:
             print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
             service = Service(
-                 type=service_type, url=endpoint, title=title, abstract=abstract,
-                 csw_type='service', catalog=catalog
-            )
+                        type=service_type, url=endpoint, title=title, abstract=abstract,
+                        csw_type='service', catalog=catalog
+                        )
             service.save()
             return service
         else:
@@ -228,13 +228,16 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                     components = url.strip().split(url_token)[1].split('/')
                     esri_folder, esri_service = components[0], components[1]
 
+                    def split_service(s):
+                        return s.url.split(url_token)[1].split('/')
+
                     # Get folder class from the list of esri services for the given endpoint.
-                    services_folder = [f for f in esri.folders
-                        if f.url.split(url_token)[1].split('/')[0] == esri_folder][0]
+                    services_folder = [f for f in esri.folders if split_service(f)[0] == esri_folder][0]
+
+                    fs = services_folder.services
 
                     # Get service class from the folder for the given endpoint.
-                    service_to_process = [s for s in services_folder.services
-                        if s.url.split(url_token)[1].split('/')[1] == esri_service]
+                    service_to_process = [s for s in fs if split_service(s)[1] == esri_service]
 
                     folder_services = process_esri_services(service_to_process, catalog=catalog)
                     num_created = num_created + len(folder_services)
@@ -270,14 +273,14 @@ def process_esri_services(esri_services, catalog):
 
         # Don't process ImageServer until the following issue has been resolved:
         # https://github.com/mapproxy/mapproxy/issues/235
-        #if '/ImageServer/' in esri_service.url:
-        #    service = create_service_from_endpoint(
-        #        esri_service.url,
-        #        'ESRI:ArcGIS:ImageServer',
-        #        '',
-        #        esri_service.serviceDescription
-        #    )
-        #     services_created.append(service)
+        # if '/ImageServer/' in esri_service.url:
+        #     service = create_service_from_endpoint(
+        #         esri_service.url,
+        #         'ESRI:ArcGIS:ImageServer',
+        #         '',
+        #         esri_service.serviceDescription
+        #     )
+        #      services_created.append(service)
 
     return services_created
 

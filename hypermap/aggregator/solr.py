@@ -19,11 +19,14 @@ def get_date(layer):
     It can be a range or a simple date in isoformat.
     """
     date = None
+    sign = '+'
     date_type = 1
     layer_dates = layer.get_layer_dates()
+    # we index the first date!
     if layer_dates:
-        date = layer_dates[0][0]
-        date_type = layer_dates[0][1]
+        sign = layer_dates[0][0]
+        date = layer_dates[0][1]
+        date_type = layer_dates[0][2]
     if date is None:
         date = layer.created.date()
     # layer date > 2300 is invalid for sure
@@ -34,10 +37,10 @@ def get_date(layer):
         date_type = "Detected"
     if date_type == 1:
         date_type = "From Metadata"
-    return get_solr_date(date), date_type
+    return get_solr_date(date, (sign == '-')), date_type
 
 
-def get_solr_date(pydate):
+def get_solr_date(pydate, is_negative):
     """
     Returns a date in a valid Solr format from a string.
     """
@@ -45,6 +48,9 @@ def get_solr_date(pydate):
     try:
         if isinstance(pydate, datetime.datetime):
             solr_date = '%sZ' % pydate.isoformat()[0:19]
+            if is_negative:
+                print '***** This layer has a negative date'
+                solr_date = '-%s' % solr_date
             return solr_date
         else:
             return None
@@ -108,26 +114,26 @@ class SolrHypermap(object):
                 originator = domain
             # now we add the index
             solr_record = {
-                            'id': layer.id,
-                            'type': 'Layer',
-                            'layer_id': layer.id,
-                            'name': layer.name,
-                            'title': layer.title,
-                            'layer_originator': originator,
-                            'service_id': layer.service.id,
-                            'service_type': layer.service.type,
-                            'layer_category': category,
-                            'layer_username': username,
-                            'url': layer.url,
-                            'reliability': layer.reliability,
-                            'recent_reliability': layer.recent_reliability,
-                            'last_status': layer.last_status,
-                            'is_public': layer.is_public,
-                            'availability': 'Online',
-                            'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
-                            'abstract': abstract,
-                            'domain_name': layer.service.get_domain
-                            }
+                           'id': layer.id,
+                           'type': 'Layer',
+                           'layer_id': layer.id,
+                           'name': layer.name,
+                           'title': layer.title,
+                           'layer_originator': originator,
+                           'service_id': layer.service.id,
+                           'service_type': layer.service.type,
+                           'layer_category': category,
+                           'layer_username': username,
+                           'url': layer.url,
+                           'reliability': layer.reliability,
+                           'recent_reliability': layer.recent_reliability,
+                           'last_status': layer.last_status,
+                           'is_public': layer.is_public,
+                           'availability': 'Online',
+                           'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
+                           'abstract': abstract,
+                           'domain_name': layer.service.get_domain
+                           }
 
             solr_date, date_type = get_date(layer)
             if solr_date is not None:

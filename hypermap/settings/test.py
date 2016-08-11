@@ -1,6 +1,8 @@
 from .default import *  # noqa
+from .default import BASE_DIR
+import os
 
-SKIP_CELERY_TASK = True
+REGISTRY_SKIP_CELERY = True
 
 DATABASES = {
     'default': {
@@ -11,6 +13,7 @@ DATABASES = {
 
 SOLR_ENABLED = True
 SOLR_URL = 'http://localhost:8983/solr/hypermap_test'
+REGISTRY_SEARCH_URL = "elasticsearch+http://localhost:9200"
 
 SEARCH_URL = SOLR_URL
 

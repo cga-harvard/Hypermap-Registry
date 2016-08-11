@@ -67,7 +67,7 @@ class TaskErrorAdmin(admin.ModelAdmin):
 
 class CatalogAdmin(admin.ModelAdmin):
     model = Catalog
-    list_display = ('name', 'slug', 'url_remote', 'url_local', 'get_search_url')
+    list_display = ('name', 'slug', 'url', 'get_search_url')
     search_fields = ('name', )
 
 

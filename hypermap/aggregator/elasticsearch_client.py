@@ -15,8 +15,12 @@ from hypermap.aggregator.utils import mercator_to_llbbox
 from hypermap.aggregator.solr import get_date
 
 
-SEARCH_MAPPING_PRECISION = getattr(settings, "SEARCH_MAPPING_PRECISION", "500m")
-SEARCH_URL = getattr(settings, "SEARCH_URL", "http://localhost:9200/")
+REGISTRY_MAPPING_PRECISION = getattr(settings, "REGISTRY_MAPPING_PRECISION", "500m")
+REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+http://localhost:9200")
+
+SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
+
 
 class ESHypermap(object):
 
@@ -26,7 +30,7 @@ class ESHypermap(object):
     logger = logging.getLogger("hypermap")
 
     def __init__(self):
-        #TODO: this create_indices() should not happen here:
+        # TODO: this create_indices() should not happen here:
         # ES creates the indexes automaticaly.
         super(ESHypermap, self).__init__()
 
@@ -55,13 +59,27 @@ class ESHypermap(object):
         return hostname
 
     @staticmethod
+    def get_bbox(layer):
+        candidate_bbox = layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1
+        if None not in candidate_bbox:
+            return [float(coord) for coord in candidate_bbox]
+
+        wkt = layer.wkt_geometry
+        # If a coordinate is None and 'POLYGON'
+        if 'POLYGON' in wkt:
+            from shapely.wkt import loads
+            return loads(wkt).bounds
+
+        return (-180.0, -90.0, 180.0, 90.0)
+
+    @staticmethod
     def layer_to_es(layer):
         category = None
         username = None
         ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.slug, layer.id))
 
         try:
-            bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+            bbox = ESHypermap.get_bbox(layer)
             for proj in layer.service.srs.values():
                 if proj['code'] in ('102113', '102100'):
                     bbox = mercator_to_llbbox(bbox)
@@ -78,8 +96,6 @@ class ESHypermap(object):
                     minY, maxY = maxY, minY
                 if (minX > maxX):
                     minX, maxX = maxX, minX
-                centerY = (maxY + minY) / 2.0
-                centerX = (maxX + minX) / 2.0
                 halfWidth = (maxX - minX) / 2.0
                 halfHeight = (maxY - minY) / 2.0
                 area = (halfWidth * 2) * (halfHeight * 2)
@@ -151,6 +167,10 @@ class ESHypermap(object):
                 if es_date is not None:
                     es_record['layer_date'] = es_date
                     es_record['layer_datetype'] = type
+
+                if layer.get_tile_url():
+                    es_record['tile_url'] = layer.get_tile_url()
+
                 ESHypermap.logger.info(es_record)
                 # TODO: cache index creation.
                 ESHypermap.create_indices(layer.catalog.slug)
@@ -176,7 +196,8 @@ class ESHypermap(object):
         """Create ES core indices """
         # TODO: enable auto_create_index in the ES nodes to make this implicit.
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html#index-creation
-        # http://support.searchly.com/customer/en/portal/questions/16312889-is-automatic-index-creation-disabled-?new=16312889
+        # http://support.searchly.com/customer/en/portal/questions/
+        # 16312889-is-automatic-index-creation-disabled-?new=16312889
         mapping = {
             "mappings": {
                 "layer": {
@@ -184,7 +205,7 @@ class ESHypermap(object):
                         "layer_geoshape": {
                             "type": "geo_shape",
                             "tree": "quadtree",
-                            "precision": SEARCH_MAPPING_PRECISION
+                            "precision": REGISTRY_MAPPING_PRECISION
                         }
                     }
                 }

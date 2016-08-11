@@ -1,0 +1,26 @@
+version: '2'
+services:
+
+  django:
+    build: .
+    # Loading the app is defined here to allow for autoreload on changes it is
+    # mounted on top of the old copy that docker added when creating the image
+    volumes:
+      - '.:/usr/src/app'
+    environment:
+      - DEBUG=True
+      - REGISTRY_LIMIT_LAYERS=10
+    ports:
+      - "8000:8000"
+
+  celery:
+    build: .
+    volumes:
+      - '.:/usr/src/app'
+    environment:
+      - DEBUG=True
+      - REGISTRY_LIMIT_LAYERS=10
+
+  elasticsearch:
+    ports:
+      - "9200:9200"

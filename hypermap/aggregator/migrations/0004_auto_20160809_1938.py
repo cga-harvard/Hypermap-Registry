@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django_extensions.db.fields
 
 
 class Migration(migrations.Migration):
@@ -17,37 +18,38 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='catalog',
-            name='api_url',
-            field=models.URLField(default='http://localhost', help_text=b'URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/', max_length=255),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='catalog',
-            name='identifier',
-            field=models.CharField(help_text=b'Identifier string in search backend. AKA: indice or core name. ex: hypermap', max_length=255),
-            preserve_default=False,
+            name='url',
+            field=models.URLField(help_text=b'Only if remote. URL where the API for the search backend is served. ex: http://localhost:8000/registry/api/search/', max_length=255, null=True, blank=True),
         ),
         migrations.AddField(
             model_name='endpoint',
             name='catalog',
-            field=models.ForeignKey(to='aggregator.Catalog', blank=True, null=True),
+            field=models.ForeignKey(blank=True, to='aggregator.Catalog', null=True),
         ),
         migrations.AddField(
             model_name='endpointlist',
             name='catalog',
-            field=models.ForeignKey(to='aggregator.Catalog', blank=True, null=True),
-            preserve_default=False,
+            field=models.ForeignKey(to='aggregator.Catalog', null=True),
         ),
         migrations.AddField(
             model_name='layer',
             name='catalog',
-            field=models.ForeignKey(to='aggregator.Catalog', blank=True, null=True),
-            preserve_default=False,
+            field=models.ForeignKey(blank=True, to='aggregator.Catalog', null=True),
+        ),
+        migrations.AddField(
+            model_name='layer',
+            name='csw_last_updated',
+            field=models.CharField(default=b'2016-08-09T19:38:12Z', max_length=32, null=True, blank=True),
         ),
         migrations.AddField(
             model_name='service',
             name='catalog',
-            field=models.ForeignKey(to='aggregator.Catalog', null=True, blank=True),
+            field=models.ForeignKey(blank=True, to='aggregator.Catalog', null=True),
+        ),
+        migrations.AddField(
+            model_name='service',
+            name='csw_last_updated',
+            field=models.CharField(default=b'2016-08-09T19:38:12Z', max_length=32, null=True, blank=True),
         ),
         migrations.AlterField(
             model_name='catalog',
@@ -55,9 +57,14 @@ class Migration(migrations.Migration):
             field=models.CharField(help_text=b'Display name in UI', max_length=255),
         ),
         migrations.AlterField(
+            model_name='catalog',
+            name='slug',
+            field=django_extensions.db.fields.AutoSlugField(editable=False, populate_from=b'name', blank=True, help_text=b'Leave empty to be populated from name'),
+        ),
+        migrations.AlterField(
             model_name='endpoint',
             name='endpoint_list',
-            field=models.ForeignKey(to='aggregator.EndpointList', null=True, blank=True),
+            field=models.ForeignKey(blank=True, to='aggregator.EndpointList', null=True),
         ),
         migrations.AlterField(
             model_name='layer',
