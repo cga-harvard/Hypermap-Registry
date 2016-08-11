@@ -35,9 +35,14 @@ services:
       - ALLOWED_HOSTS=['django',]
       - C_FORCE_ROOT=1
 
+  ui:
+    image: terranodo/maploom
+    command: grunt serve
+
   nginx:
-    image: terranodo/nginx
+    image: terranodo/nginx:3k8k
     links:
       - django
+      - ui
     ports:
       - "80:80"
