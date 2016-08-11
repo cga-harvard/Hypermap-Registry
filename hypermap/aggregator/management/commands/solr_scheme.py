@@ -1,11 +1,6 @@
-import csv
-from optparse import make_option
-
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
-
-from hypermap.aggregator.utils import create_services_from_endpoint, get_sanitized_endpoint
 
 
 class Command(BaseCommand):
