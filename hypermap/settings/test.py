@@ -13,6 +13,9 @@ DATABASES = {
 
 SOLR_ENABLED = True
 SOLR_URL = 'http://localhost:8983/solr/hypermap_test'
+REGISTRY_SEARCH_URL = "elasticsearch+http://localhost:9200"
+
+SEARCH_URL = SOLR_URL
 
 # BROKER_BACKEND = 'memory'
 # BROKER_URL='memory://'

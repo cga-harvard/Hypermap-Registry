@@ -551,7 +551,8 @@ class Search(APIView):
             try:
                 catalog = Catalog.objects.get(slug=catalog_slug)
             except Catalog.DoesNotExist:
-                return Response({}, status=404)
+                return Response({"error": "catalog '{}' not found".format(catalog_slug)},
+                                status=404)
 
             search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
             if search_engine == 'solr':
