@@ -347,8 +347,6 @@ def solr(serializer):
     a_user_limit = serializer.validated_data.get("a_user_limit")
     original_response = serializer.validated_data.get("original_response")
 
-    print serializer.validated_data
-
     # query params to be sent via restful solr
     params = {
         "q": "*:*",
@@ -553,6 +551,17 @@ class Search(APIView):
             except Catalog.DoesNotExist:
                 return Response({"error": "catalog '{}' not found".format(catalog_slug)},
                                 status=404)
+
+            # check if data source is remote
+            # if catalog.is_remote and request.META['SERVER_PORT'] == "8000":
+            if catalog.is_remote:
+                response = requests.get(catalog.url, params=request.query_params)
+                if response.status_code in [200, 400]:
+                    return Response(response.json(),
+                                    status=response.status_code)
+                else:
+                    return Response(response.text,
+                                    status=response.status_code)
 
             search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
             if search_engine == 'solr':

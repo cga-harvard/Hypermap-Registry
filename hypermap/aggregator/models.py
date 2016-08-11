@@ -446,10 +446,20 @@ class Catalog(models.Model):
         :return: url or exception
         """
 
-        if self.url and len(self.url) > 0:
+        if self.is_remote:
             return self.url
 
         return reverse('search_api', args=[self.slug])
+
+    @property
+    def is_remote(self):
+        """
+        Define if data source is local or remote
+        :return: True if remote, else False.
+        """
+        if self.url and len(self.url) > 0:
+            return True
+        return False
 
 
 class Layer(Resource):
