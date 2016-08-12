@@ -7,9 +7,10 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     url(r'^admin/', include(admin.site.urls)),
+    (r'^registry/', include('hypermap.search_api.urls')),
+    (r'^registry/', include('hypermap.search.urls')),
     (r'^registry/', include('hypermap.aggregator.urls')),
-    (r'^registry/search/', include('hypermap.search.urls')),
-    (r'^registry/api/', include('hypermap.search_api.urls')),
+
 )
 
 urlpatterns += patterns(

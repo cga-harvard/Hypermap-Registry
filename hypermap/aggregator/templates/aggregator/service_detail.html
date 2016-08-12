@@ -65,7 +65,11 @@
                     <a href="{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true</a>
                     {% endif %}
                 </li>
-                <li>Metadata: <a href="{{SITE_URL}}/registry/search/csw?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}" target="new">{{SITE_URL}}/registry/search/csw?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}</a></li>
+                <li>Metadata:
+                    <a href="{{SITE_URL}}{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}" target="new">
+                        {{SITE_URL}}{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRepositoryItem&id={{service.id}}
+                    </a>
+                </li>
               </ul>
             </td>
           </tr>

@@ -167,6 +167,13 @@ class SearchApiTestCase(TestCase):
 
         self.index(self.solr_records)
 
+    def test_catalogs(self):
+        url = settings.SITE_URL + reverse("catalog-list")
+        res = requests.get(url)
+        self.assertEqual(res.status_code, 200)
+        catalogs = res.json()
+        self.assertEqual(len(catalogs), 1)
+
     def test_all_match_docs(self):
         params = self.default_params
         print "searching on [{}]".format(self.api_url)

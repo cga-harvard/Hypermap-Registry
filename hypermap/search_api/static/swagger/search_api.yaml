@@ -10,7 +10,6 @@ info:
   description: Happy searching :)
 
 #host: "localhost:8000" If the host is not included, the host serving the documentation is to be used (including the port).
-basePath: /registry/api
 schemes:
   - http
 consumes:
@@ -21,7 +20,7 @@ produces:
 # Describe your paths here
 paths:
   # This is a path endpoint. Change it.
-  /search/{catalog_slug}:
+  /registry/{catalog_slug}/api/:
     # This is a HTTP operation
     get:
       # Describe this verb here. Note: you can use markdown
@@ -176,7 +175,7 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
-  /catalogs:
+  /registry/api/catalogs/:
     # This is a HTTP operation
     get:
       parameters:
@@ -184,7 +183,7 @@ paths:
         # Response code
         200:
           description: An array of catalogs
-  /catalogs/{id}:
+  /registry/api/catalogs/{id}/:
     # This is a HTTP operation
     get:
       parameters:

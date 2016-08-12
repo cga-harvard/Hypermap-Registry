@@ -15,10 +15,20 @@
 
   <div class="row">
     <div class="col-md-6">
-      Filter by:
-      {% for type in types_list %}
-        &nbsp;<a href="?filter_by={{ type.0 }}">{{ type.1 }} ({{ type.2 }})</a>
-      {% endfor %}
+
+        Catalogs:
+        <a href="{% url 'index' %}">all ({{ services_count }})</a>
+        {% for catalog in catalogs %}
+            <a href="{{ catalog.get_absolute_url }}">{{ catalog.name }} ({{ catalog.service_set.count }})</a>
+        {% endfor %}
+
+        <br>
+        Filter by:
+        {% for type in types_list %}
+            &nbsp;<a href="?filter_by={{ type.0 }}">{{ type.1 }} ({{ type.2 }})</a>
+        {% endfor %}
+
+
     </div>
     <div class="col-md-6">
       <form id='search' action="." method="get">
@@ -62,10 +72,11 @@
           {% for service in services %}
             <tr>
               <td>
-                <strong>{{ service.get_domain }}</strong>
+                <a href="{{ service.catalog.get_absolute_url }}">{{ service.catalog.name }}</a>:<strong>{{ service.get_domain }}</strong>
                 <br /><a href="{{ service.get_absolute_url }}">{{ service.title|truncatechars:40 }}</a>
                 <br /><a href="{{ service.url }}">{{ service.url|truncatechars:40 }}</a>
                 <br />{{ service.get_type_display }}
+{#                  <a href="{{ service.catalog.get_absolute_url }}"><span class="label label-default">{{ service.catalog.name }}</span></a>#}
               </td>
               <td>{{ service.layer_set.all.count }}</td>
               <td>
