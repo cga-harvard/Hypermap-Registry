@@ -53,11 +53,11 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
     Create a service from an endpoint if it does not already exists.
     """
     from models import Service
-    if Service.objects.filter(url=endpoint).count() == 0:
+    if Service.objects.filter(url=endpoint, catalog=catalog).count() == 0:
         # check if endpoint is valid
         request = requests.get(endpoint)
         if request.status_code == 200:
-            print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
+            print 'Creating a %s service for endpoint=%s catalog=%s' % (service_type, endpoint, catalog)
             service = Service(
                         type=service_type, url=endpoint, title=title, abstract=abstract,
                         csw_type='service', catalog=catalog
@@ -67,7 +67,7 @@ def create_service_from_endpoint(endpoint, service_type, title=None, abstract=No
         else:
             print 'This endpoint is invalid, status code is %s' % request.status_code
     else:
-        print 'A service for this endpoint %s already exists' % endpoint
+        print 'A service for this endpoint %s in catalog %s already exists' % (endpoint, catalog)
         return None
 
 
