@@ -479,7 +479,7 @@ class Layer(Resource):
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)
     is_monitored = models.BooleanField(default=True)
-    catalogs = models.ManyToManyField(Catalog, blank=True)
+    catalog = models.ForeignKey(Catalog)
 
     def __unicode__(self):
         return '%s' % self.id
