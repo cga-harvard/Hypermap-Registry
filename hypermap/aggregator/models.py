@@ -254,9 +254,7 @@ class Service(Resource):
     """
 
     srs = models.ManyToManyField(SpatialReferenceSystem, blank=True)
-    catalog = models.ForeignKey(
-        "Catalog", null=True, blank=True
-    )
+    catalog = models.ForeignKey("Catalog")
 
     @property
     def get_domain(self):
@@ -795,7 +793,7 @@ class EndpointList(models.Model):
     """
     upload = models.FileField(upload_to='endpoint_lists')
     greedy = models.BooleanField(default=False)
-    catalog = models.ForeignKey(Catalog, blank=False, null=True)
+    catalog = models.ForeignKey(Catalog)
 
     def __unicode__(self):
         return self.upload.name
@@ -816,9 +814,7 @@ class Endpoint(models.Model):
     message = models.TextField(blank=True, null=True)
     url = models.URLField(unique=True, max_length=255)
     endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
-    catalog = models.ForeignKey(
-        Catalog, blank=True, null=True
-    )
+    catalog = models.ForeignKey(Catalog)
 
     @property
     def id_string(self):
