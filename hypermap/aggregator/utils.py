@@ -12,6 +12,7 @@ from lxml import etree
 from django.utils.html import strip_tags
 from django.conf import settings
 
+from lxml import etree
 from owslib.csw import CatalogueServiceWeb, CswRecord
 from owslib.wms import WebMapService
 from owslib.tms import TileMapService
