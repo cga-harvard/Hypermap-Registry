@@ -8,7 +8,8 @@ import traceback
 from urlparse import urlparse
 
 from django.conf import settings
-from owslib.csw import CatalogueServiceWeb
+from lxml import etree
+from owslib.csw import CatalogueServiceWeb, CswRecord
 from owslib.wms import WebMapService
 from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
@@ -17,6 +18,33 @@ from arcrest import Folder as ArcFolder
 from hypermap.aggregator.enums import SERVICE_TYPES
 
 LOGGER = logging.getLogger(__name__)
+
+
+def create_layer_from_metadata_xml(resourcetype, xml, monitor=False):
+    """
+    Create a layer / keyword list from a metadata record if it does not already exist.
+    """
+    from models import gen_anytext, Layer
+
+    if resourcetype == 'http://www.opengis.net/cat/csw/2.0.2':  # Dublin core
+        md = CswRecord(etree.fromstring(xml))
+
+    layer = Layer(
+        is_monitored=monitor,
+        name=md.title,
+        title=md.title,
+        abstract=md.abstract,
+        bbox_x0=format_float(md.bbox.minx),
+        bbox_y0=format_float(md.bbox.miny),
+        bbox_x1=format_float(md.bbox.maxx),
+        bbox_y1=format_float(md.bbox.maxy),
+        xml=xml,
+        anytext=gen_anytext(md.title, md.abstract, md.subjects)
+    )
+
+    layer.wkt_geometry = bbox2wktpolygon([md.bbox.minx, md.bbox.miny, md.bbox.maxx, md.bbox.maxy])
+
+    return layer, md.subjects
 
 
 def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None):
@@ -333,7 +361,7 @@ def format_float(value):
 
 def bbox2wktpolygon(bbox):
     """
-    Return OGC WKT Polygon of a simple bbox string
+    Return OGC WKT Polygon of a simple bbox list of strings
     """
 
     minx = float(bbox[0])

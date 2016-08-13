@@ -414,9 +414,10 @@ class Layer(Resource):
     bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
-    page_url = models.URLField(max_length=255)
-    service = models.ForeignKey(Service)
-    catalogs = models.ManyToManyField(Catalog)
+    page_url = models.URLField(max_length=255, blank=True, null=True)
+    service = models.ForeignKey(Service, blank=True, null=True)
+    is_monitored = models.BooleanField(default=True)
+    catalogs = models.ManyToManyField(Catalog, blank=True)
 
     def __unicode__(self):
         return '%s' % self.id
@@ -1369,9 +1370,13 @@ def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
-    if not settings.SKIP_CELERY_TASK:
-        check_layer.delay(instance)
-    else:
+
+    if instance.is_monitored:  # index and monitor
+        if not settings.SKIP_CELERY_TASK:
+            check_layer.delay(instance)
+        else:
+            check_layer(instance)
+    else:  # just index
         check_layer(instance)
 
 
