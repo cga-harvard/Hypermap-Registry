@@ -9,7 +9,7 @@ router.register(r'catalogs', views.CatalogViewSet)
 
 
 urlpatterns = [
-    url(r'^search/(?P<catalog_slug>[-\w]+)/$', views.Search.as_view(), name="search_api"),
-    url(r'^docs/$', TemplateView.as_view(template_name='search_api/swagger/index.html')),
-    url(r'^', include(router.urls)),
+    url(r'^api/', include(router.urls)),
+    url(r'^api/docs/$', TemplateView.as_view(template_name='search_api/swagger/index.html')),
+    url(r'^(?P<catalog_slug>[-\w]+)/api/$', views.Search.as_view(), name="search_api"),
 ]

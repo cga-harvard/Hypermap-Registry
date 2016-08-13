@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from djmp.views import get_mapproxy
 
 
-from models import Service, Layer
+from models import Service, Layer, Catalog
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
                    index_service, index_all_layers, index_layer, clear_index,
                    SEARCH_TYPE, SEARCH_URL)
@@ -98,6 +98,7 @@ def index(request, catalog_slug=None):
         'types_list': types_list,
         'layers_count': layers_count,
         'services_count': services_count,
+        'catalogs': Catalog.objects.filter(url__isnull=False)
     })
     return HttpResponse(template.render(context))
 
@@ -126,7 +127,8 @@ def service_detail(request, catalog_slug, service_id):
 
     return render(request, 'aggregator/service_detail.html', {'service': service,
                                                               'SEARCH_TYPE': SEARCH_TYPE,
-                                                              'SEARCH_URL': SEARCH_URL.rstrip('/')})
+                                                              'SEARCH_URL': SEARCH_URL.rstrip('/'),
+                                                              'catalog_slug': catalog_slug})
 
 
 def service_checks(request, catalog_slug, service_id):
@@ -159,7 +161,8 @@ def layer_detail(request, catalog_slug, layer_id):
 
     return render(request, 'aggregator/layer_detail.html', {'layer': layer,
                                                             'SEARCH_TYPE': SEARCH_TYPE,
-                                                            'SEARCH_URL': SEARCH_URL.rstrip('/')})
+                                                            'SEARCH_URL': SEARCH_URL.rstrip('/'),
+                                                            'catalog_slug': catalog_slug})
 
 
 def layer_checks(request, catalog_slug, layer_id):
@@ -281,7 +284,7 @@ def update_progressbar(request, task_id):
 
 
 def layer_mapproxy(request, catalog_slug, layer_id, path_info):
-    # Get Layer with matching primary key
+    # Get Layer with matching catalog and primary key
     layer = get_object_or_404(Layer,
                               pk=layer_id,
                               catalog__slug=catalog_slug)
@@ -296,7 +299,7 @@ def layer_mapproxy(request, catalog_slug, layer_id, path_info):
 
     params = {}
     headers = {
-            'X-Script-Name': '/layer/%s/map' % layer.id,
+            'X-Script-Name': '/registry/{0}/layer/{1}/map/'.format(catalog_slug, layer.id),
             'X-Forwarded-Host': request.META['HTTP_HOST'],
             'HTTP_HOST': request.META['HTTP_HOST'],
             'SERVER_NAME': request.META['SERVER_NAME'],

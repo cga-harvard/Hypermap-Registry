@@ -461,6 +461,9 @@ class Catalog(models.Model):
             return True
         return False
 
+    def get_absolute_url(self):
+        return reverse('index', args=[self.slug])
+
 
 class Layer(Resource):
     """
@@ -487,8 +490,11 @@ class Layer(Resource):
         """
         endpoint = self.url
         if self.type not in ('Hypermap:WorldMap',):
-            endpoint = '%s/registry/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL.rstrip('/'),
-                                                                                     self.id)
+            endpoint = '%s/registry/%s/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (
+                settings.SITE_URL.rstrip('/'),
+                self.catalog.slug,
+                self.id
+            )
         return endpoint
 
     def get_tile_url(self):
