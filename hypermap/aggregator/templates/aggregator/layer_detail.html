@@ -20,7 +20,9 @@
     </ul>
     {% endif %}
     <ul>
-      <li><a href="{{ layer.service.get_absolute_url }}">Go to service page</a></li>
+      {% if layer.service %}
+      <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
+      {% endif %}
       <li><a href="map/demo/">Go to demo page</a></li>
     </ul>
 </div>
@@ -49,7 +51,9 @@
           <td><strong>Endpoints</strong></td>
           <td>
             <ul>
-            <li>Service Hypermap Page: <a href="{{ layer.service.get_absolute_url }}">{{ layer.service.title }}</a></li>
+            {% if layer.service %}
+            <li>Service Hypermap Page: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
+            {% endif %}
             <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
             <li>Layer Hypermap EndPoint: <a href="{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
             {% if user.is_superuser %}
@@ -96,6 +100,10 @@
         <tr>
           <td><strong>Is Public?</strong></td>
           <td>{{ layer.is_public }}</td>
+        </tr>
+        <tr>
+          <td><strong>Is Monitored?</strong></td>
+          <td>{{ layer.is_monitored }}</td>
         </tr>
         {% if layer.type = 'Hypermap:WorldMap' %}
           <tr>
