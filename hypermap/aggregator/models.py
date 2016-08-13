@@ -812,9 +812,12 @@ class Endpoint(models.Model):
     processed_datetime = models.DateTimeField(auto_now=True)
     imported = models.BooleanField(default=False)
     message = models.TextField(blank=True, null=True)
-    url = models.URLField(unique=True, max_length=255)
+    url = models.URLField(max_length=255)
     endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
     catalog = models.ForeignKey(Catalog)
+
+    class Meta:
+        unique_together = ("url", "catalog")
 
     @property
     def id_string(self):
@@ -1391,7 +1394,7 @@ def endpointlist_post_save(instance, *args, **kwargs):
         if len(url) > 255:
             print 'Skipping this enpoint, as it is more than 255 characters: %s' % url
         else:
-            if Endpoint.objects.filter(url=url).count() == 0:
+            if Endpoint.objects.filter(url=url, catalog=instance.catalog).count() == 0:
                 endpoint = Endpoint(url=url, endpoint_list=instance)
                 endpoint.catalog = instance.catalog
                 endpoint.save()
@@ -1421,8 +1424,12 @@ def service_pre_save(instance, *args, **kwargs):
     # check if service is unique
     # we cannot use unique_together as it relies on a combination of fields
     # from different models (service, resource)
-    if Service.objects.filter(url=instance.url, type=instance.type).count() > 0:
-        raise Exception("There is already such a service")
+    if Service.objects.filter(url=instance.url,
+                              type=instance.type,
+                              catalog=instance.catalog).count() > 0:
+        raise Exception("There is already such a service. url={0} catalog={1}".format(
+            instance.url, instance.catalog
+        ))
 
 
 def service_post_save(instance, *args, **kwargs):
