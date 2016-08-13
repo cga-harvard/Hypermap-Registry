@@ -40,9 +40,10 @@ services:
     command: grunt serve
 
   nginx:
-    image: terranodo/nginx:3k8k
+    image: terranodo/nginx:registry
     links:
       - django
       - maploom
+      - elasticsearch
     ports:
       - "80:80"
