@@ -67,7 +67,6 @@ class TaskErrorAdmin(admin.ModelAdmin):
     date_hierarchy = 'error_datetime'
 
 
-
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
