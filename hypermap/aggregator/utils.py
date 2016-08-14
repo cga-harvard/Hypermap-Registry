@@ -76,7 +76,13 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
     ESRI, CSW endpoints corrispond to many services.
+    :return: imported, message
     """
+
+    # this variable will collect any exception message during the routine.
+    # will be used in the last step to send a message if "detected" var is False.
+    messages = []
+
     num_created = 0
     endpoint = get_sanitized_endpoint(url)
     try:
@@ -171,6 +177,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
         pass
     except Exception as e:
         print str(e)
+        messages.append(str(e))
 
     # WMS
     if not detected:
@@ -185,6 +192,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             pass
         except Exception as e:
             print str(e)
+            messages.append(str(e))
 
     # TMS
     if not detected:
@@ -199,6 +207,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             pass
         except Exception as e:
             print str(e)
+            messages.append(str(e))
 
     # WMTS
     if not detected:
@@ -214,6 +223,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             pass
         except Exception as e:
             print str(e)
+            messages.append(str(e))
 
     # if detected, let's create the service
     if detected and service_type != 'OGC:CSW':
@@ -232,6 +242,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             pass
         except Exception as e:
             print str(e)
+            messages.append(str(e))
 
     # Esri
     # a good sample is here: https://gis.ngdc.noaa.gov/arcgis/rest/services
@@ -277,10 +288,14 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                         num_created = num_created + len(folder_services)
             except Exception as e:
                 print str(e)
+                messages.append(str(e))
+
     if detected:
         return True, '%s service/s created' % num_created
     else:
-        return False, 'ERROR! Could not detect service type for endpoint %s or already existing' % endpoint
+        m = '|'.join(messages)
+        return False, 'ERROR! Could not detect service type for ' \
+                      'endpoint %s or already existing. messages=(%s)' % (endpoint, m)
 
 
 def process_esri_services(esri_services, catalog):
