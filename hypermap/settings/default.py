@@ -132,10 +132,12 @@ CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'cache')
 CELERY_CACHE_BACKEND = os.getenv('CELERY_CACHE_BACKEND', 'memory')
 CELERYD_PREFETCH_MULTIPLIER = int(os.getenv('CELERYD_PREFETCH_MULTIPLIER', '25'))
 
+REGISTRY_CHECK_PERIOD = int(os.getenv('REGISTRY_CHECK_PERIOD', '120')
+
 CELERYBEAT_SCHEDULE = {
     'Check All Services': {
         'task': 'hypermap.aggregator.tasks.check_all_services',
-        'schedule': timedelta(minutes=300)
+        'schedule': timedelta(minutes=REGISTRY_CHECK_PERIOD)
     },
 }
 
