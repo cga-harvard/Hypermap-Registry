@@ -42,7 +42,7 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
 
 setup(
     name='django-registry',
-    version='0.2.5',
+    version='0.2.6',
     author='',
     author_email='',
     url='https://github.com/cga-harvard/HHypermap',
