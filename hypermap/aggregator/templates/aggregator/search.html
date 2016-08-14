@@ -101,7 +101,8 @@
                 {% if service.reliability > 97 %}
                   <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
                 {% else %}
-                  <button type="button" class="btn btn-danger btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
+                  <a type="button" class="btn btn-danger btn-block nohover"
+                  href="{{ service.get_checks_admin_reliability_warning_url }}">{{ service.reliability|floatformat:2 }}%</a>
                 {% endif %}
               </td>
             </tr>
