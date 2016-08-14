@@ -19,7 +19,7 @@ from hypermap.aggregator.models import Catalog
 
 @csrf_exempt
 @logged_in_or_basicauth()
-def csw_global_dispatch(request):
+def csw_global_dispatch(request, url=None, catalog_id=None):
     """pycsw wrapper"""
 
     msg = None
@@ -50,6 +50,12 @@ def csw_global_dispatch(request):
     env.update({'local.app_root': os.path.dirname(__file__),
                 'REQUEST_URI': request.build_absolute_uri()})
 
+    # if this is a catalog based CSW, then update settings
+    if url is not None:
+        settings.REGISTRY_PYCSW['server']['url'] = url
+    if catalog_id is not None:
+        settings.REGISTRY_PYCSW['repository']['filter'] = 'catalog_id = %d' % catalog_id
+
     csw = server.Csw(settings.REGISTRY_PYCSW, env, version='2.0.2')
 
     content = csw.dispatch_wsgi()
@@ -69,35 +75,15 @@ def csw_global_dispatch(request):
 
 
 @csrf_exempt
+@logged_in_or_basicauth()
 def csw_global_dispatch_by_catalog(request, catalog_slug):
-    """pycsw wrapper"""
+    """pycsw wrapper for catalogs"""
 
     catalog = get_object_or_404(Catalog, slug=catalog_slug)
 
-    # TODO: Implement pycsw per catalog
-    if catalog:
-        pass
-
-    env = request.META.copy()
-    env.update({'local.app_root': os.path.dirname(__file__),
-                'REQUEST_URI': request.build_absolute_uri()})
-
-    csw = server.Csw(settings.REGISTRY_PYCSW, env, version='2.0.2')
-
-    content = csw.dispatch_wsgi()
-
-    # pycsw 2.0 has an API break:
-    # pycsw < 2.0: content = xml_response
-    # pycsw >= 2.0: content = [http_status_code, content]
-    # deal with the API break
-
-    if isinstance(content, list):  # pycsw 2.0+
-        content = content[1]
-
-    response = HttpResponse(content, content_type=csw.contenttype)
-
-    response['Access-Control-Allow-Origin'] = '*'
-    return response
+    if catalog:  # define catalog specific settings
+        url = settings.SITE_URL.rstrip('/') + request.path.rstrip('/')
+        return csw_global_dispatch(request, url=url, catalog_id=catalog.id)
 
 
 def opensearch_dispatch(request):
