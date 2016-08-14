@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('upload', models.FileField(upload_to=b'endpoint_lists')),
                 ('greedy', models.BooleanField(default=False)),
-                ('catalog', models.ForeignKey(to='aggregator.Catalog')),
+                ('catalog', models.ForeignKey(default=1, editable=False, to='aggregator.Catalog')),
             ],
         ),
         migrations.CreateModel(
@@ -164,7 +164,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='service',
             name='srs',
-            field=models.ManyToManyField(to='aggregator.SpatialReferenceSystem', blank=True),
+            field=models.ManyToManyField(to=b'aggregator.SpatialReferenceSystem', blank=True),
         ),
         migrations.AddField(
             model_name='layer',
@@ -179,5 +179,30 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='endpoint',
             unique_together=set([('url', 'catalog')]),
+        ),
+        migrations.AlterField(
+            model_name='endpoint',
+            name='catalog',
+            field=models.ForeignKey(default=1, editable=False, to='aggregator.Catalog'),
+        ),
+        migrations.AlterField(
+            model_name='layer',
+            name='catalog',
+            field=models.ForeignKey(default=1, editable=False, to='aggregator.Catalog'),
+        ),
+        migrations.AlterField(
+            model_name='layer',
+            name='csw_last_updated',
+            field=models.CharField(default=b'2016-08-14T20:22:10Z', max_length=32, null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='service',
+            name='catalog',
+            field=models.ForeignKey(default=1, editable=False, to='aggregator.Catalog'),
+        ),
+        migrations.AlterField(
+            model_name='service',
+            name='csw_last_updated',
+            field=models.CharField(default=b'2016-08-14T20:22:10Z', max_length=32, null=True, blank=True),
         ),
     ]
