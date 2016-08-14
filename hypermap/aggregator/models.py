@@ -277,7 +277,7 @@ class Service(Resource):
     """
 
     srs = models.ManyToManyField(SpatialReferenceSystem, blank=True)
-    catalog = models.ForeignKey("Catalog")
+    catalog = models.ForeignKey("Catalog", editable=False, default=1)
 
     @property
     def get_domain(self):
@@ -500,7 +500,7 @@ class Layer(Resource):
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)
     is_monitored = models.BooleanField(default=True)
-    catalog = models.ForeignKey(Catalog)
+    catalog = models.ForeignKey(Catalog, editable=False, default=1)
 
     def __unicode__(self):
         return '%s' % self.id
@@ -821,7 +821,7 @@ class EndpointList(models.Model):
     """
     upload = models.FileField(upload_to='endpoint_lists')
     greedy = models.BooleanField(default=False)
-    catalog = models.ForeignKey(Catalog)
+    catalog = models.ForeignKey(Catalog, editable=False, default=1)
 
     def __unicode__(self):
         return self.upload.name
@@ -842,7 +842,7 @@ class Endpoint(models.Model):
     message = models.TextField(blank=True, null=True)
     url = models.URLField(max_length=255)
     endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
-    catalog = models.ForeignKey(Catalog)
+    catalog = models.ForeignKey(Catalog, editable=False, default=1)
 
     class Meta:
         unique_together = ("url", "catalog")
