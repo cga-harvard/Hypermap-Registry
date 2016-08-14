@@ -258,7 +258,7 @@ REGISTRY_WORLDMAP_PASSWORD = os.getenv('REGISTRY_WORLDMAP_PASSWORD', 'secret')
 
 # hypermap registry settings
 # If it's > 0, only reads n layers from service, for debugging.
-REGISTRY_LIMIT_LAYERS = int(os.getenv('', '-1'))
+REGISTRY_LIMIT_LAYERS = int(os.getenv('REGISTRY_LIMIT_LAYERS', '-1'))
 REGISTRY_MAPPING_PRECISION = os.getenv("REGISTRY_MAPPING_PRECISION", "500m")
 MAPPROXY_CACHE_DIR = os.getenv('MAPPROXY_CACHE_DIR', '/tmp/mapproxy/')
 MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
