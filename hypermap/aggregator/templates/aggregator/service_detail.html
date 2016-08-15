@@ -60,9 +60,9 @@
                 <li>EndPoint: <a id="resource-url" href="{{ service.url }}">{{ service.url|truncatechars:80 }}</a></li>
                 <li>Search:
                     {% if SEARCH_TYPE == 'elasticsearch' %}
-                    <a href="{{SEARCH_URL}}/hypermap/_search?q=ServiceId:{{service.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=ServiceId:{{ service.id }}</a>
+                    <a href="{{SEARCH_URL}}/hypermap/_search?q=service_id:{{service.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=service_id:{{ service.id }}</a>
                     {% elif SEARCH_TYPE == 'solr' %}
-                    <a href="{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=ServiceId:{{service.id}}&wt=json&indent=true</a>
+                    <a href="{{SEARCH_URL}}/select?q=service_id:{{service.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=service_id:{{service.id}}&wt=json&indent=true</a>
                     {% endif %}
                 </li>
                 <li>Metadata:
