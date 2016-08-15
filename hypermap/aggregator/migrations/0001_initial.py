@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 ('imported', models.BooleanField(default=False)),
                 ('message', models.TextField(null=True, blank=True)),
                 ('url', models.URLField(max_length=255)),
-                ('catalog', models.ForeignKey(to='aggregator.Catalog')),
+                ('catalog', models.ForeignKey(default=1, editable=False, to='aggregator.Catalog')),
             ],
         ),
         migrations.CreateModel(
@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
                 ('type', models.CharField(max_length=32, choices=[(b'OGC:CSW', b'Catalogue Service for the Web (CSW)'), (b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
                 ('temporal_extent_start', models.CharField(max_length=255, null=True, blank=True)),
                 ('temporal_extent_end', models.CharField(max_length=255, null=True, blank=True)),
-                ('csw_last_updated', models.CharField(default=b'2016-08-13T22:11:28Z', max_length=32, null=True, blank=True)),
+                ('csw_last_updated', models.CharField(default=b'2016-08-15T20:00:11Z', max_length=32, null=True, blank=True)),
                 ('csw_type', models.CharField(default=b'dataset', max_length=32)),
                 ('csw_typename', models.CharField(default=b'csw:Record', max_length=32)),
                 ('csw_schema', models.CharField(default=b'http://www.opengis.net/cat/csw/2.0.2', max_length=64)),
@@ -85,7 +85,7 @@ class Migration(migrations.Migration):
                 ('thumbnail', models.ImageField(null=True, upload_to=b'layers', blank=True)),
                 ('page_url', models.URLField(max_length=255, null=True, blank=True)),
                 ('is_monitored', models.BooleanField(default=True)),
-                ('catalog', models.ForeignKey(to='aggregator.Catalog')),
+                ('catalog', models.ForeignKey(default=1, editable=False, to='aggregator.Catalog')),
                 ('keywords', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', blank=True, help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
             options={
@@ -130,14 +130,14 @@ class Migration(migrations.Migration):
                 ('type', models.CharField(max_length=32, choices=[(b'OGC:CSW', b'Catalogue Service for the Web (CSW)'), (b'OGC:WMS', b'Web Map Service (WMS)'), (b'OGC:WMTS', b'Web Map Tile Service (WMTS)'), (b'OSGeo:TMS', b'Tile Map Service (TMS)'), (b'ESRI:ArcGIS:MapServer', b'ArcGIS REST MapServer'), (b'ESRI:ArcGIS:ImageServer', b'ArcGIS REST ImageServer'), (b'Hypermap:WorldMap', b'Harvard WorldMap'), (b'Hypermap:WARPER', b'Mapwarper')])),
                 ('temporal_extent_start', models.CharField(max_length=255, null=True, blank=True)),
                 ('temporal_extent_end', models.CharField(max_length=255, null=True, blank=True)),
-                ('csw_last_updated', models.CharField(default=b'2016-08-13T22:11:28Z', max_length=32, null=True, blank=True)),
+                ('csw_last_updated', models.CharField(default=b'2016-08-15T20:00:11Z', max_length=32, null=True, blank=True)),
                 ('csw_type', models.CharField(default=b'dataset', max_length=32)),
                 ('csw_typename', models.CharField(default=b'csw:Record', max_length=32)),
                 ('csw_schema', models.CharField(default=b'http://www.opengis.net/cat/csw/2.0.2', max_length=64)),
                 ('anytext', models.TextField(null=True, blank=True)),
                 ('wkt_geometry', models.TextField(default=b'POLYGON((-180 -90,-180 90,180 90,180 -90,-180 -90))')),
                 ('xml', models.TextField(default=b'<csw:Record xmlns:csw="http://www.opengis.net/cat/2.0.2"/>', null=True, blank=True)),
-                ('catalog', models.ForeignKey(to='aggregator.Catalog')),
+                ('catalog', models.ForeignKey(default=1, editable=False, to='aggregator.Catalog')),
                 ('keywords', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', blank=True, help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
             options={
@@ -164,7 +164,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='service',
             name='srs',
-            field=models.ManyToManyField(to=b'aggregator.SpatialReferenceSystem', blank=True),
+            field=models.ManyToManyField(to='aggregator.SpatialReferenceSystem', blank=True),
         ),
         migrations.AddField(
             model_name='layer',
@@ -179,30 +179,5 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='endpoint',
             unique_together=set([('url', 'catalog')]),
-        ),
-        migrations.AlterField(
-            model_name='endpoint',
-            name='catalog',
-            field=models.ForeignKey(default=1, editable=False, to='aggregator.Catalog'),
-        ),
-        migrations.AlterField(
-            model_name='layer',
-            name='catalog',
-            field=models.ForeignKey(default=1, editable=False, to='aggregator.Catalog'),
-        ),
-        migrations.AlterField(
-            model_name='layer',
-            name='csw_last_updated',
-            field=models.CharField(default=b'2016-08-14T20:22:10Z', max_length=32, null=True, blank=True),
-        ),
-        migrations.AlterField(
-            model_name='service',
-            name='catalog',
-            field=models.ForeignKey(default=1, editable=False, to='aggregator.Catalog'),
-        ),
-        migrations.AlterField(
-            model_name='service',
-            name='csw_last_updated',
-            field=models.CharField(default=b'2016-08-14T20:22:10Z', max_length=32, null=True, blank=True),
         ),
     ]
