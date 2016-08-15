@@ -524,7 +524,8 @@ class Layer(Resource):
         Returns the tile url MapProxy endpoint for the layer.
         """
         if self.type not in ('Hypermap:WorldMap',):
-            return '/layers/%s/map/wmts/%s/default_grid/{z}/{y}/{x}.png' % (self.id, self.name)
+            return '/registry/%s/layer/%s/map/wmts/%s/default_grid/{z}/{y}/{x}.png' % (
+                   self.catalog.slug, self.id, self.name)
         else:
             return None
 
