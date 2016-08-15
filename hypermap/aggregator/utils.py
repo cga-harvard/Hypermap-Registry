@@ -265,7 +265,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                 def split_service(s):
                     return s.url.split(url_token)[1].split('/')
 
-                root_services = process_esri_services(esri.services)
+                root_services = process_esri_services(esri.services, catalog)
                 num_created = num_created + len(root_services)
 
                 # Enable the user to fetch a single service of a single folder.
@@ -290,7 +290,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                         # Get service class from the folder for the given endpoint.
                         services_to_process = [s for s in fs if split_service(s)[1] == esri_service]
 
-                    folder_services = process_esri_services(services_to_process)
+                    folder_services = process_esri_services(services_to_process, catalog)
                     num_created = num_created + len(folder_services)
             except Exception as e:
                 print str(e)
