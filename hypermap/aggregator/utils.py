@@ -255,10 +255,16 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
         if not detected:
             try:
                 esri = ArcFolder(endpoint)
-                services = esri.services
-
                 service_type = 'ESRI'
                 detected = True
+                only_one_sw = False
+                services_folder = esri.folders
+
+                def split_service(s):
+                    return s.url.split(url_token)[1].split('/')
+
+                root_services = process_esri_services(esri.services)
+                num_created = num_created + len(root_services)
 
                 # Enable the user to fetch a single service of a single folder.
                 if not greedy_opt:
@@ -267,25 +273,23 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                     components = url.strip().split(url_token)[1].split('/')
                     esri_folder, esri_service = components[0], components[1]
 
-                    def split_service(s):
-                        return s.url.split(url_token)[1].split('/')
+                    single_folder = [f for f in esri.folders if split_service(f)[0] == esri_folder]
+                    if len(single_folder) != 0:
+                        only_one_sw = True
+                        services_folder = single_folder
+
+                for folder in services_folder:
+                    services_to_process = folder.services
+                    print services_to_process
 
                     # Get folder class from the list of esri services for the given endpoint.
-                    services_folder = [f for f in esri.folders if split_service(f)[0] == esri_folder][0]
+                    if only_one_sw:
+                        fs = services_folder[0].services
+                        # Get service class from the folder for the given endpoint.
+                        services_to_process = [s for s in fs if split_service(s)[1] == esri_service]
 
-                    fs = services_folder.services
-
-                    # Get service class from the folder for the given endpoint.
-                    service_to_process = [s for s in fs if split_service(s)[1] == esri_service]
-
-                    folder_services = process_esri_services(service_to_process, catalog=catalog)
+                    folder_services = process_esri_services(services_to_process)
                     num_created = num_created + len(folder_services)
-                else:
-                    root_services = process_esri_services(services, catalog=catalog)
-                    num_created = num_created + len(root_services)
-                    for folder in esri.folders:
-                        folder_services = process_esri_services(folder.services, catalog=catalog)
-                        num_created = num_created + len(folder_services)
             except Exception as e:
                 print str(e)
                 messages.append(str(e))
