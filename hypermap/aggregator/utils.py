@@ -34,15 +34,17 @@ def create_layer_from_metadata_xml(resourcetype, xml, monitor=False):
         name=md.title,
         title=md.title,
         abstract=md.abstract,
-        bbox_x0=format_float(md.bbox.minx),
-        bbox_y0=format_float(md.bbox.miny),
-        bbox_x1=format_float(md.bbox.maxx),
-        bbox_y1=format_float(md.bbox.maxy),
         xml=xml,
         anytext=gen_anytext(md.title, md.abstract, md.subjects)
     )
 
-    layer.wkt_geometry = bbox2wktpolygon([md.bbox.minx, md.bbox.miny, md.bbox.maxx, md.bbox.maxy])
+    if md.bbox is not None:
+        layer.bbox_x0 = format_float(md.bbox.minx)
+        layer.bbox_y0 = format_float(md.bbox.miny)
+        layer.bbox_x1 = format_float(md.bbox.maxx)
+        layer.bbox_y1 = format_float(md.bbox.maxy)
+
+        layer.wkt_geometry = bbox2wktpolygon([md.bbox.minx, md.bbox.miny, md.bbox.maxx, md.bbox.maxy])
 
     return layer, md.subjects
 
