@@ -287,10 +287,7 @@ class Service(Resource):
 
     @property
     def get_absolute_url(self):
-        return '{0}{1}'.format(
-            settings.SITE_URL,
-            reverse("service_detail", args=[self.catalog.slug, self.id])
-        )
+        return reverse("service_detail", args=[self.catalog.slug, self.id])
 
     def update_layers(self):
         """
