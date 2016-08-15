@@ -35,15 +35,17 @@ def create_layer_from_metadata_xml(resourcetype, xml, monitor=False):
         name=md.title,
         title=md.title,
         abstract=md.abstract,
-        bbox_x0=format_float(md.bbox.minx),
-        bbox_y0=format_float(md.bbox.miny),
-        bbox_x1=format_float(md.bbox.maxx),
-        bbox_y1=format_float(md.bbox.maxy),
         xml=xml,
         anytext=gen_anytext(md.title, md.abstract, md.subjects)
     )
 
-    layer.wkt_geometry = bbox2wktpolygon([md.bbox.minx, md.bbox.miny, md.bbox.maxx, md.bbox.maxy])
+    if md.bbox is not None:
+        layer.bbox_x0 = format_float(md.bbox.minx)
+        layer.bbox_y0 = format_float(md.bbox.miny)
+        layer.bbox_x1 = format_float(md.bbox.maxx)
+        layer.bbox_y1 = format_float(md.bbox.maxy)
+
+        layer.wkt_geometry = bbox2wktpolygon([md.bbox.minx, md.bbox.miny, md.bbox.maxx, md.bbox.maxy])
 
     return layer, md.subjects
 
@@ -263,7 +265,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                 def split_service(s):
                     return s.url.split(url_token)[1].split('/')
 
-                root_services = process_esri_services(esri.services)
+                root_services = process_esri_services(esri.services, catalog)
                 num_created = num_created + len(root_services)
 
                 # Enable the user to fetch a single service of a single folder.
@@ -288,7 +290,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                         # Get service class from the folder for the given endpoint.
                         services_to_process = [s for s in fs if split_service(s)[1] == esri_service]
 
-                    folder_services = process_esri_services(services_to_process)
+                    folder_services = process_esri_services(services_to_process, catalog)
                     num_created = num_created + len(folder_services)
             except Exception as e:
                 print str(e)
