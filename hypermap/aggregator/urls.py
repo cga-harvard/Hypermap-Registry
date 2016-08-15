@@ -15,11 +15,11 @@ urlpatterns = [
 
     url(r'^(?P<catalog_slug>[-\w]+)/$', views.index, name='index'),
     url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_id>\d+)/$', views.service_detail, name='service_detail'),
-    url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_id>\d+)/checks$',
+    url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_id>\d+)/checks/$',
         views.service_checks,
         name='service_checks'),
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/$', views.layer_detail, name='layer_detail'),
-    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/checks$', views.layer_checks, name='layer_checks'),
+    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/checks/$', views.layer_checks, name='layer_checks'),
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/map(?P<path_info>/.*)$',
         views.layer_mapproxy,
         name='layer_mapproxy'),
