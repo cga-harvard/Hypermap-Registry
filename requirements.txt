@@ -33,8 +33,7 @@ pika==0.10.0
 Pillow==3.1.0rc1
 psutil==4.3.0
 psycopg2==2.6.1
-git+git://github.com/geopython/pycsw.git@master#egg=pycsw
-#pycsw==2.0.0
+pycsw-hypermap==2.1-dev
 pyflakes==1.0.0
 pyproj==1.9.3
 pysolr==3.3.3
