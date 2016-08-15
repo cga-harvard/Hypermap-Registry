@@ -291,8 +291,7 @@ class Service(Resource):
 
     @property
     def get_check_stats_absolute_url(self):
-        return  reverse("service_checks", args=[self.catalog.slug, self.id])
-
+        return reverse("service_checks", args=[self.catalog.slug, self.id])
 
     def update_layers(self):
         """
