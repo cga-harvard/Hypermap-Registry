@@ -160,7 +160,7 @@
               <li>Last Check: {{ layer.last_check }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
               <li>Reliability: {{ layer.reliability }}</li>
-              <li><a href="{{ layer.get_absolute_url }}">See full check stats</a></li>
+              <li><a href="{{ layer.get_check_stats_absolute_url }}">See full check stats</a></li>
             </ul>
             {% else %}
               No checks performed so far

@@ -289,6 +289,11 @@ class Service(Resource):
     def get_absolute_url(self):
         return reverse("service_detail", args=[self.catalog.slug, self.id])
 
+    @property
+    def get_check_stats_absolute_url(self):
+        return  reverse("service_checks", args=[self.catalog.slug, self.id])
+
+
     def update_layers(self):
         """
         Update layers for a service.
@@ -780,6 +785,13 @@ class Layer(Resource):
         return '{0}{1}'.format(
             settings.SITE_URL,
             reverse("layer_detail", args=[self.catalog.slug, self.id])
+        )
+
+    @property
+    def get_check_stats_absolute_url(self):
+        return '{0}{1}'.format(
+            settings.SITE_URL,
+            reverse("layer_checks", args=[self.catalog.slug, self.id])
         )
 
 
