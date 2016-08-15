@@ -5,6 +5,8 @@
 
 {% block content %}
 
+{% include "aggregator/includes/search_title.html" %}
+
 <p>We track health of {{ services_count|intcomma }} remote map services, containing a total of {{ layers_count|intcomma }} layers.</p>
 
   {% if services %}
