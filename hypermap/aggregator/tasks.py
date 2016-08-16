@@ -268,10 +268,3 @@ def update_endpoints(self, endpoint_list):
             update_endpoint(endpoint)
 
     return True
-
-
-@shared_task(bind=True)
-def test(self):
-    import datetime, time
-    time.sleep(3)
-    print datetime.datetime.today()
