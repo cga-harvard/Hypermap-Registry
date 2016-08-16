@@ -2,9 +2,13 @@ import os
 from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 
+import hypermap
+
+
 def read(*rnames):
     with open(os.path.join(os.path.dirname(__file__), *rnames)) as ff:
         return ff.read()
+
 
 def fullsplit(path, result=None):
     """
@@ -40,10 +44,10 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
 
 setup(
     name="HHypermap",
-    version="0.1",
+    version=hypermap.__version__,
     author="",
     author_email="",
-    description="HHypermap",
+    description=hypermap.__description__,
     long_description=(read('README.md')),
     classifiers=[
         'Development Status :: 1 - Planning',
