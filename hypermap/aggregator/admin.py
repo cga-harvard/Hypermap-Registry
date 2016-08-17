@@ -43,7 +43,7 @@ class LayerWMAdmin(admin.ModelAdmin):
 class CheckAdmin(admin.ModelAdmin):
     model = Check
     list_display = ('id', 'content_type', 'content_object', 'checked_datetime', 'success', 'response_time', )
-    search_fields = ['object_id']
+    search_fields = ['=object_id']
     list_filter = ('success', 'content_type')
     date_hierarchy = 'checked_datetime'
 

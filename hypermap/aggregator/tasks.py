@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from celery import chain
 from django.conf import settings
 
 from celery import shared_task
@@ -70,11 +71,19 @@ def check_service(self, service):
     count = 3
 
     if not settings.REGISTRY_SKIP_CELERY:
+        tasks = []
         for layer in layer_to_process:
             # update state
             status_update(count)
-            check_layer.delay(layer)
+            # send subtasks to make a non-parallel execution.
+            tasks.append(check_layer.si(layer))
             count += 1
+        # non-parallel execution will be performed in chunks of 100 tasks
+        # to avoid run time errors with big chains.
+        size = 100
+        chunks = [tasks[i:i + size] for i in range(0, len(tasks), size)]
+        for chunk in chunks:
+            chain(chunk)()
     else:
         for layer in layer_to_process:
             status_update(count)
