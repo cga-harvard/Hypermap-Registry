@@ -15,12 +15,14 @@ before_install:
 
 install:
   - docker-compose build django
+  - docker-compose up -d solr
 
 before_script:
   - flake8 hypermap --ignore=E121,E123,E126,E226,E24,E704,W503,W504
 
 script:
   - docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
+  - docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.solr.yml run django python manage.py test hypermap.search_api --settings=hypermap.settings.test --failfast
 
 branches:
   only:

@@ -1,0 +1,7 @@
+version: '2'
+services:
+
+  django:
+    environment:
+      - REGISTRY_SEARCH_URL=solr+http://solr:8983
+      - BASE_URL=django

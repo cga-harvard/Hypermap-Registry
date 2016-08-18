@@ -28,14 +28,16 @@ class SearchApiTestCase(TestCase):
         self.url_solr_search = '{0}/solr/{1}/select'.format(
             SEARCH_URL, catalog_test_slug
         )
-        self.api_url = "http://localhost:8000{0}".format(reverse("search_api",
-                                                                 args=[catalog_test_slug]))
+        self.api_url = "{0}{1}".format(
+            settings.SITE_URL, reverse("search_api", args=[catalog_test_slug])
+        )
 
         Catalog.objects.get_or_create(
             name=catalog_test_slug
         )
 
         # delete solr documents
+        print '> clearing SEARCH_URL={0}'.format(SEARCH_URL)
         self.solr.clear_solr(catalog=catalog_test_slug)
 
         # add test solr documents
@@ -165,9 +167,8 @@ class SearchApiTestCase(TestCase):
         headers = {"content-type": "application/json"}
         params = {"commitWithin": 1500}
         solr_json = json.dumps(self.solr_records)
+        print '> Sending layers to Solr [SEARCH_URL={0}]'.format(SEARCH_URL)
         post_layers = requests.post(self.url_solr_update, data=solr_json, params=params, headers=headers)
-
-        print '> Requesting layers to Solr'
         print post_layers.text
         self.assertFalse('error' in post_layers.json())
 

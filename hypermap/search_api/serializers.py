@@ -11,7 +11,7 @@ class SearchSerializer(serializers.Serializer):
         help_text="Where will be running the search.",
         choices=["solr", "elasticsearch"]
     )
-    search_engine_endpoint = serializers.URLField(
+    search_engine_endpoint = serializers.CharField(
         required=False,
         help_text="Endpoint URL",
     )
