@@ -7,45 +7,38 @@ from django.test import TestCase
 
 from hypermap.aggregator.models import Catalog
 from hypermap.search_api import utils
+from hypermap.aggregator.solr import SolrHypermap
+
+
+SEARCH_URL = settings.REGISTRY_SEARCH_URL.split('+')[1]
 
 
 class SearchApiTestCase(TestCase):
-
-    def index(self, data):
-        headers = {"content-type": "application/json"}
-        params = {"commitWithin": 1500}
-        solr_json = json.dumps(data)
-        requests.post(self.url_solr_update, data=solr_json, params=params, headers=headers)
-        # solr seems to have a delay indexing the layers.
-        # before to proceed with the tests wait for 2 secs.
-        # otherwise it will return zero docs in the next test.
-        time.sleep(2)
+    """
+    run me
+    python manage.py test hypermap.search_api --settings=hypermap.settings.test --failfast
+    """
 
     def setUp(self):
-        self.url_solr_clear = '%s/update?commit=true' % settings.SEARCH_URL
-        self.url_solr_update = '%s/update/json/docs' % settings.SEARCH_URL
-        self.url_solr_search = '%s/select' % settings.SEARCH_URL
-        self.api_url = "http://localhost:8000{0}".format(reverse("search_api",
-                                                                 args=["hypermap"]))
-        self.default_params = {
-            "search_engine": "solr",
-            "search_engine_endpoint": self.url_solr_search,
-            "q_time": "[* TO *]",
-            "q_geo": "[-90,-180 TO 90,180]",
-            "d_docs_limit": 0,
-            "d_docs_page": 1,
-            "d_docs_sort": "score"
-        }
+        self.solr = SolrHypermap()
+        catalog_test_slug = "hypermap"
+        self.url_solr_update = '{0}/solr/{1}/update/json/docs'.format(
+            SEARCH_URL, catalog_test_slug
+        )
+        self.url_solr_search = '{0}/solr/{1}/select'.format(
+            SEARCH_URL, catalog_test_slug
+        )
+        self.api_url = "{0}{1}".format(
+            settings.SITE_URL, reverse("search_api", args=[catalog_test_slug])
+        )
 
         Catalog.objects.get_or_create(
-            name="hypermap", slug="hypermap"
+            name=catalog_test_slug
         )
 
         # delete solr documents
-        headers = {"content-type": "text/xml"}
-        requests.post(self.url_solr_clear,
-                      data="<delete><query>*:*</query></delete>",
-                      headers=headers)
+        print '> clearing SEARCH_URL={0}'.format(SEARCH_URL)
+        self.solr.clear_solr(catalog=catalog_test_slug)
 
         # add test solr documents
         self.solr_records = [
@@ -75,7 +68,10 @@ class SearchApiTestCase(TestCase):
                 "srs": ["EPSG:3857",
                         "EPSG:900913",
                         "EPSG:4326"],
-                "service_id": 1
+                "layer_username": "xxx",
+                "layer_category": "xxx",
+                "centroid_y": 1,
+                "centroid_x": 1,
             },
             {
                 "abstract": "Downtown-New-Orleans-Map ",
@@ -165,71 +161,100 @@ class SearchApiTestCase(TestCase):
 
         ]
 
-        self.index(self.solr_records)
+        # add the schema
+        self.solr.update_schema(catalog=catalog_test_slug)
+
+        headers = {"content-type": "application/json"}
+        params = {"commitWithin": 1500}
+        solr_json = json.dumps(self.solr_records)
+        print '> Sending layers to Solr [SEARCH_URL={0}]'.format(SEARCH_URL)
+        post_layers = requests.post(self.url_solr_update, data=solr_json, params=params, headers=headers)
+        print post_layers.text
+        self.assertFalse('error' in post_layers.json())
+
+        # solr have commitWithin 1500.
+        # before to proceed with the tests wait for 2 secs.
+        # otherwise it will return zero docs in the next test.
+        time.sleep(2)
+        # TODO: deeper tests: index with SolrHypermap.layer_to_solr(aggregator.models.Layer)
+
+        self.default_params = {
+            "search_engine": "solr",
+            "search_engine_endpoint": self.url_solr_search,
+            "q_time": "[* TO *]",
+            "q_geo": "[-90,-180 TO 90,180]",
+            "d_docs_limit": 0,
+            "d_docs_page": 1,
+            "d_docs_sort": "score"
+        }
 
     def test_catalogs(self):
+        print '> testing catalogs'
         url = settings.SITE_URL + reverse("catalog-list")
-        res = requests.get(url)
+        res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
-        catalogs = res.json()
+        catalogs = json.loads(res.content)
         self.assertEqual(len(catalogs), 1)
 
     def test_all_match_docs(self):
+        print '> testing match all docs'
         params = self.default_params
         print "searching on [{}]".format(self.api_url)
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], len(self.solr_records))
 
     def test_q_text(self):
+        print '> testing q text'
         params = self.default_params
         params["q_text"] = "title:1"
         params["d_docs_limit"] = 100
 
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
 
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], 1)
 
         for doc in results.get("d.docs", []):
             self.assertEqual(doc["title"], "1")
 
     def test_q_time(self):
+        print '> testing q time (format validations)'
         params = self.default_params
 
         # test validations
         params["q_time"] = "[2000-01-01 - 2001-01-01T00:00:00]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         # requires [X TO Y]
         self.assertEqual(400, results.status_code)
 
+        print '> testing q time'
         # test asterisks
         # all times
         params["q_time"] = "[* TO *]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         # all records
         self.assertEqual(results["a.matchDocs"], len(self.solr_records))
 
         # test range
         # entire year 2000
         params["q_time"] = "[2000-01-01 TO 2001-01-01T00:00:00]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         # 1 in year 2000
         self.assertEqual(results["a.matchDocs"], 1)
 
         # test complete min and max when q time is asterisks
         params["q_time"] = "[* TO *]"
         params["a_time_limit"] = 1
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], len(self.solr_records))
         # * to first date
         self.assertEqual(results["a.time"]["start"], "-5000000-01-01T00:00:00Z")
@@ -240,9 +265,9 @@ class SearchApiTestCase(TestCase):
         params["q_time"] = "[2000 TO 2022]"
         params["a_time_limit"] = 1
         params["a_time_gap"] = "P1Y"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], 3)
         # 2000 to complete datetime format
         self.assertEqual(results["a.time"]["start"], "2000-01-01T00:00:00Z")
@@ -252,43 +277,46 @@ class SearchApiTestCase(TestCase):
         self.assertEqual(len(results["a.time"]["counts"]), 3)
 
     def test_q_geo(self):
+        print '> testing q geo'
         params = self.default_params
 
         # top right square
         params["q_geo"] = "[0,0 TO 30,30]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], 1)
 
         # bottom left square
         params["q_geo"] = "[-30,-30 TO 0,0]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], 1)
 
         # big square
         params["q_geo"] = "[-30,-30 TO 30,30]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], 4)
 
         # center where no layers
         params["q_geo"] = "[-5,-5 TO 5,5]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         self.assertEqual(results.status_code, 200)
-        results = results.json()
+        results = json.loads(results.content)
         self.assertEqual(results["a.matchDocs"], 0)
 
         # bad format
         params["q_geo"] = "[-5,-5 5,5]"
-        results = requests.get(self.api_url, params=params)
+        results = self.client.get(self.api_url, params)
         # validate the format
+        print '> testing q geo (format validations)'
         self.assertEqual(results.status_code, 400)
 
     def test_utilities(self):
+        print '> testing utilities functions'
         # test_parse_datetime_range
         start, end = utils.parse_datetime_range("[2013-03-01 TO 2014-05-02T23:00:00]")
         self.assertTrue(start.get("is_common_era"))

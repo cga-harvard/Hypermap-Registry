@@ -7,6 +7,9 @@ services:
   elasticsearch:
    image: elasticsearch
 
+  solr:
+    image: solr
+
   rabbitmq:
      image: rabbitmq
 
