@@ -10,10 +10,7 @@ from django.utils.html import strip_tags
 from elasticsearch import Elasticsearch
 from shapely.geometry import box
 
-from hypermap.aggregator.utils import mercator_to_llbbox
-
-from hypermap.aggregator.solr import get_date
-
+from hypermap.aggregator.utils import mercator_to_llbbox, get_date
 
 REGISTRY_MAPPING_PRECISION = getattr(settings, "REGISTRY_MAPPING_PRECISION", "500m")
 REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+http://localhost:9200")

@@ -25,7 +25,7 @@ down:
 
 test:
 	docker-compose run django python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast
-	docker-compose run django python manage.py test hypermap.search_api --settings=hypermap.settings.test --failfast
+	docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.solr.yml run django python manage.py test hypermap.search_api --settings=hypermap.settings.test --failfast
 
 reset: down up wait sync
 
