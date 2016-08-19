@@ -30,7 +30,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
-from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
+from tasks import update_endpoint, update_endpoints, check_service, check_layer
 from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
