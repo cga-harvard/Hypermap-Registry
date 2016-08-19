@@ -47,7 +47,7 @@ services:
       - C_FORCE_ROOT=1
 
   maploom:
-    image: terranodo/maploom
+    image: terranodo/maploom:development
     command: grunt serve
 
   nginx:
