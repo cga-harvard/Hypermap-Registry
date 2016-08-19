@@ -48,6 +48,7 @@ ALLOWED_HOSTS = []
 SEARCH_ENABLED = str2bool(os.getenv('SEARCH_ENABLED', 'False'))
 SEARCH_TYPE = 'solr'
 SEARCH_URL = os.getenv('SEARCH_URL', 'http://127.0.0.1:8983/solr/search')
+SEARCH_BATCH_SIZE = os.getenv('SEARCH_BATCH_SIZE', 50)
 
 # Application definition
 
@@ -136,8 +137,8 @@ MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERY_RESULT_BACKEND = 'cache+memcached://127.0.0.1:11211/'
 CELERYD_PREFETCH_MULTIPLIER = 25
-
 CELERY_TIMEZONE = 'UTC'
+
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://hypermap:hypermap@127.0.0.1:5672/hypermap')
 
 LOGGING = {
@@ -257,3 +258,12 @@ PYCSW = {
 # for each service are updated and checked
 DEBUG_SERVICES = str2bool(os.getenv('DEBUG_SERVICES', 'False'))
 DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '20'))
+
+# memcached
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': None,
+    }
+}

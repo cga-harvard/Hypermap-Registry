@@ -121,8 +121,9 @@ setInterval(function(){
 <form action="." method="post">
   {% csrf_token %}
   <input type="submit" name='check_all' value="Check all services">
-  <input type="submit" name='index_all' value="Reindex all layers in Solr">
-  <input type="submit" name='clear_solr' value="Clear Solr">
+  <input type="submit" name='index_all' value="Reindex all layers">
+  <input type="submit" name='index_cached' value="Index cached layers">
+  <input type="submit" name='clear_solr' value="Clear index">
 </form>
 {% endif %}
 
