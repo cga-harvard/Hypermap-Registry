@@ -524,11 +524,8 @@ class Layer(Resource):
         """
         Returns the tile url MapProxy endpoint for the layer.
         """
-        if self.type not in ('Hypermap:WorldMap',):
-            return '/registry/%s/layer/%s/map/wmts/%s/default_grid/{z}/{y}/{x}.png' % (
+        return '/registry/%s/layer/%s/map/wmts/%s/default_grid/{z}/{y}/{x}.png' % (
                    self.catalog.slug, self.id, self.name)
-        else:
-            return None
 
     def has_valid_bbox(self):
         if self.bbox_x0 is None or self.bbox_y0 is None or self.bbox_x1 is None or self.bbox_y1 is None:
