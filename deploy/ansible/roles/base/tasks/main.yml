@@ -25,6 +25,7 @@
     - python-pip
     - python-pycurl
     - supervisor
+    - memcached
   tags: packages
 
 - name: Install virtualenv
