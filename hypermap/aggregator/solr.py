@@ -5,8 +5,6 @@ import logging
 import json
 
 from django.conf import settings
-from django.utils.html import strip_tags
-
 
 from hypermap.aggregator.utils import layer2dict
 
@@ -28,10 +26,10 @@ class SolrHypermap(object):
             layers_list.append(layer_dict)
         layers_json = json.dumps(layers_list)
         try:
-            url_solr_update = '%s/update/json/docs' % settings.SEARCH_URL
+            url_solr_update = '%s/solr/hypermap/update/json/docs' % SEARCH_URL
             headers = {"content-type": "application/json"}
             params = {"commitWithin": 1500}
-            requests.post(url_solr_update, data=layers_json, params=params,  headers=headers)
+            requests.post(url_solr_update, data=layers_json, params=params, headers=headers)
             logger.info("Solr synced for the given layers.")
             return True, None
         except Exception:
@@ -45,7 +43,7 @@ class SolrHypermap(object):
         layer_dict = layer2dict(layer)
         layer_json = json.dumps(layer_dict)
         try:
-            url_solr_update = '%s/update/json/docs' % settings.SEARCH_URL
+            url_solr_update = '%s/solr/hypermap/update/json/docs' % SEARCH_URL
             headers = {"content-type": "application/json"}
             params = {"commitWithin": 1500}
             res = requests.post(url_solr_update, data=layer_json, params=params,  headers=headers)

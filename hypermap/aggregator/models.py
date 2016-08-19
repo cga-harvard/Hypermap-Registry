@@ -8,6 +8,7 @@ from urlparse import urlparse
 from dateutil.parser import parse
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -319,7 +320,14 @@ class Service(Resource):
         """
         if settings.REGISTRY_SEARCH_URL is not None:
             for layer in self.layer_set.all():
-                index_layer(layer)
+                # TODO: DRY by adding inside tasks.index_layer(layer) method.
+                print 'Caching layer with id %s for syncing with search engine' % layer.id
+                layers = cache.get('layers')
+                if layers is None:
+                    layers = set([layer.id])
+                else:
+                    layers.add(layer.id)
+                cache.set('layers', layers)
 
     def check_available(self):
         """

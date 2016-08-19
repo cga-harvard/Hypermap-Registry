@@ -133,7 +133,7 @@ def index_cached_layers(self):
     layers_list = list(layers_cache)
     print 'There are %s layers in cache: %s' % (len(layers_list), layers_list)
     batch_size = settings.REGISTRY_SEARCH_BATCH_SIZE
-    batch_lists = [layers_list[i:i+batch_size] for i in range(0, len(layers_list), atch_size)]
+    batch_lists = [layers_list[i:i+batch_size] for i in range(0, len(layers_list), batch_size)]
     for batch_list_ids in batch_lists:
         layers = Layer.objects.filter(id__in=batch_list_ids)
         if batch_size > len(layers):
@@ -152,8 +152,8 @@ def index_cached_layers(self):
                     message=message
                 )
                 task_error.save()
-        except:
-            print 'There was an exception here!'
+        except Exception as e:
+            print 'There was an exception here! %s' % str(e)
 
 
 @shared_task(name="clear_index")
