@@ -29,7 +29,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
-from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
+from tasks import update_endpoint, update_endpoints, check_service, check_layer
 from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
@@ -492,7 +492,6 @@ class Layer(Resource):
                     date.append(pydate)
                     date.append(layerdate.type)
                     dates.append(date)
-        print dates
         return dates
 
     def update_thumbnail(self):
@@ -657,11 +656,6 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            if settings.SEARCH_ENABLED:
-                if not settings.SKIP_CELERY_TASK:
-                    index_layer.delay(self)
-                else:
-                    index_layer(self)
             signals.post_save.connect(layer_post_save, sender=Layer)
 
         except Exception, err:
