@@ -124,7 +124,6 @@ def index_cached_layers(self):
                 task_error.save()
         except:
             print 'There was an exception here!'
-            self.retry()
 
 
 @shared_task(name="clear_solr")
