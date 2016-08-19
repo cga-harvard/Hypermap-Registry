@@ -826,7 +826,7 @@ class EndpointList(models.Model):
     EndpointList represents a file containing an EndPoint list.
     """
     upload = models.FileField(upload_to='endpoint_lists')
-    greedy = models.BooleanField(editable=False, default=False)
+    greedy = models.BooleanField(default=False)
     catalog = models.ForeignKey(Catalog, editable=False, default=1)
 
     def __unicode__(self):
