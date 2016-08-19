@@ -428,6 +428,7 @@
   <field name="title" type="string" multiValued="false" indexed="true"/>
   <field name="type" type="string" multiValued="false" indexed="true"/>
   <field name="url" type="strings" multiValued="false" indexed="true"/>
+  <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
   <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
   <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
   <dynamicField name="*_ancestor_path" type="ancestor_path" indexed="true" stored="true"/>
