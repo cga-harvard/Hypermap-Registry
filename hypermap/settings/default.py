@@ -270,3 +270,13 @@ MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 # elasticsearch+http://localhost:9200/
 # elasticsearch+https://user:pass/domain:port/
 REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
+REGISTRY_SEARCH_BATCH_SIZE = os.getenv('SEARCH_BATCH_SIZE', 50)
+
+# memcached
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': None,
+    }
+}

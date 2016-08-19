@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from celery import chain
 from django.conf import settings
+from django.core.cache import cache
 
 from celery import shared_task
 
@@ -96,11 +97,19 @@ def check_layer(self, layer):
     print 'Checking layer %s' % layer.name
     success, message = layer.check_available()
     # every time a layer is checked it should be indexed
+    # for now we remove indexing but we do it using a scheduled task unless SKIP_CELERY_TASK
     if success and SEARCH_ENABLED:
-        if not settings.REGISTRY_SKIP_CELERY:
-            index_layer.delay(layer)
-        else:
+        if settings.REGISTRY_SKIP_CELERY:
             index_layer(layer)
+        else:
+            # we cache the layer id
+            print 'Caching layer with id %s for syncing with search engine' % layer.id
+            layers = cache.get('layers')
+            if layers is None:
+                layers = set([layer.id])
+            else:
+                layers.add(layer.id)
+            cache.set('layers', layers)
     if not success:
         from hypermap.aggregator.models import TaskError
         task_error = TaskError(
@@ -109,6 +118,42 @@ def check_layer(self, layer):
             message=message
         )
         task_error.save()
+
+
+@shared_task(bind=True)
+def index_cached_layers(self):
+    """
+    Index all layers in the Django cache (Index all layers who have been checked).
+    """
+    from hypermap.aggregator.models import Layer
+    from hypermap.aggregator.solr import SolrHypermap
+    from hypermap.aggregator.models import TaskError
+    solrobject = SolrHypermap()
+    layers_cache = cache.get('layers')
+    layers_list = list(layers_cache)
+    print 'There are %s layers in cache: %s' % (len(layers_list), layers_list)
+    batch_size = settings.REGISTRY_SEARCH_BATCH_SIZE
+    batch_lists = [layers_list[i:i+batch_size] for i in range(0, len(layers_list), atch_size)]
+    for batch_list_ids in batch_lists:
+        layers = Layer.objects.filter(id__in=batch_list_ids)
+        if batch_size > len(layers):
+            batch_size = len(layers)
+        print 'Syncing %s/%s layers to Solr: %s' % (batch_size, len(layers_cache), layers)
+        try:
+            success, message = solrobject.layers_to_solr(layers)
+            if success:
+                # remove layers from cache here
+                layers_cache = layers_cache.difference(set(batch_list_ids))
+                cache.set('layers', layers_cache)
+            else:
+                task_error = TaskError(
+                    task_name=self.name,
+                    args=batch_list_ids,
+                    message=message
+                )
+                task_error.save()
+        except:
+            print 'There was an exception here!'
 
 
 @shared_task(name="clear_index")
