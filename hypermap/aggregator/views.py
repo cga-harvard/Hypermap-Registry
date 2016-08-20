@@ -14,7 +14,7 @@ from djmp.views import get_mapproxy
 
 from models import Service, Layer, Catalog
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
-                   index_service, index_all_layers, index_layer, clear_index,
+                   index_service, index_all_layers, index_layer, index_cached_layers, clear_index,
                    SEARCH_TYPE, SEARCH_URL)
 from enums import SERVICE_TYPES
 
@@ -222,6 +222,11 @@ def celery_monitor(request):
                 index_all_layers()
             else:
                 index_all_layers.delay()
+        if 'index_cached' in request.POST:
+            if settings.SKIP_CELERY_TASK:
+                index_cached_layers()
+            else:
+                index_cached_layers.delay()
         if 'clear_index' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
                 clear_index()

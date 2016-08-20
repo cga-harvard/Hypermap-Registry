@@ -8,6 +8,7 @@ from urlparse import urlparse
 from dateutil.parser import parse
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -29,7 +30,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
-from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
+from tasks import update_endpoint, update_endpoints, check_service, check_layer
 from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
@@ -319,7 +320,14 @@ class Service(Resource):
         """
         if settings.REGISTRY_SEARCH_URL is not None:
             for layer in self.layer_set.all():
-                index_layer(layer)
+                # TODO: DRY by adding inside tasks.index_layer(layer) method.
+                print 'Caching layer with id %s for syncing with search engine' % layer.id
+                layers = cache.get('layers')
+                if layers is None:
+                    layers = set([layer.id])
+                else:
+                    layers.add(layer.id)
+                cache.set('layers', layers)
 
     def check_available(self):
         """
@@ -578,7 +586,6 @@ class Layer(Resource):
                     date.append(pydate)
                     date.append(layerdate.type)
                     dates.append(date)
-        print dates
         return dates
 
     def update_thumbnail(self):
@@ -624,12 +631,12 @@ class Layer(Resource):
                 else:
                     raise NotImplementedError(format_error_message)
             img = ows.gettile(
-                            layer=self.name,
-                            tilematrixset=ows_layer.tilematrixsets[0],
-                            tilematrix='0',
-                            row='0',
-                            column='0',
-                            format=image_format
+                                layer=self.name,
+                                tilematrixset=ows_layer.tilematrixsets[0],
+                                tilematrix='0',
+                                row='0',
+                                column='0',
+                                format=image_format
                             )
         elif self.type == 'Hypermap:WorldMap':
             ows = WebMapService(self.url,
@@ -745,11 +752,6 @@ class Layer(Resource):
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
-            if settings.REGISTRY_SEARCH_URL is not None:
-                if not settings.REGISTRY_SKIP_CELERY:
-                    index_layer.delay(self)
-                else:
-                    index_layer(self)
             signals.post_save.connect(layer_post_save, sender=Layer)
 
         except ValueError, err:

@@ -13,6 +13,9 @@ services:
   rabbitmq:
      image: rabbitmq
 
+  memcached:
+    image: memcached
+
   django:
     image: terranodo/registry
     links:

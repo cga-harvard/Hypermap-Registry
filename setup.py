@@ -2,9 +2,13 @@ import os
 from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 
+import hypermap
+
+
 def read(*rnames):
     with open(os.path.join(os.path.dirname(__file__), *rnames)) as ff:
         return ff.read()
+
 
 def fullsplit(path, result=None):
     """
