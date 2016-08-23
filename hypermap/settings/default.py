@@ -14,12 +14,9 @@ import os
 import os.path
 import sys
 from datetime import timedelta
+from distutils.util import strtobool
 import dj_database_url
-django_cache_url
-
-
-def str2bool(v):
-    return v.lower() in ("yes", "true", "t", "1")
+import django_cache_url
 
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
@@ -43,8 +40,8 @@ SECRET_KEY = os.getenv('SECRET_KEY',
                        'mc0+7x(mor+4-acs$m-w6qj(i&^*6uiyb+6v^)i4w(fo*8qgu5')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = str2bool(os.getenv('DEBUG', 'True'))
-TEMPLATE_DEBUG = str2bool(os.getenv('TEMPLATE_DEBUG', 'False'))
+DEBUG = strtobool(os.getenv('DEBUG', 'True'))
+TEMPLATE_DEBUG = strtobool(os.getenv('TEMPLATE_DEBUG', 'False'))
 
 # Application definition
 INSTALLED_APPS = (
@@ -124,7 +121,7 @@ MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(PROJECT_DIR, 'media'))
 MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 
 
-CELERY_ALWAYS_EAGER = str2bool(os.getenv('CELERY_ALWAYS_EAGER', 'False'))
+CELERY_ALWAYS_EAGER = strtobool(os.getenv('CELERY_ALWAYS_EAGER', 'False'))
 CELERY_DEFAULT_EXCHANGE = os.getenv('CELERY_DEFAULT_EXCHANGE', 'hypermap')
 
 # Celery and RabbitMQ stuff
@@ -197,7 +194,7 @@ LOGGING = {
 
 
 # taggit
-TAGGIT_CASE_INSENSITIVE = str2bool(os.getenv('TAGGIT_CASE_INSENSITIVE', 'True'))
+TAGGIT_CASE_INSENSITIVE = strtobool(os.getenv('TAGGIT_CASE_INSENSITIVE', 'True'))
 
 # pycsw settings
 REGISTRY_PYCSW = {
@@ -253,7 +250,7 @@ REGISTRY_PYCSW = {
 }
 
 # we need to get rid of this once we figure out how to bypass the broker in tests
-REGISTRY_SKIP_CELERY = str2bool(os.getenv('REGISTRY_SKIP_CELERY', 'False'))
+REGISTRY_SKIP_CELERY = strtobool(os.getenv('REGISTRY_SKIP_CELERY', 'False'))
 
 # WorldMap Service credentials (override this in local_settings or _ubuntu in production)
 REGISTRY_WORLDMAP_USERNAME = os.getenv('REGISTRY_WORLDMAP_USERNAME', 'hypermap')
