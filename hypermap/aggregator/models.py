@@ -30,7 +30,7 @@ from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
-from tasks import update_endpoint, update_endpoints, check_service, check_layer
+from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
 from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
@@ -320,14 +320,7 @@ class Service(Resource):
         """
         if settings.REGISTRY_SEARCH_URL is not None:
             for layer in self.layer_set.all():
-                # TODO: DRY by adding inside tasks.index_layer(layer) method.
-                print 'Caching layer with id %s for syncing with search engine' % layer.id
-                layers = cache.get('layers')
-                if layers is None:
-                    layers = set([layer.id])
-                else:
-                    layers.add(layer.id)
-                cache.set('layers', layers)
+                index_layer(layer)
 
     def check_available(self):
         """
