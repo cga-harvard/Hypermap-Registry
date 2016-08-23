@@ -1,2 +1,2 @@
-__version__ = '0.1'
-__description__ = 'HHypermap'
+__version__ = '0.3.2'
+__description__ = 'django-registry'

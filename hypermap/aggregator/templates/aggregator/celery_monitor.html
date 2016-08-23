@@ -33,7 +33,7 @@
           <script>
           function update_progressbar_{{ task.task_id_sanitized }}() {
               $.ajax({ dataType:"json",
-                  url: "/update_progressbar/{{ task.task_id }}",
+                  url: "/registry/update_progressbar/{{ task.task_id }}",
                       success: function(data){
                           $("#status_{{ task.task_id_sanitized }}").html(data.status);
                           $("#state_{{ task.task_id_sanitized }}").html(data.state);
@@ -73,7 +73,7 @@
 <script>
 function update_jobs_number() {
     $.ajax({ dataType:"json",
-        url: "/update_jobs_number",
+        url: "/registry/update_jobs_number",
             success: function(data){
                 $("#jobs_number").text(data.jobs);
             }
@@ -123,7 +123,7 @@ setInterval(function(){
   <input type="submit" name='check_all' value="Check all services">
   <input type="submit" name='index_all' value="Reindex all layers">
   <input type="submit" name='index_cached' value="Index cached layers">
-  <input type="submit" name='clear_solr' value="Clear index">
+  <input type="submit" name='clear_index' value="Clear index">
 </form>
 {% endif %}
 

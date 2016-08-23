@@ -1,6 +1,0 @@
----
-
-virtualenv_path: "/webapps/{{ application_name }}"
-project_path: "{{ virtualenv_path }}/{{ project_name }}"
-uwsgi_user: www-data
-uwsgi_group: www-data

@@ -1,0 +1,337 @@
+{
+  "swagger" : "2.0",
+  "info" : { },
+  "basePath" : "/bopws",
+  "paths" : {
+    "/tweets/export" : {
+      "get" : {
+        "summary" : "Search export endpoint for bulk doc retrieval.",
+        "description" : "The q.* parameters qre query/constraints that limit the\n                matching documents. Documents come back sorted by time descending.\n                The response format is text/csv -- comma separated.  There is a header row.\n                Values are enclosed in\n                double-quotes (\") if it contains a double-quote, comma, or newline.  Embedded\n                double-quotes are escaped with another double-quote, thus: foo\"bar becomes\n                \"foo\"\"bar\". ",
+        "operationId" : "export",
+        "produces" : [ "text/json" ],
+        "parameters" : [ {
+          "name" : "q.time",
+          "in" : "query",
+          "description" : "Constrains docs by time range.  Either side can be '*' to signify open-ended. Otherwise it must be in either format as given in the example. UTC time zone is implied.",
+          "required" : false,
+          "type" : "string",
+          "x-example" : "[2013-03-01 TO 2013-04-01T00:00:00]"
+        }, {
+          "name" : "q.geo",
+          "in" : "query",
+          "description" : "A rectangular geospatial filter in decimal degrees going from the lower-left to the upper-right.  The coordinates are in lat,lon format.",
+          "required" : false,
+          "type" : "string",
+          "x-example" : "[-90,-180 TO 90,180]"
+        }, {
+          "name" : "q.text",
+          "in" : "query",
+          "description" : "Constrains docs by keyword search query.",
+          "required" : false,
+          "type" : "string",
+          "maxItems" : 2147483647,
+          "minItems" : 1
+        }, {
+          "name" : "q.user",
+          "in" : "query",
+          "description" : "Constrains docs by matching exactly a certain user",
+          "required" : false,
+          "type" : "string",
+          "maxItems" : 2147483647,
+          "minItems" : 1
+        }, {
+          "name" : "d.docs.limit",
+          "in" : "query",
+          "description" : "How many documents to return.",
+          "required" : false,
+          "type" : "integer",
+          "maximum" : 100.0,
+          "minimum" : 1.0,
+          "format" : "int32"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "successful operation"
+          }
+        }
+      }
+    },
+    "/tweets/search" : {
+      "get" : {
+        "summary" : "Search/analytics endpoint; highly configurable. Not for bulk doc retrieval.",
+        "description" : "The q.* parameters qre query/constraints that limit the matching documents.\n The d.* params control returning the documents. The a.* params are faceting/aggregations on a\n field of the documents.  The *.limit params limit how many top values/docs to return.  Some of\n the formatting and response structure has strong similarities with Apache Solr, unsurprisingly.",
+        "operationId" : "search",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "q.time",
+          "in" : "query",
+          "description" : "Constrains docs by time range.  Either side can be '*' to signify open-ended. Otherwise it must be in either format as given in the example. UTC time zone is implied.",
+          "required" : false,
+          "type" : "string",
+          "x-example" : "[2013-03-01 TO 2013-04-01T00:00:00]"
+        }, {
+          "name" : "q.geo",
+          "in" : "query",
+          "description" : "A rectangular geospatial filter in decimal degrees going from the lower-left to the upper-right.  The coordinates are in lat,lon format.",
+          "required" : false,
+          "type" : "string",
+          "x-example" : "[-90,-180 TO 90,180]"
+        }, {
+          "name" : "q.text",
+          "in" : "query",
+          "description" : "Constrains docs by keyword search query.",
+          "required" : false,
+          "type" : "string",
+          "maxItems" : 2147483647,
+          "minItems" : 1
+        }, {
+          "name" : "q.user",
+          "in" : "query",
+          "description" : "Constrains docs by matching exactly a certain user",
+          "required" : false,
+          "type" : "string",
+          "maxItems" : 2147483647,
+          "minItems" : 1
+        }, {
+          "name" : "d.docs.limit",
+          "in" : "query",
+          "description" : "How many documents to return in the search results.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "maximum" : 100.0,
+          "minimum" : 0.0,
+          "format" : "int32"
+        }, {
+          "name" : "d.docs.sort",
+          "in" : "query",
+          "description" : "How to order the documents before returning the top X. 'score' is keyword search relevancy. 'time' is time descending. 'distance' is the distance between the doc and the middle of q.geo.",
+          "required" : false,
+          "type" : "string",
+          "default" : "score",
+          "enum" : [ "score", "time", "distance" ]
+        }, {
+          "name" : "a.time.limit",
+          "in" : "query",
+          "description" : "Non-0 triggers time/date range faceting. This value is the maximum number of time ranges to return when a.time.gap is unspecified. This is a soft maximum; less will usually be returned. A suggested value is 100. Note that a.time.gap effectively ignores this value. See Solr docs for more details on the query/response format.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "maximum" : 1000.0,
+          "minimum" : 0.0,
+          "format" : "int32"
+        }, {
+          "name" : "a.time.gap",
+          "in" : "query",
+          "description" : "The consecutive time interval/gap for each time range.  Ignores a.time.limit.The format is based on a subset of the ISO-8601 duration format.",
+          "required" : false,
+          "type" : "string",
+          "x-example" : "P1D"
+        }, {
+          "name" : "a.time.filter",
+          "in" : "query",
+          "description" : "From what time range to divide by a.time.gap into intervals.  Defaults to q.time and otherwise 90 days.",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "a.hm.limit",
+          "in" : "query",
+          "description" : "Non-0 triggers heatmap/grid faceting.  This number is a soft maximum on thenumber of cells it should have. There may be as few as 1/4th this number in return.  Note that a.hm.gridLevel can effectively ignore this value. The response heatmap contains a counts grid that can be null or contain null rows when all its values would be 0.   See Solr docs for more details on the response format.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "maximum" : 10000.0,
+          "minimum" : 0.0,
+          "format" : "int32"
+        }, {
+          "name" : "a.hm.gridLevel",
+          "in" : "query",
+          "description" : "To explicitly specify the grid level, e.g. to let a user ask for greater or courser resolution than the most recent request.  Ignores a.hm.limit.",
+          "required" : false,
+          "type" : "integer",
+          "maximum" : 100.0,
+          "minimum" : 1.0,
+          "format" : "int32"
+        }, {
+          "name" : "a.hm.filter",
+          "in" : "query",
+          "description" : "From what region to plot the heatmap. Defaults to q.geo or otherwise the world.",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "a.text.limit",
+          "in" : "query",
+          "description" : "Returns the most frequently occurring words.  WARNING: There is usually a significant performance hit in this due to the extremely high cardinality.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "maximum" : 1000.0,
+          "minimum" : 0.0,
+          "format" : "int32"
+        }, {
+          "name" : "a.user.limit",
+          "in" : "query",
+          "description" : "Returns the most frequently occurring users.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 0,
+          "maximum" : 1000.0,
+          "minimum" : 0.0,
+          "format" : "int32"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/SearchResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "HeatmapFacet" : {
+      "type" : "object",
+      "properties" : {
+        "gridLevel" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "rows" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "columns" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "minX" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "maxX" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "minY" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "maxY" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "counts_ints2D" : {
+          "type" : "array",
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          }
+        },
+        "projection" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FacetValue" : {
+      "type" : "object",
+      "properties" : {
+        "value" : {
+          "type" : "string"
+        },
+        "count" : {
+          "type" : "integer",
+          "format" : "int64"
+        }
+      }
+    },
+    "TimeFacet" : {
+      "type" : "object",
+      "properties" : {
+        "start" : {
+          "type" : "string"
+        },
+        "end" : {
+          "type" : "string"
+        },
+        "gap" : {
+          "type" : "string"
+        },
+        "counts" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/FacetValue"
+          }
+        }
+      }
+    },
+    "Timing" : {
+      "type" : "object",
+      "properties" : {
+        "label" : {
+          "type" : "string"
+        },
+        "millis" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "subs" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Timing"
+          }
+        }
+      }
+    },
+    "SearchResponse" : {
+      "type" : "object",
+      "properties" : {
+        "a.matchDocs" : {
+          "type" : "integer",
+          "format" : "int64",
+          "readOnly" : true
+        },
+        "d.docs" : {
+          "type" : "array",
+          "readOnly" : true,
+          "items" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          }
+        },
+        "a.time" : {
+          "readOnly" : true,
+          "$ref" : "#/definitions/TimeFacet"
+        },
+        "a.hm" : {
+          "readOnly" : true,
+          "$ref" : "#/definitions/HeatmapFacet"
+        },
+        "a.user" : {
+          "type" : "array",
+          "readOnly" : true,
+          "items" : {
+            "$ref" : "#/definitions/FacetValue"
+          }
+        },
+        "a.text" : {
+          "type" : "array",
+          "readOnly" : true,
+          "items" : {
+            "$ref" : "#/definitions/FacetValue"
+          }
+        },
+        "timing" : {
+          "readOnly" : true,
+          "$ref" : "#/definitions/Timing"
+        }
+      }
+    }
+  }
+}

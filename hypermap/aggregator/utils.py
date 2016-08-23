@@ -7,7 +7,6 @@ import math
 import traceback
 import datetime
 from urlparse import urlparse
-from lxml import etree
 
 from django.utils.html import strip_tags
 from django.conf import settings
@@ -20,6 +19,8 @@ from owslib.wmts import WebMapTileService
 from arcrest import Folder as ArcFolder
 
 from hypermap.aggregator.enums import SERVICE_TYPES
+from lxml.etree import XMLSyntaxError
+from shapely.geometry import box
 
 LOGGER = logging.getLogger(__name__)
 
@@ -53,42 +54,51 @@ def create_layer_from_metadata_xml(resourcetype, xml, monitor=False):
     return layer, md.subjects
 
 
-def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None):
+def create_service_from_endpoint(endpoint, service_type, title=None, abstract=None, catalog=None):
     """
     Create a service from an endpoint if it does not already exists.
     """
     from models import Service
-    if Service.objects.filter(url=endpoint).count() == 0:
+    if Service.objects.filter(url=endpoint, catalog=catalog).count() == 0:
         # check if endpoint is valid
         request = requests.get(endpoint)
         if request.status_code == 200:
-            print 'Creating a %s service for endpoint %s' % (service_type, endpoint)
+            LOGGER.debug('Creating a %s service for endpoint=%s catalog=%s' % (service_type, endpoint, catalog))
             service = Service(
-                 type=service_type, url=endpoint, title=title, abstract=abstract,
-                 csw_type='service'
-            )
+                        type=service_type, url=endpoint, title=title, abstract=abstract,
+                        csw_type='service', catalog=catalog
+                        )
             service.save()
             return service
         else:
-            print 'This endpoint is invalid, status code is %s' % request.status_code
+            LOGGER.warning('This endpoint is invalid, status code is %s' % request.status_code)
     else:
-        print 'A service for this endpoint %s already exists' % endpoint
+        LOGGER.warning('A service for this endpoint %s in catalog %s already exists' % (endpoint, catalog))
         return None
 
 
-def create_services_from_endpoint(url):
+def create_services_from_endpoint(url, catalog, greedy_opt=True):
     """
     Generate service/services from an endpoint.
     WMS, WMTS, TMS endpoints correspond to a single service.
     ESRI, CSW endpoints corrispond to many services.
+    :return: imported, message
     """
+
+    # this variable will collect any exception message during the routine.
+    # will be used in the last step to send a message if "detected" var is False.
+    messages = []
+
     num_created = 0
     endpoint = get_sanitized_endpoint(url)
     try:
         urllib2.urlopen(endpoint, timeout=10)
     except Exception as e:
-        print 'ERROR! Cannot open this endpoint: %s' % endpoint
         message = traceback.format_exception(*sys.exc_info())
+        LOGGER.error('Cannot open this endpoint: %s' % endpoint)
+        LOGGER.error('ERROR MESSAGE: %s' % message)
+        LOGGER.error(e, exc_info=True)
+
         return False, message
 
     detected = False
@@ -123,12 +133,12 @@ def create_services_from_endpoint(url):
         typenames = 'csw:Record'
         outputschema = 'http://www.opengis.net/cat/csw/2.0.2'
 
-        if 'csw_harvest_pagesize' in settings.PYCSW['manager']:
-            pagesize = int(settings.PYCSW['manager']['csw_harvest_pagesize'])
+        if 'csw_harvest_pagesize' in settings.REGISTRY_PYCSW['manager']:
+            pagesize = int(settings.REGISTRY_PYCSW['manager']['csw_harvest_pagesize'])
         else:
             pagesize = 10
 
-        print 'Harvesting CSW %s' % endpoint
+        LOGGER.debug('Harvesting CSW %s' % endpoint)
         # now get all records
         # get total number of records to loop against
         try:
@@ -141,10 +151,11 @@ def create_services_from_endpoint(url):
         if pagesize > matches:
             pagesize = matches
 
-        print 'Harvesting %d CSW records' % matches
+        LOGGER.info('Harvesting %d CSW records' % matches)
 
         # loop over all catalogue records incrementally
         for r in range(1, matches+1, pagesize):
+            LOGGER.info('Parsing %s from %s' % (r, matches))
             try:
                 csw.getrecords2(typenames=typenames, startposition=r,
                                 maxrecords=pagesize, outputschema=outputschema, esn='full')
@@ -158,15 +169,29 @@ def create_services_from_endpoint(url):
                     LOGGER.debug('Looking for service links via dct:references')
                     if v.references:
                         for ref in v.references:
+                            scheme = None
+
                             if ref['scheme'] in [st[0] for st in SERVICE_TYPES]:
                                 if ref['url'] not in service_links:
-                                    service_links[ref['url']] = ref['scheme']
+                                    scheme = ref['scheme']
+                                    service_links[ref['url']] = scheme
                             else:  # loose detection
                                 scheme = detect_metadata_url_scheme(ref['url'])
                                 if scheme is not None:
                                     if ref['url'] not in service_links:
                                         service_links[ref['url']] = scheme
 
+                            if scheme is None:
+                                continue
+                            try:
+                                service = create_service_from_endpoint(ref['url'], scheme, catalog=catalog)
+
+                                if service is not None:
+                                    num_created = num_created + 1
+                                    LOGGER.info('Found %s services on endpoint' % num_created)
+                            except Exception, e:
+                                LOGGER.error('Could not create service for %s : %s' % (scheme, ref['url']))
+                                LOGGER.error(e, exc_info=True)
                     LOGGER.debug('Looking for service links via the GeoNetwork-ish dc:URI')
                     if v.uris:
                         for u in v.uris:  # loose detection
@@ -174,21 +199,29 @@ def create_services_from_endpoint(url):
                             if scheme is not None:
                                 if u['url'] not in service_links:
                                     service_links[u['url']] = scheme
+                            else:
+                                continue
+
+                            try:
+                                service = create_service_from_endpoint(u['url'], scheme, catalog=catalog)
+
+                                if service is not None:
+                                    num_created = num_created + 1
+                                    LOGGER.info('Found %s services on endpoint' % num_created)
+                            except Exception, e:
+                                LOGGER.error('Could not create service for %s : %s' % (scheme, u['url']))
+                                LOGGER.error(e, exc_info=True)
 
                 except Exception as err:  # parsing failed for some reason
                     LOGGER.warning('Metadata parsing failed %s', err)
+                    LOGGER.error(err, exc_info=True)
 
-        LOGGER.info('Service links found: %s', service_links)
-        for k, v in service_links.items():
-            try:
-                service = create_service_from_endpoint(k, v)
-                if service is not None:
-                    num_created = num_created + 1
-            except Exception as err:
-                raise RuntimeError('HHypermap error: %s' % err)
-
+    except XMLSyntaxError as e:
+        # This is not XML, so likely not a CSW. Moving on.
+        pass
     except Exception as e:
-        print str(e)
+        LOGGER.error(e, exc_info=True)
+        messages.append(str(e))
 
     # WMS
     if not detected:
@@ -198,8 +231,12 @@ def create_services_from_endpoint(url):
             title = service.identification.title,
             abstract = service.identification.abstract
             detected = True
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a WMS. Moving on.
+            pass
         except Exception as e:
-            print str(e)
+            LOGGER.error(e, exc_info=True)
+            messages.append(str(e))
 
     # TMS
     if not detected:
@@ -209,8 +246,12 @@ def create_services_from_endpoint(url):
             title = service.identification.title,
             abstract = service.identification.abstract
             detected = True
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a TsMS. Moving on.
+            pass
         except Exception as e:
-            print str(e)
+            LOGGER.error(e, exc_info=True)
+            messages.append(str(e))
 
     # WMTS
     if not detected:
@@ -221,8 +262,12 @@ def create_services_from_endpoint(url):
             title = service.identification.title,
             abstract = service.identification.abstract
             detected = True
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a WMTS. Moving on.
+            pass
         except Exception as e:
-            print str(e)
+            LOGGER.error(e, exc_info=True)
+            messages.append(str(e))
 
     # if detected, let's create the service
     if detected and service_type != 'OGC:CSW':
@@ -231,12 +276,17 @@ def create_services_from_endpoint(url):
                 endpoint,
                 service_type,
                 title,
-                abstract=abstract
+                abstract=abstract,
+                catalog=catalog
             )
             if service is not None:
                 num_created = num_created + 1
+        except XMLSyntaxError as e:
+            # This is not XML, so likely not a OGC:CSW. Moving on.
+            pass
         except Exception as e:
-            print str(e)
+            LOGGER.error(e, exc_info=True)
+            messages.append(str(e))
 
     # Esri
     # a good sample is here: https://gis.ngdc.noaa.gov/arcgis/rest/services
@@ -244,55 +294,83 @@ def create_services_from_endpoint(url):
     # we can safely assume the following condition (at least it is true for 1170 services)
     # we need to test this as ArcFolder can freeze with not esri url such as this one:
     # http://hh.worldmap.harvard.edu/admin/aggregator/service/?q=%2Frest%2Fservices
+
     if '/rest/services' in endpoint:
         if not detected:
             try:
                 esri = ArcFolder(endpoint)
-                services = esri.services
-
                 service_type = 'ESRI'
                 detected = True
 
-                # root
-                root_services = process_esri_services(services)
-                num_created = num_created + len(root_services)
+                service_to_process, folder_to_process = esri.services, esri.folders
+                if not greedy_opt:
+                    folder_to_process = []
+                    service_to_process = get_single_service(esri, url, endpoint)
 
-                # folders
-                for folder in esri.folders:
-                    folder_services = process_esri_services(folder.services)
+                processed_services = process_esri_services(service_to_process, catalog)
+                num_created = num_created + len(processed_services)
+
+                for folder in folder_to_process:
+                    folder_services = process_esri_services(folder.services, catalog)
                     num_created = num_created + len(folder_services)
 
             except Exception as e:
-                print str(e)
+                LOGGER.error(e, exc_info=True)
+                messages.append(str(e))
 
     if detected:
         return True, '%s service/s created' % num_created
     else:
-        return False, 'ERROR! Could not detect service type for endpoint %s or already existing' % endpoint
+        m = '|'.join(messages)
+        return False, 'ERROR! Could not detect service type for ' \
+                      'endpoint %s or already existing. messages=(%s)' % (endpoint, m)
 
 
-def process_esri_services(esri_services):
+def get_single_service(esri, url, endpoint):
+    url_split_list = url.split(endpoint + '/')[1].split('/')
+    len_list = len(url_split_list)
+
+    service_name = url_split_list[0]
+    if len_list == 3:
+        service_to_process = [s for s in esri.services if service_name in s.url]
+    elif len_list == 4:
+        folder_name, folder_service_name = url_split_list[0], url_split_list[1]
+        service_to_process = []
+        esri_folder = [f for f in esri.folders if folder_name in f.url]
+        if len(esri_folder) != 0:
+            for folder in esri_folder:
+                service_to_process = [s for s in folder.services if folder_service_name in s.url]
+
+    return service_to_process
+
+
+def process_esri_services(esri_services, catalog):
     services_created = []
     for esri_service in esri_services:
-        # for now we process only MapServer and ImageServer
-        if '/MapServer/' in esri_service.url or '/ImageServer/' in esri_service.url:
-            if '/ImageServer/' in esri_service.url:
+        # for now we process only MapServer
+        if '/MapServer/' in esri_service.url:
+            # we import only MapServer with at least one layer
+            if hasattr(esri_service, 'layers'):
                 service = create_service_from_endpoint(
                     esri_service.url,
-                    'ESRI:ArcGIS:ImageServer',
-                    '',
-                    esri_service.serviceDescription
+                    'ESRI:ArcGIS:MapServer',
+                    esri_service.mapName,
+                    esri_service.description,
+                    catalog=catalog
                 )
-            if '/MapServer/' in esri_service.url:
-                # we import only MapServer with at least one layer
-                if hasattr(esri_service, 'layers'):
-                    service = create_service_from_endpoint(
-                        esri_service.url,
-                        'ESRI:ArcGIS:MapServer',
-                        esri_service.mapName,
-                        esri_service.description
-                    )
-            services_created.append(service)
+                services_created.append(service)
+
+        # Don't process ImageServer until the following issue has been resolved:
+        # https://github.com/mapproxy/mapproxy/issues/235
+        # if '/ImageServer/' in esri_service.url:
+        #     service = create_service_from_endpoint(
+        #         esri_service.url,
+        #         'ESRI:ArcGIS:ImageServer',
+        #         '',
+        #         esri_service.serviceDescription
+        #     )
+        #      services_created.append(service)
+
     return services_created
 
 
@@ -354,15 +432,15 @@ def get_esri_extent(esriobj):
 
     try:
         srs = extent['spatialReference']['wkid']
-    except KeyError as err:
-        LOGGER.error(err)
+    except KeyError, err:
+        LOGGER.error(err, exc_info=True)
 
     return [extent, srs]
 
 
 def flip_coordinates(c1, c2):
     if c1 > c2:
-        print 'Flipping coordinates %s, %s' % (c1, c2)
+        LOGGER.debug('Flipping coordinates %s, %s' % (c1, c2))
         temp = c1
         c1 = c2
         c2 = temp
@@ -403,12 +481,13 @@ def get_solr_date(pydate, is_negative):
         if isinstance(pydate, datetime.datetime):
             solr_date = '%sZ' % pydate.isoformat()[0:19]
             if is_negative:
-                print '***** This layer has a negative date'
+                LOGGER.debug('%s This layer has a negative date' % solr_date)
                 solr_date = '-%s' % solr_date
             return solr_date
         else:
             return None
-    except Exception:
+    except Exception, e:
+        LOGGER.error(e, exc_info=True)
         return None
 
 
@@ -427,7 +506,7 @@ def get_date(layer):
         date = layer_dates[0][1]
         date_type = layer_dates[0][2]
     if date is None:
-        date = layer.created.date()
+        date = layer.created
     # layer date > 2300 is invalid for sure
     # TODO put this logic in date miner
     if date.year > 2300:
@@ -476,6 +555,7 @@ def layer2dict(layer):
             minY = -90
         if (maxY > 90):
             maxY = 90
+        rectangle = box(minX, minY, maxX, maxY)
         wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
         halfWidth = (maxX - minX) / 2.0
         halfHeight = (maxY - minY) / 2.0
@@ -511,7 +591,7 @@ def layer2dict(layer):
                     'last_status': layer.last_status,
                     'is_public': layer.is_public,
                     'availability': 'Online',
-                    'location': '{"layerInfoPage": "' + layer.get_absolute_url() + '"}',
+                    'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
                     'abstract': abstract,
                     'domain_name': layer.service.get_domain
                     }
@@ -527,6 +607,8 @@ def layer2dict(layer):
         layer_dict['max_y'] = maxY
         layer_dict['area'] = area
         layer_dict['bbox'] = wkt
+        layer_dict['centroid_x'] = rectangle.centroid.x
+        layer_dict['centroid_y'] = rectangle.centroid.y
         srs_list = [srs.encode('utf-8') for srs in layer.service.srs.values_list('code', flat=True)]
         layer_dict['srs'] = srs_list
     if layer.get_tile_url():

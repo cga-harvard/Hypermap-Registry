@@ -2,7 +2,7 @@ import os
 from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 
-import hypermap
+from hypermap import __version__, __description__
 
 
 def read(*rnames):
@@ -39,52 +39,60 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
             del dirnames[i]
     if '__init__.py' in filenames:
         packages.append('.'.join(fullsplit(dirpath)))
+    if 'templates' in filenames:
+        packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
         data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
+
 setup(
-    name="HHypermap",
-    version=hypermap.__version__,
-    author="",
-    author_email="",
-    description=hypermap.__description__,
+    name=__description__,
+    version=__version__,
+    author='',
+    author_email='',
+    url='https://github.com/cga-harvard/HHypermap',
+    download_url='https://github.com/cga-harvard/HHypermap',
+    description='Django Registry by Harvard CGA',
     long_description=(read('README.md')),
     classifiers=[
         'Development Status :: 1 - Planning',
     ],
     license="BSD",
     keywords="hypermap django",
-    url='https://github.com/cga-harvard/HHypermap',
     packages=packages,
     data_files=data_files,
-    zip_safe=False,
+    include_package_data=True,
     install_requires=[
-        'amqplib==1.0.2',
-        'arcrest==10.3',
-        'celery==3.1.19',
-        'Django==1.8.7',
-        'django-debug-toolbar==1.4',
-        'django-pagination==1.0.7',
-        'django-taggit==0.18.0',
-        'django-wsgi==1.0b1',
-        'django-extensions==1.6.7',
-        'dj-database-url==0.4.0',
-        'pika==0.10.0',
-        'pycsw==2.0.0',
-        'flake8==2.5.1',
-        'httmock==1.2.5',
-        'MapProxy==1.8.1',
-        'pyelasticsearch==1.4',
-        'django-celery==3.1.17',
-        'nose==1.3.7',
-        'OWSLib==0.10.3',
-        'Paver==1.2.4',
-        'Pillow==3.1.0.rc1',
-        'python-memcached==1.57',
-        'psycopg2==2.6.1',
-        'pysolr==3.3.3',
-        'pyelasticsearch==1.4',
-        'requests==2.9.1',
-        'webtest==2.0.20',
+        'amqplib',
+        'arcrest',
+        'celery',
+        'Django>=1.8, <1.9a0',
+        'django-debug-toolbar',
+        'django-pagination',
+        'django-taggit',
+        'django-extensions',
+        'dj-database-url',
+        'django-cache-url',
+        'django-basic-authentication-decorator',
+        'elasticsearch',
+        'pika',
+        'pycsw>=2.0.0',
+        'flake8',
+        'httmock',
+        'djmp>=0.2.5',
+        'MapProxy>=1.9',
+        'djangorestframework',
+        'django-celery',
+        'isodate',
+        'nose',
+        'OWSLib',
+        'Paver',
+        'Pillow',
+        'python-memcached',
+        'psycopg2',
+        'pysolr',
+        'pylibmc',
+        'requests',
+        'webtest',
     ]
 )

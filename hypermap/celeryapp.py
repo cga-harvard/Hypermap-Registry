@@ -7,7 +7,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hypermap.settings')
 
 from django.conf import settings  # noqa
 
-app = Celery('hypermap')
+app = Celery(settings.CELERY_DEFAULT_EXCHANGE)
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.

@@ -9,25 +9,30 @@ import unittest
 from httmock import with_httmock
 import mocks.warper
 
-from hypermap.aggregator.models import Service
+from hypermap.aggregator.models import Service, Catalog
 
 
 class TestWarper(unittest.TestCase):
 
     @with_httmock(mocks.warper.resource_get)
     def test_create_wms_service(self):
+        catalog, created = Catalog.objects.get_or_create(
+            name="hypermap", slug="hypermap",
+            url="search_api"
+        )
         # create the service
         service = Service(
             type='Hypermap:WARPER',
             url='http://warper.example.com/warper/maps',
+            catalog=catalog
         )
         service.save()
 
         # check layer number
         self.assertEqual(service.layer_set.all().count(), 15)
 
-        # check layer 0 (public)
-        layer_0 = service.layer_set.all()[0]
+        # check layer name 29568 (public)
+        layer_0 = service.layer_set.get(name='29568')
         self.assertEqual(layer_0.name, '29568')
         self.assertEqual(layer_0.title, 'Plate 24: Map bounded by Myrtle Avenue')
         self.assertTrue(layer_0.is_public)
