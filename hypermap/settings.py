@@ -271,4 +271,4 @@ REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
 REGISTRY_SEARCH_BATCH_SIZE = os.getenv('SEARCH_BATCH_SIZE', 50)
 
 # Read cache information from CACHE_URL
-CACHES={'default': django_cache_url.config()}
+CACHES = {'default': django_cache_url.config()}
