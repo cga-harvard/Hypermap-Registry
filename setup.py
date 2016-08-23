@@ -2,7 +2,7 @@ import os
 from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 
-import hypermap
+from hypermap import __version__, __description__
 
 
 def read(*rnames):
@@ -45,8 +45,8 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
 
 
 setup(
-    name='django-registry',
-    version='0.2.14',
+    name=__description__,
+    version=__version__,
     author='',
     author_email='',
     url='https://github.com/cga-harvard/HHypermap',
