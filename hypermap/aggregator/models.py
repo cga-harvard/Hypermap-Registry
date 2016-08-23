@@ -532,7 +532,7 @@ class Layer(Resource):
         """
         Returns the tile url MapProxy endpoint for the layer.
         """
-        return '/registry/%s/layer/%s/map/wmts/%s/default_grid/{z}/{y}/{x}.png' % (
+        return '/registry/%s/layer/%s/map/wmts/%s/default_grid/{z}/{x}/{y}.png' % (
                    self.catalog.slug, self.id, self.name)
 
     def has_valid_bbox(self):
