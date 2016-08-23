@@ -54,7 +54,7 @@ services:
     command: grunt serve
 
   nginx:
-    image: terranodo/nginx:registry
+    image: geonode/nginx:registry
     links:
       - django
       - maploom
