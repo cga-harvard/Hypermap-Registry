@@ -1,0 +1,50 @@
+version: '2'
+services:
+
+  postgres:
+    image: postgres
+
+  elasticsearch:
+   image: elasticsearch
+
+  rabbitmq:
+     image: rabbitmq
+
+  memcached:
+    image: memcached
+
+  django:
+    image: terranodo/registry
+    links:
+      - postgres
+      - elasticsearch
+      - rabbitmq
+    env_file:
+      - django.env
+
+  celery:
+    image: terranodo/registry
+    links:
+      - rabbitmq
+      - postgres
+      - elasticsearch
+    depends_on:
+      - rabbitmq
+      - postgres
+    entrypoint: wait-for-postgres postgres
+    command: celery worker --app=hypermap.celeryapp:app -B -l INFO
+    env_file:
+      - django.env
+
+  maploom:
+    image: terranodo/maploom
+    command: grunt serve
+
+  nginx:
+    image: geonode/nginx:registry
+    links:
+      - django
+      - maploom
+      - elasticsearch
+    ports:
+      - "80:80"

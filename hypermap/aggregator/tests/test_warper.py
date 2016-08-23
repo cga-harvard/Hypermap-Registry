@@ -9,17 +9,22 @@ import unittest
 from httmock import with_httmock
 import mocks.warper
 
-from hypermap.aggregator.models import Service
+from hypermap.aggregator.models import Service, Catalog
 
 
 class TestWarper(unittest.TestCase):
 
     @with_httmock(mocks.warper.resource_get)
     def test_create_wms_service(self):
+        catalog, created = Catalog.objects.get_or_create(
+            name="hypermap", slug="hypermap",
+            url="search_api"
+        )
         # create the service
         service = Service(
             type='Hypermap:WARPER',
             url='http://warper.example.com/warper/maps',
+            catalog=catalog
         )
         service.save()
 

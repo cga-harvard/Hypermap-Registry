@@ -9,10 +9,13 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
+from djmp.views import get_mapproxy
 
-from models import Service, Layer
+
+from models import Service, Layer, Catalog
 from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
-                   index_service, index_all_layers, index_layer, index_cached_layers, clear_solr)
+                   index_service, index_all_layers, index_layer, index_cached_layers, clear_index,
+                   SEARCH_TYPE, SEARCH_URL)
 from enums import SERVICE_TYPES
 
 from hypermap import celeryapp
@@ -37,7 +40,7 @@ def serialize_checks(check_set):
 @login_required
 def domains(request):
     url = ('%s/select?q=*:*&facet=true&facet.limit=-1&facet.pivot=domain_name,service_id&wt=json&indent=true&rows=0'
-           % settings.SEARCH_URL)
+           % SEARCH_URL)
     print url
     response = urllib2.urlopen(url)
     data = response.read().replace('\n', '')
@@ -53,17 +56,22 @@ def domains(request):
     return HttpResponse(template.render(context))
 
 
-def index(request):
+def index(request, catalog_slug=None):
     order_by = request.GET.get('order_by', '-last_updated')
     filter_by = request.GET.get('filter_by', None)
     query = request.GET.get('q', None)
+
+    services = Service.objects.all()
+    if catalog_slug:
+        services = Service.objects.filter(catalog__slug=catalog_slug)
+
     # order_by
     if 'total_checks' in order_by:
-        services = Service.objects.annotate(total_checks=Count('resource_ptr__check')).order_by(order_by)
+        services = services.annotate(total_checks=Count('resource_ptr__check')).order_by(order_by)
     elif 'layers_count' in order_by:
-        services = Service.objects.annotate(layers_count=Count('layer')).order_by(order_by)
+        services = services.annotate(layers_count=Count('layer')).order_by(order_by)
     else:
-        services = Service.objects.all().order_by(order_by)
+        services = services.order_by(order_by)
     # filter_by
     if filter_by:
         services = services.filter(type__exact=filter_by)
@@ -90,64 +98,77 @@ def index(request):
         'types_list': types_list,
         'layers_count': layers_count,
         'services_count': services_count,
+        'catalogs': Catalog.objects.filter(url__isnull=False)
     })
     return HttpResponse(template.render(context))
 
 
-def service_detail(request, service_id):
-    service = get_object_or_404(Service, pk=service_id)
+def service_detail(request, catalog_slug, service_id):
+    service = get_object_or_404(Service,
+                                pk=service_id,
+                                catalog__slug=catalog_slug)
 
     if request.method == 'POST':
         if 'check' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 check_service(service)
             else:
                 check_service.delay(service)
         if 'remove' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 remove_service_checks(service)
             else:
                 remove_service_checks.delay(service)
         if 'index' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 index_service(service)
             else:
                 index_service.delay(service)
 
-    return render(request, 'aggregator/service_detail.html', {'service': service})
+    return render(request, 'aggregator/service_detail.html', {'service': service,
+                                                              'SEARCH_TYPE': SEARCH_TYPE,
+                                                              'SEARCH_URL': SEARCH_URL.rstrip('/'),
+                                                              'catalog_slug': catalog_slug})
 
 
-def service_checks(request, service_id):
-    service = get_object_or_404(Service, pk=service_id)
+def service_checks(request, catalog_slug, service_id):
+    service = get_object_or_404(Service,
+                                pk=service_id,
+                                catalog__slug=catalog_slug)
     resource = serialize_checks(service.check_set)
 
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
-def layer_detail(request, layer_id):
-    layer = get_object_or_404(Layer, pk=layer_id)
+def layer_detail(request, catalog_slug, layer_id):
+    layer = get_object_or_404(Layer,
+                              pk=layer_id,
+                              catalog__slug=catalog_slug)
 
     if request.method == 'POST':
         if 'check' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 check_layer(layer)
             else:
                 check_layer.delay(layer)
         if 'remove' in request.POST:
             layer.check_set.all().delete()
         if 'index' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 index_layer(layer)
             else:
                 index_layer.delay(layer)
 
     return render(request, 'aggregator/layer_detail.html', {'layer': layer,
-                                                            'SEARCH_TYPE': settings.SEARCH_TYPE,
-                                                            'SEARCH_URL': settings.SEARCH_URL})
+                                                            'SEARCH_TYPE': SEARCH_TYPE,
+                                                            'SEARCH_URL': SEARCH_URL.rstrip('/'),
+                                                            'catalog_slug': catalog_slug})
 
 
-def layer_checks(request, layer_id):
-    layer = get_object_or_404(Layer, pk=layer_id)
+def layer_checks(request, catalog_slug, layer_id):
+    layer = get_object_or_404(Layer,
+                              pk=layer_id,
+                              catalog__slug=catalog_slug)
     resource = serialize_checks(layer.check_set)
 
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
@@ -170,7 +191,7 @@ def celery_monitor(request):
                 name = task['name']
                 time_start = task['time_start']
                 args = task['args']
-                active_task = celeryapp.AsyncResult(id)
+                active_task = celeryapp.app.AsyncResult(id)
                 active_task.name = name
                 active_task.args = args
                 active_task.worker = '%s, pid: %s' % (worker, task['worker_pid'])
@@ -185,19 +206,19 @@ def celery_monitor(request):
                 id = task['id']
                 name = task['name']
                 args = task['args']
-                reserved_task = celeryapp.AsyncResult(id)
+                reserved_task = celeryapp.app.AsyncResult(id)
                 reserved_task.name = name
                 reserved_task.args = args
                 reserved_tasks.append(reserved_task)
 
     if request.method == 'POST':
         if 'check_all' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 check_all_services()
             else:
                 check_all_services.delay()
         if 'index_all' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 index_all_layers()
             else:
                 index_all_layers.delay()
@@ -206,11 +227,11 @@ def celery_monitor(request):
                 index_cached_layers()
             else:
                 index_cached_layers.delay()
-        if 'clear_solr' in request.POST:
-            if settings.SKIP_CELERY_TASK:
-                clear_solr()
+        if 'clear_index' in request.POST:
+            if settings.REGISTRY_SKIP_CELERY:
+                clear_index()
             else:
-                clear_solr.delay()
+                clear_index.delay()
     return render(
         request,
         'aggregator/celery_monitor.html',
@@ -234,7 +255,7 @@ def get_queued_jobs_number():
                            virtual_host=params.virtual_host,
                            insist=False)
     chan = conn.channel()
-    name, jobs, consumers = chan.queue_declare(queue="celery", passive=True)
+    name, jobs, consumers = chan.queue_declare(queue="hypermap", passive=False)
     return jobs
 
 
@@ -249,7 +270,7 @@ def update_jobs_number(request):
 @login_required
 def update_progressbar(request, task_id):
     response_data = {}
-    active_task = celeryapp.AsyncResult(task_id)
+    active_task = celeryapp.app.AsyncResult(task_id)
     progressbar = 100
     status = '100%'
     state = 'COMPLETED'
@@ -265,3 +286,40 @@ def update_progressbar(request, task_id):
     response_data['state'] = state
     json_data = json.dumps(response_data)
     return HttpResponse(json_data, content_type="application/json")
+
+
+def layer_mapproxy(request, catalog_slug, layer_id, path_info):
+    # Get Layer with matching catalog and primary key
+    layer = get_object_or_404(Layer,
+                              pk=layer_id,
+                              catalog__slug=catalog_slug)
+
+    # Set up a mapproxy app for this particular layer
+    mp, yaml_config = get_mapproxy(layer)
+
+    query = request.META['QUERY_STRING']
+
+    if len(query) > 0:
+        path_info = path_info + '?' + query
+
+    params = {}
+    headers = {
+            'X-Script-Name': '/registry/{0}/layer/{1}/map/'.format(catalog_slug, layer.id),
+            'X-Forwarded-Host': request.META['HTTP_HOST'],
+            'HTTP_HOST': request.META['HTTP_HOST'],
+            'SERVER_NAME': request.META['SERVER_NAME'],
+            }
+
+    if path_info == '/config':
+        response = HttpResponse(yaml_config, content_type='text/plain')
+        return response
+
+    # Get a response from MapProxy as if it was running standalone.
+    mp_response = mp.get(path_info, params, headers)
+
+    # Create a Django response from the MapProxy WSGI response.
+    response = HttpResponse(mp_response.body, status=mp_response.status_int)
+    for header, value in mp_response.headers.iteritems():
+        response[header] = value
+
+    return response
