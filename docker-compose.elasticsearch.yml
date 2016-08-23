@@ -1,0 +1,17 @@
+version: '2'
+services:
+
+  elasticsearch:
+    image: elasticsearch
+
+  django:
+    links:
+      - elasticsearch
+    environment:
+      - REGISTRY_SEARCH_URL=elasticsearch+http://elasticsearch:9200
+
+  celery:
+    links:
+      - elasticsearch
+    environment:
+      - REGISTRY_SEARCH_URL=elasticsearch+http://elasticsearch:9200

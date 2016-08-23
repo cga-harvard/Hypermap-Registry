@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render_to_response
 from django.template import loader, RequestContext
 from django.views.decorators.csrf import csrf_exempt
+from django_basic_auth import logged_in_or_basicauth
 
 from pycsw import server
 
@@ -17,7 +18,8 @@ from hypermap.aggregator.models import Catalog
 
 
 @csrf_exempt
-def csw_global_dispatch(request):
+@logged_in_or_basicauth()
+def csw_global_dispatch(request, url=None, catalog_id=None):
     """pycsw wrapper"""
 
     msg = None
@@ -48,7 +50,13 @@ def csw_global_dispatch(request):
     env.update({'local.app_root': os.path.dirname(__file__),
                 'REQUEST_URI': request.build_absolute_uri()})
 
-    csw = server.Csw(settings.PYCSW, env)
+    # if this is a catalog based CSW, then update settings
+    if url is not None:
+        settings.REGISTRY_PYCSW['server']['url'] = url
+    if catalog_id is not None:
+        settings.REGISTRY_PYCSW['repository']['filter'] = 'catalog_id = %d' % catalog_id
+
+    csw = server.Csw(settings.REGISTRY_PYCSW, env, version='2.0.2')
 
     content = csw.dispatch_wsgi()
 
@@ -67,47 +75,27 @@ def csw_global_dispatch(request):
 
 
 @csrf_exempt
+@logged_in_or_basicauth()
 def csw_global_dispatch_by_catalog(request, catalog_slug):
-    """pycsw wrapper"""
+    """pycsw wrapper for catalogs"""
 
     catalog = get_object_or_404(Catalog, slug=catalog_slug)
 
-    # TODO: Implement pycsw per catalog
-    if catalog:
-        pass
-
-    env = request.META.copy()
-    env.update({'local.app_root': os.path.dirname(__file__),
-                'REQUEST_URI': request.build_absolute_uri()})
-
-    csw = server.Csw(settings.PYCSW, env, version='2.0.2')
-
-    content = csw.dispatch_wsgi()
-
-    # pycsw 2.0 has an API break:
-    # pycsw < 2.0: content = xml_response
-    # pycsw >= 2.0: content = [http_status_code, content]
-    # deal with the API break
-
-    if isinstance(content, list):  # pycsw 2.0+
-        content = content[1]
-
-    response = HttpResponse(content, content_type=csw.contenttype)
-
-    response['Access-Control-Allow-Origin'] = '*'
-    return response
+    if catalog:  # define catalog specific settings
+        url = settings.SITE_URL.rstrip('/') + request.path.rstrip('/')
+        return csw_global_dispatch(request, url=url, catalog_id=catalog.id)
 
 
 def opensearch_dispatch(request):
     """OpenSearch wrapper"""
 
     ctx = {
-        'shortname': settings.PYCSW['metadata:main']['identification_title'],
-        'description': settings.PYCSW['metadata:main']['identification_abstract'],
-        'developer': settings.PYCSW['metadata:main']['contact_name'],
-        'contact': settings.PYCSW['metadata:main']['contact_email'],
-        'attribution': settings.PYCSW['metadata:main']['provider_name'],
-        'tags': settings.PYCSW['metadata:main']['identification_keywords'].replace(',', ' '),
+        'shortname': settings.REGISTRY_PYCSW['metadata:main']['identification_title'],
+        'description': settings.REGISTRY_PYCSW['metadata:main']['identification_abstract'],
+        'developer': settings.REGISTRY_PYCSW['metadata:main']['contact_name'],
+        'contact': settings.REGISTRY_PYCSW['metadata:main']['contact_email'],
+        'attribution': settings.REGISTRY_PYCSW['metadata:main']['provider_name'],
+        'tags': settings.REGISTRY_PYCSW['metadata:main']['identification_keywords'].replace(',', ' '),
         'url': settings.SITE_URL.rstrip('/')
     }
 

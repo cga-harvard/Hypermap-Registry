@@ -4,10 +4,12 @@ import re
 import json
 import urllib2
 import requests
+import logging
 from urlparse import urlparse
 from dateutil.parser import parse
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -29,10 +31,21 @@ from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
-from tasks import update_endpoint, update_endpoints, check_service, check_layer
+from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
 from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
+
+LOGGER = logging.getLogger(__name__)
+
+REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
+
+if REGISTRY_LIMIT_LAYERS > 0:
+    DEBUG_SERVICES = True
+    DEBUG_LAYER_NUMBER = REGISTRY_LIMIT_LAYERS
+else:
+    DEBUG_SERVICES = False
+    DEBUG_LAYER_NUMBER = -1
 
 
 def get_parsed_date(sdate):
@@ -63,12 +76,13 @@ def add_metadata_dates_to_layer(dates, layer):
                             iso = dt.isoformat()
                             tokens = iso.strip().split("T")
                             fdate = tokens[0]
-                            print 'Adding date %s to layer %s' % (fdate, layer.id)
+                            LOGGER.debug('Adding date %s to layer %s' % (fdate, layer.id))
                             layerdate, created = LayerDate.objects.get_or_create(layer=layer, date=fdate, type=1)
                         else:
-                            print 'Skipping date "%s" as is invalid.' % date
-                    except:
-                        print 'Skipping date "%s" as is invalid.' % date
+                            LOGGER.debug('Skipping date "%s" as is invalid.' % date)
+                    except Exception, e:
+                        LOGGER.warning('Skipping date "%s" as is invalid.' % date)
+                        LOGGER.warning(str(e))
 
 
 def add_mined_dates(layer):
@@ -130,7 +144,7 @@ class Resource(models.Model):
     # CSW fields
     csw_last_updated = models.CharField(max_length=32,
                                         default=datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                                        null=False)
+                                        null=True, blank=True)
     csw_type = models.CharField(max_length=32, default='dataset', null=False)
     csw_typename = models.CharField(max_length=32, default='csw:Record', null=False)
 
@@ -190,14 +204,17 @@ class Resource(models.Model):
 
     @property
     def average_response_time(self):
+        # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Avg('response_time')).values()[0]
 
     @property
     def min_response_time(self):
+        # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Min('response_time')).values()[0]
 
     @property
     def max_response_time(self):
+        # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Max('response_time')).values()[0]
 
     @property
@@ -238,6 +255,26 @@ class Resource(models.Model):
         else:
             return self.reliability
 
+    def get_checks_admin_url(self):
+        path = reverse("admin:%s_%s_changelist" % (self._meta.app_label, "check"))
+        return path
+
+    def get_checks_admin_reliability_warning_url(self):
+        """
+        When service Realiability is going down users should go to the
+        the check history to find problem causes.
+        :return: admin url with check list for this instance
+        """
+        # TODO: cache this.
+        path = self.get_checks_admin_url()
+        content_type = ContentType.objects.get_for_model(self)
+        params = "?content_type__id__exact={0}&q={1}&success__exact=0".format(
+            content_type.id,
+            self.id
+        )
+        url = path + params
+        return url
+
 
 class Service(Resource):
     """
@@ -245,6 +282,7 @@ class Service(Resource):
     """
 
     srs = models.ManyToManyField(SpatialReferenceSystem, blank=True)
+    catalog = models.ForeignKey("Catalog", default=1)
 
     @property
     def get_domain(self):
@@ -252,12 +290,20 @@ class Service(Resource):
         domain = '{uri.netloc}'.format(uri=parsed_uri)
         return domain
 
+    @property
+    def get_absolute_url(self):
+        return reverse("service_detail", args=[self.catalog.slug, self.id])
+
+    @property
+    def get_check_stats_absolute_url(self):
+        return reverse("service_checks", args=[self.catalog.slug, self.id])
+
     def update_layers(self):
         """
         Update layers for a service.
         """
         signals.post_save.disconnect(layer_post_save, sender=Layer)
-        print 'Updating layers for service id %s' % self.id
+        LOGGER.debug('Updating layers for service id %s' % self.id)
         if self.type == 'OGC:WMS':
             update_layers_wms(self)
         elif self.type == 'OGC:WMTS':
@@ -272,6 +318,24 @@ class Service(Resource):
             update_layers_warper(self)
         signals.post_save.connect(layer_post_save, sender=Layer)
 
+    def index_layers(self, with_cache=True):
+        """
+        Index all layers for this service.
+        """
+        if settings.REGISTRY_SEARCH_URL is not None:
+            for layer in self.layer_set.all():
+                if with_cache:
+                    # TODO: DRY by adding inside tasks.index_layer(layer) method.
+                    LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
+                    layers = cache.get('layers')
+                    if layers is None:
+                        layers = set([layer.id])
+                    else:
+                        layers.add(layer.id)
+                    cache.set('layers', layers)
+                else:
+                    index_layer(layer)
+
     def check_available(self):
         """
         Check for availability of a service and provide run metrics.
@@ -280,7 +344,7 @@ class Service(Resource):
         start_time = datetime.datetime.utcnow()
         message = ''
 
-        print 'Checking service id %s' % self.id
+        LOGGER.debug('Checking service id %s' % self.id)
 
         try:
             title = None
@@ -370,7 +434,7 @@ class Service(Resource):
             anytexts = gen_anytext(title, abstract, keywords)
             Service.objects.filter(id=self.id).update(anytext=anytexts, xml=xml, csw_type='service')
         except Exception as err:
-            print(err)
+            LOGGER.error(str(err))
             message = str(err)
             success = False
 
@@ -385,7 +449,7 @@ class Service(Resource):
             message=message
         )
         check.save()
-        print 'Service checked in %s seconds, status is %s' % (response_time, success)
+        LOGGER.debug('Service checked in %s seconds, status is %s' % (response_time, success))
 
 
 class Catalog(models.Model):
@@ -393,14 +457,49 @@ class Catalog(models.Model):
     Represents a collection of layers to be searched.
     """
     name = models.CharField(
-        max_length=255
+        max_length=255,
+        help_text="Display name in UI"
     )
     slug = AutoSlugField(
-        populate_from='name'
+        populate_from='name',
+        editable=True,
+        help_text="Leave empty to be populated from name"
+    )
+    url = models.URLField(
+        max_length=255,
+        help_text=("Only if remote. URL where the API for the search backend is served."
+                   "ex: http://localhost:8000/registry/api/search/"),
+        null=True, blank=True
     )
 
     def __unicode__(self):
-        return self.name
+        return '{0}'.format(
+            self.name
+        )
+
+    def get_search_url(self):
+        """
+        resolve the search url no matter if local or remote.
+        :return: url or exception
+        """
+
+        if self.is_remote:
+            return self.url
+
+        return reverse('search_api', args=[self.slug])
+
+    @property
+    def is_remote(self):
+        """
+        Define if data source is local or remote
+        :return: True if remote, else False.
+        """
+        if self.url and len(self.url) > 0:
+            return True
+        return False
+
+    def get_absolute_url(self):
+        return reverse('index', args=[self.slug])
 
 
 class Layer(Resource):
@@ -417,7 +516,7 @@ class Layer(Resource):
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)
     is_monitored = models.BooleanField(default=True)
-    catalogs = models.ManyToManyField(Catalog, blank=True)
+    catalog = models.ForeignKey(Catalog, default=1)
 
     def __unicode__(self):
         return '%s' % self.id
@@ -425,21 +524,22 @@ class Layer(Resource):
     def get_url_endpoint(self):
         """
         Returns the Hypermap endpoint for a layer.
-        This endpoint will be the WMTS MapProxy endpoint, only for WM and Esri we use original endpoints.
+        This endpoint will be the WMTS MapProxy endpoint, only for WM we use the original endpoint.
         """
         endpoint = self.url
-        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
-            endpoint = '%s/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (settings.SITE_URL, self.id)
+        if self.type not in ('Hypermap:WorldMap',):
+            endpoint = 'registry/%s/layer/%s/map/wmts/1.0.0/WMTSCapabilities.xml' % (
+                self.catalog.slug,
+                self.id
+            )
         return endpoint
 
     def get_tile_url(self):
         """
         Returns the tile url MapProxy endpoint for the layer.
         """
-        if self.type not in ('Hypermap:WorldMap', 'ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer'):
-            return '/layers/%s/map/wmts/nypl_map/default_grid/{z}/{y}/{x}.png' % self.id
-        else:
-            return None
+        return '/registry/%s/layer/%s/map/wmts/%s/default_grid/{z}/{x}/{y}.png' % (
+                   self.catalog.slug, self.id, self.name)
 
     def has_valid_bbox(self):
         if self.bbox_x0 is None or self.bbox_y0 is None or self.bbox_x1 is None or self.bbox_y1 is None:
@@ -495,7 +595,7 @@ class Layer(Resource):
         return dates
 
     def update_thumbnail(self):
-        print 'Generating thumbnail for layer id %s' % self.id
+        LOGGER.debug('Generating thumbnail for layer id %s' % self.id)
         if not self.has_valid_bbox():
             raise ValueError('Extent for this layer is invalid, cannot generate thumbnail')
             return None
@@ -545,7 +645,9 @@ class Layer(Resource):
                                 format=image_format
                             )
         elif self.type == 'Hypermap:WorldMap':
-            ows = WebMapService(self.url, username=settings.WM_USERNAME, password=settings.WM_PASSWORD)
+            ows = WebMapService(self.url,
+                                username=settings.REGISTRY_WORLDMAP_USERNAME,
+                                password=settings.REGISTRY_WORLDMAP_PASSWORD)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
             if image_format not in op_getmap.formatOptions:
@@ -613,7 +715,7 @@ class Layer(Resource):
                     format='jpg'
                 )
             except Exception, e:
-                print e
+                LOGGER.error(str(e))
             name = re.sub('[^\w\-_\. ]', '_', self.name)
             thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
             image.save(thumbnail_file_name)
@@ -631,7 +733,7 @@ class Layer(Resource):
                 )
                 image = arcserver.ExportImage(bbox=bbox)
             except Exception, e:
-                print e
+                LOGGER.error(str(e))
             name = re.sub('[^\w\-_\. ]', '_', self.name)
             thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
             image.save(thumbnail_file_name)
@@ -639,11 +741,11 @@ class Layer(Resource):
             os.remove(thumbnail_file_name)
 
         # update thumb in model
-        if img:
+        if img and hasattr(img, 'close'):
             thumbnail_file_name = '%s.jpg' % self.name
             upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
             self.thumbnail.save(thumbnail_file_name, upfile, True)
-            print 'Thumbnail updated for layer %s' % self.name
+            LOGGER.debug('Thumbnail updated for layer %s' % self.name)
 
     def check_available(self):
         """
@@ -652,12 +754,17 @@ class Layer(Resource):
         success = True
         start_time = datetime.datetime.utcnow()
         message = ''
-        print 'Checking layer id %s' % self.id
+        LOGGER.debug('Checking layer id %s' % self.id)
         try:
             signals.post_save.disconnect(layer_post_save, sender=Layer)
             self.update_thumbnail()
             signals.post_save.connect(layer_post_save, sender=Layer)
 
+        except ValueError, err:
+            # caused by update_thumbnail()
+            # self.href is empty in arcserver.ExportMap
+            if str(err).startswith("unknown url type:"):
+                LOGGER.debug('Thumbnail can not be updated: %s' % str(err))
         except Exception, err:
             message = str(err)
             success = False
@@ -674,16 +781,16 @@ class Layer(Resource):
             message=message
         )
         check.save()
-        print 'Layer checked in %s seconds, status is %s' % (response_time, success)
+        LOGGER.debug('Layer checked in %s seconds, status is %s' % (response_time, success))
         return success, message
 
+    @property
     def get_absolute_url(self):
-        return reverse('layer_detail', args=(self.id,))
+        return reverse("layer_detail", args=[self.catalog.slug, self.id])
 
-    def get_catalogs_slugs(self):
-        return list(
-            self.catalogs.all().values_list("slug", flat=True)
-        )
+    @property
+    def get_check_stats_absolute_url(self):
+        return reverse("layer_checks", args=[self.catalog.slug, self.id])
 
 
 class LayerDate(models.Model):
@@ -721,6 +828,8 @@ class EndpointList(models.Model):
     EndpointList represents a file containing an EndPoint list.
     """
     upload = models.FileField(upload_to='endpoint_lists')
+    greedy = models.BooleanField(default=False, editable=False)
+    catalog = models.ForeignKey(Catalog, default=1)
 
     def __unicode__(self):
         return self.upload.name
@@ -739,8 +848,12 @@ class Endpoint(models.Model):
     processed_datetime = models.DateTimeField(auto_now=True)
     imported = models.BooleanField(default=False)
     message = models.TextField(blank=True, null=True)
-    url = models.URLField(unique=True, max_length=255)
+    url = models.URLField(max_length=255)
     endpoint_list = models.ForeignKey(EndpointList, blank=True, null=True)
+    catalog = models.ForeignKey(Catalog, default=1)
+
+    class Meta:
+        unique_together = ("url", "catalog")
 
     @property
     def id_string(self):
@@ -843,75 +956,87 @@ def update_layers_wms(service):
     Update layers for an OGC:WMS service.
     Sample endpoint: http://demo.geonode.org/geoserver/ows
     """
-    wms = WebMapService(service.url)
-    layer_names = list(wms.contents)
-    parent = wms.contents[layer_names[0]].parent
-    # fallback, some endpoint like this one:
-    # https://nsidc.org/cgi-bin/atlas_north?service=WMS&request=GetCapabilities&version=1.1.1
-    # does not have a parent to check for srs
-    if parent:
-        crsOptions = parent.crsOptions
-    else:
-        crsOptions = wms.contents[layer_names[0]].crsOptions
-    # set srs
-    for crs_code in crsOptions:
-        srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
-        service.srs.add(srs)
+    try:
+        wms = WebMapService(service.url)
+        layer_names = list(wms.contents)
+        parent = wms.contents[layer_names[0]].parent
+        # fallback, some endpoint like this one:
+        # https://nsidc.org/cgi-bin/atlas_north?service=WMS&request=GetCapabilities&version=1.1.1
+        # does not have a parent to check for srs
+        if parent:
+            crsOptions = parent.crsOptions
+        else:
+            crsOptions = wms.contents[layer_names[0]].crsOptions
+        # set srs
+        for crs_code in crsOptions:
+            srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+            service.srs.add(srs)
 
-    # now update layers
-    layer_n = 0
-    total = len(layer_names)
-    for layer_name in layer_names:
-        ows_layer = wms.contents[layer_name]
-        print 'Updating layer %s' % ows_layer.name
-        # get or create layer
-        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
-        if layer.active:
-            links = [['OGC:WMS', service.url]]
-            # update fields
-            layer.type = 'OGC:WMS'
-            layer.title = ows_layer.title
-            layer.abstract = ows_layer.abstract
-            layer.url = service.url
-            layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
-            links.append([
-                'WWW:LINK',
-                settings.SITE_URL.rstrip('/') + layer.page_url
-            ])
-            # bbox
-            bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
-            layer.bbox_x0 = bbox[0]
-            layer.bbox_y0 = bbox[1]
-            layer.bbox_x1 = bbox[2]
-            layer.bbox_y1 = bbox[3]
-            layer.wkt_geometry = bbox2wktpolygon(bbox)
-            # keywords
-            for keyword in ows_layer.keywords:
-                layer.keywords.add(keyword)
-            # crsOptions
-            # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
-            layer.xml = create_metadata_record(
-                identifier=layer.id_string,
-                source=service.url,
-                links=links,
-                format='OGC:WMS',
-                type=layer.csw_type,
-                relation=service.id_string,
-                title=ows_layer.title,
-                alternative=ows_layer.name,
-                abstract=ows_layer.abstract,
-                keywords=ows_layer.keywords,
-                wkt_geometry=layer.wkt_geometry
-            )
-            layer.anytext = gen_anytext(layer.title, layer.abstract, ows_layer.keywords)
-            layer.save()
-            # dates
-            add_mined_dates(layer)
-        layer_n = layer_n + 1
-        # exits if DEBUG_SERVICES
-        print "Updating layer n. %s/%s" % (layer_n, total)
-        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
-            return
+        # now update layers
+        layer_n = 0
+        total = len(layer_names)
+        for layer_name in layer_names:
+            ows_layer = wms.contents[layer_name]
+            LOGGER.debug('Updating layer %s' % ows_layer.name)
+            # get or create layer
+            layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service, catalog=service.catalog)
+            if layer.active:
+                links = [['OGC:WMS', service.url]]
+                # update fields
+                layer.type = 'OGC:WMS'
+                layer.title = ows_layer.title
+                layer.abstract = ows_layer.abstract
+                layer.url = service.url
+                layer.page_url = layer.get_absolute_url
+                links.append([
+                    'WWW:LINK',
+                    settings.SITE_URL.rstrip('/') + layer.page_url
+                ])
+                # bbox
+                bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+                layer.bbox_x0 = bbox[0]
+                layer.bbox_y0 = bbox[1]
+                layer.bbox_x1 = bbox[2]
+                layer.bbox_y1 = bbox[3]
+                layer.wkt_geometry = bbox2wktpolygon(bbox)
+                # keywords
+                for keyword in ows_layer.keywords:
+                    layer.keywords.add(keyword)
+                # crsOptions
+                # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
+                layer.xml = create_metadata_record(
+                    identifier=layer.id_string,
+                    source=service.url,
+                    links=links,
+                    format='OGC:WMS',
+                    type=layer.csw_type,
+                    relation=service.id_string,
+                    title=ows_layer.title,
+                    alternative=ows_layer.name,
+                    abstract=ows_layer.abstract,
+                    keywords=ows_layer.keywords,
+                    wkt_geometry=layer.wkt_geometry
+                )
+                layer.anytext = gen_anytext(layer.title, layer.abstract, ows_layer.keywords.sort())
+                layer.save()
+                # dates
+                add_mined_dates(layer)
+            layer_n = layer_n + 1
+            # exits if DEBUG_SERVICES
+            LOGGER.debug("Updating layer n. %s/%s" % (layer_n, total))
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
+                return
+    except Exception as err:
+        message = "update_layers_wms: {0}".format(
+            err
+        )
+        check = Check(
+            content_object=service,
+            success=False,
+            response_time=0,
+            message=message
+        )
+        check.save()
 
 
 def update_layers_wmts(service):
@@ -919,66 +1044,78 @@ def update_layers_wmts(service):
     Update layers for an OGC:WMTS service.
     Sample endpoint: http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml
     """
-    wmts = WebMapTileService(service.url)
+    try:
+        wmts = WebMapTileService(service.url)
 
-    # set srs
-    # WMTS is always in 4326
-    srs, created = SpatialReferenceSystem.objects.get_or_create(code='EPSG:4326')
-    service.srs.add(srs)
+        # set srs
+        # WMTS is always in 4326
+        srs, created = SpatialReferenceSystem.objects.get_or_create(code='EPSG:4326')
+        service.srs.add(srs)
 
-    layer_names = list(wmts.contents)
-    layer_n = 0
-    total = len(layer_names)
-    for layer_name in layer_names:
-        ows_layer = wmts.contents[layer_name]
-        print 'Updating layer %s' % ows_layer.name
-        layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service)
-        if layer.active:
-            links = [['OGC:WMTS', service.url]]
-            layer.type = 'OGC:WMTS'
-            layer.title = ows_layer.title
-            layer.abstract = ows_layer.abstract
-            # keywords
-            # @tomkralidis wmts does not seem to support this attribute
-            keywords = None
-            if hasattr(ows_layer, 'keywords'):
-                keywords = ows_layer.keywords
-                for keyword in keywords:
-                    layer.keywords.add(keyword)
-            layer.url = service.url
-            layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
-            links.append([
-                'WWW:LINK',
-                settings.SITE_URL.rstrip('/') + layer.page_url
-            ])
-            bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
-            layer.bbox_x0 = bbox[0]
-            layer.bbox_y0 = bbox[1]
-            layer.bbox_x1 = bbox[2]
-            layer.bbox_y1 = bbox[3]
-            layer.wkt_geometry = bbox2wktpolygon(bbox)
-            layer.xml = create_metadata_record(
-                identifier=layer.id_string,
-                source=service.url,
-                links=links,
-                format='OGC:WMS',
-                type=layer.csw_type,
-                relation=service.id_string,
-                title=ows_layer.title,
-                alternative=ows_layer.name,
-                abstract=layer.abstract,
-                keywords=keywords,
-                wkt_geometry=layer.wkt_geometry
-            )
-            layer.anytext = gen_anytext(layer.title, layer.abstract, keywords)
-            layer.save()
-            # dates
-            add_mined_dates(layer)
-        layer_n = layer_n + 1
-        # exits if DEBUG_SERVICES
-        print "Updating layer n. %s/%s" % (layer_n, total)
-        if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
-            return
+        layer_names = list(wmts.contents)
+        layer_n = 0
+        total = len(layer_names)
+        for layer_name in layer_names:
+            ows_layer = wmts.contents[layer_name]
+            LOGGER.debug('Updating layer %s' % ows_layer.name)
+            layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service, catalog=service.catalog)
+            if layer.active:
+                links = [['OGC:WMTS', service.url]]
+                layer.type = 'OGC:WMTS'
+                layer.title = ows_layer.title
+                layer.abstract = ows_layer.abstract
+                # keywords
+                # @tomkralidis wmts does not seem to support this attribute
+                keywords = None
+                if hasattr(ows_layer, 'keywords'):
+                    keywords = ows_layer.keywords
+                    for keyword in keywords:
+                        layer.keywords.add(keyword)
+                layer.url = service.url
+                layer.page_url = layer.get_absolute_url
+                links.append([
+                    'WWW:LINK',
+                    settings.SITE_URL.rstrip('/') + layer.page_url
+                ])
+                bbox = list(ows_layer.boundingBoxWGS84 or (-179.0, -89.0, 179.0, 89.0))
+                layer.bbox_x0 = bbox[0]
+                layer.bbox_y0 = bbox[1]
+                layer.bbox_x1 = bbox[2]
+                layer.bbox_y1 = bbox[3]
+                layer.wkt_geometry = bbox2wktpolygon(bbox)
+                layer.xml = create_metadata_record(
+                    identifier=layer.id_string,
+                    source=service.url,
+                    links=links,
+                    format='OGC:WMS',
+                    type=layer.csw_type,
+                    relation=service.id_string,
+                    title=ows_layer.title,
+                    alternative=ows_layer.name,
+                    abstract=layer.abstract,
+                    keywords=keywords,
+                    wkt_geometry=layer.wkt_geometry
+                )
+                layer.anytext = gen_anytext(layer.title, layer.abstract, keywords)
+                layer.save()
+                # dates
+                add_mined_dates(layer)
+            layer_n = layer_n + 1
+            # exits if DEBUG_SERVICES
+            LOGGER.debug("Updating layer n. %s/%s" % (layer_n, total))
+            if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
+                return
+    except Exception as err:
+        message = "update_layers_wmts: {0}".format(
+            err
+        )
+        check = Check(
+            content_object=service,
+            success=False,
+            response_time=0,
+            message=message
+        )
+        check.save()
 
 
 def update_layers_wm(service):
@@ -986,103 +1123,116 @@ def update_layers_wm(service):
     Update layers for an WorldMap.
     Sample endpoint: http://worldmap.harvard.edu/
     """
-    response = requests.get('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
-    data = json.loads(response.content)
-    total = data['total']
 
-    # set srs
-    # WorldMap supports only 4326, 900913, 3857
-    for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
-        srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
-        service.srs.add(srs)
-
-    layer_n = 0
-    for i in range(0, total, 10):
-        url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
-        print 'Fetching %s' % url
-        response = requests.get(url)
+    try:
+        response = requests.get('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
         data = json.loads(response.content)
-        for row in data['rows']:
-            name = row['name']
-            title = row['title']
-            abstract = row['abstract']
-            bbox = row['bbox']
-            page_url = row['detail']
-            category = ''
-            if 'topic_category' in row:
-                category = row['topic_category']
-            username = ''
-            if 'owner_username' in row:
-                username = row['owner_username']
-            temporal_extent_start = ''
-            if 'temporal_extent_start' in row:
-                temporal_extent_start = row['temporal_extent_start']
-            temporal_extent_end = ''
-            if 'temporal_extent_end' in row:
-                temporal_extent_end = row['temporal_extent_end']
-            # we use the geoserver virtual layer getcapabilities for wm endpoint
-            endpoint = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % name
-            is_public = True
-            if '_permissions' in row:
-                if not row['_permissions']['view']:
-                    is_public = False
-            layer, created = Layer.objects.get_or_create(name=name, service=service)
-            if layer.active:
-                links = [['Hypermap:WorldMap', endpoint]]
-                # update fields
-                layer.type = 'Hypermap:WorldMap'
-                layer.title = title
-                layer.abstract = abstract
-                layer.is_public = is_public
-                layer.url = endpoint
-                layer.page_url = page_url
-                # category and owner username
-                layer_wm, created = LayerWM.objects.get_or_create(layer=layer)
-                layer_wm.category = category
-                layer_wm.username = username
-                layer_wm.temporal_extent_start = temporal_extent_start
-                layer_wm.temporal_extent_end = temporal_extent_end
-                layer_wm.save()
-                # bbox
-                x0 = format_float(bbox['minx'])
-                y0 = format_float(bbox['miny'])
-                x1 = format_float(bbox['maxx'])
-                y1 = format_float(bbox['maxy'])
-                # In many cases for some reason to be fixed GeoServer has x coordinates flipped in WM.
-                x0, x1 = flip_coordinates(x0, x1)
-                y0, y1 = flip_coordinates(y0, y1)
-                layer.bbox_x0 = x0
-                layer.bbox_y0 = y0
-                layer.bbox_x1 = x1
-                layer.bbox_y1 = y1
-                # keywords
-                for keyword in row['keywords']:
-                    layer.keywords.add(keyword)
+        total = data['total']
 
-                layer.wkt_geometry = bbox2wktpolygon((bbox['minx'], bbox['miny'], bbox['maxx'], bbox['maxy']))
-                layer.xml = create_metadata_record(
-                    identifier=layer.id_string,
-                    source=endpoint,
-                    links=links,
-                    format='Hypermap:WorldMap',
-                    type=layer.csw_type,
-                    relation=service.id_string,
-                    title=layer.title,
-                    alternative=name,
-                    abstract=layer.abstract,
-                    keywords=row['keywords'],
-                    wkt_geometry=layer.wkt_geometry
-                )
-                layer.anytext = gen_anytext(layer.title, layer.abstract, row['keywords'])
-                layer.save()
-                # dates
-                add_mined_dates(layer)
-                add_metadata_dates_to_layer([layer_wm.temporal_extent_start, layer_wm.temporal_extent_end], layer)
-            layer_n = layer_n + 1
-            # exits if DEBUG_SERVICES
-            print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
-                return
+        # set srs
+        # WorldMap supports only 4326, 900913, 3857
+        for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
+            srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+            service.srs.add(srs)
+
+        layer_n = 0
+        for i in range(0, total, 10):
+            url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
+            LOGGER.debug('Fetching %s' % url)
+            response = requests.get(url)
+            data = json.loads(response.content)
+            for row in data['rows']:
+                name = row['name']
+                title = row['title']
+                abstract = row['abstract']
+                bbox = row['bbox']
+                page_url = row['detail']
+                category = ''
+                if 'topic_category' in row:
+                    category = row['topic_category']
+                username = ''
+                if 'owner_username' in row:
+                    username = row['owner_username']
+                temporal_extent_start = ''
+                if 'temporal_extent_start' in row:
+                    temporal_extent_start = row['temporal_extent_start']
+                temporal_extent_end = ''
+                if 'temporal_extent_end' in row:
+                    temporal_extent_end = row['temporal_extent_end']
+                # we use the geoserver virtual layer getcapabilities for wm endpoint
+                endpoint = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % name
+                is_public = True
+                if '_permissions' in row:
+                    if not row['_permissions']['view']:
+                        is_public = False
+                layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
+                if layer.active:
+                    links = [['Hypermap:WorldMap', endpoint]]
+                    # update fields
+                    layer.type = 'Hypermap:WorldMap'
+                    layer.title = title
+                    layer.abstract = abstract
+                    layer.is_public = is_public
+                    layer.url = endpoint
+                    layer.page_url = page_url
+                    # category and owner username
+                    layer_wm, created = LayerWM.objects.get_or_create(layer=layer)
+                    layer_wm.category = category
+                    layer_wm.username = username
+                    layer_wm.temporal_extent_start = temporal_extent_start
+                    layer_wm.temporal_extent_end = temporal_extent_end
+                    layer_wm.save()
+                    # bbox
+                    x0 = format_float(bbox['minx'])
+                    y0 = format_float(bbox['miny'])
+                    x1 = format_float(bbox['maxx'])
+                    y1 = format_float(bbox['maxy'])
+                    # In many cases for some reason to be fixed GeoServer has x coordinates flipped in WM.
+                    x0, x1 = flip_coordinates(x0, x1)
+                    y0, y1 = flip_coordinates(y0, y1)
+                    layer.bbox_x0 = x0
+                    layer.bbox_y0 = y0
+                    layer.bbox_x1 = x1
+                    layer.bbox_y1 = y1
+                    # keywords
+                    for keyword in row['keywords']:
+                        layer.keywords.add(keyword)
+
+                    layer.wkt_geometry = bbox2wktpolygon((bbox['minx'], bbox['miny'], bbox['maxx'], bbox['maxy']))
+                    layer.xml = create_metadata_record(
+                        identifier=layer.id_string,
+                        source=endpoint,
+                        links=links,
+                        format='Hypermap:WorldMap',
+                        type=layer.csw_type,
+                        relation=service.id_string,
+                        title=layer.title,
+                        alternative=name,
+                        abstract=layer.abstract,
+                        keywords=row['keywords'],
+                        wkt_geometry=layer.wkt_geometry
+                    )
+                    layer.anytext = gen_anytext(layer.title, layer.abstract, row['keywords'])
+                    layer.save()
+                    # dates
+                    add_mined_dates(layer)
+                    add_metadata_dates_to_layer([layer_wm.temporal_extent_start, layer_wm.temporal_extent_end], layer)
+                layer_n = layer_n + 1
+                # exits if DEBUG_SERVICES
+                LOGGER.debug("Updating layer n. %s/%s" % (layer_n, total))
+                if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
+                    return
+    except Exception as err:
+        message = "update_layers_wm: {0}".format(
+            err
+        )
+        check = Check(
+            content_object=service,
+            success=False,
+            response_time=0,
+            message=message
+        )
+        check.save()
 
 
 def update_layers_warper(service):
@@ -1093,71 +1243,87 @@ def update_layers_warper(service):
     params = {'field': 'title', 'query': '', 'show_warped': '1', 'format': 'json'}
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     request = requests.get(service.url, headers=headers, params=params)
-    records = json.loads(request.content)
-    total_pages = int(records['total_pages'])
 
-    # set srs
-    # Warper supports only 4326, 900913, 3857
-    for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
-        srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
-        service.srs.add(srs)
-
-    for i in range(1, total_pages + 1):
-        params = {'field': 'title', 'query': '', 'show_warped': '1', 'format': 'json', 'page': i}
-        request = requests.get(service.url, headers=headers, params=params)
+    try:
         records = json.loads(request.content)
-        print 'Fetched %s' % request.url
-        layers = records['items']
-        layer_n = 0
-        total = len(layers)
-        for layer in layers:
-            name = layer['id']
-            title = layer['title']
-            abstract = layer['description']
-            bbox = layer['bbox']
-            # dates
-            dates = []
-            if 'published_date' in layer:
-                dates.append(layer['published_date'])
-            if 'date_depicted' in layer:
-                dates.append(layer['date_depicted'])
-            if 'depicts_year' in layer:
-                dates.append(layer['depicts_year'])
-            if 'issue_year' in layer:
-                dates.append(layer['issue_year'])
-            layer, created = Layer.objects.get_or_create(name=name, service=service)
-            if layer.active:
-                # update fields
-                layer.type = 'Hypermap:WARPER'
-                layer.title = title
-                layer.abstract = abstract
-                layer.is_public = True
-                layer.url = '%s/wms/%s?' % (service.url, name)
-                layer.page_url = '%s/%s' % (service.url, name)
-                # bbox
-                x0 = None
-                y0 = None
-                x1 = None
-                y1 = None
-                if bbox:
-                    bbox_list = bbox.split(',')
-                    x0 = format_float(bbox_list[0])
-                    y0 = format_float(bbox_list[1])
-                    x1 = format_float(bbox_list[2])
-                    y1 = format_float(bbox_list[3])
-                layer.bbox_x0 = x0
-                layer.bbox_y0 = y0
-                layer.bbox_x1 = x1
-                layer.bbox_y1 = y1
-                layer.save()
+        total_pages = int(records['total_pages'])
+
+        # set srs
+        # Warper supports only 4326, 900913, 3857
+        for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
+            srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+            service.srs.add(srs)
+
+        for i in range(1, total_pages + 1):
+            params = {'field': 'title', 'query': '', 'show_warped': '1', 'format': 'json', 'page': i}
+            request = requests.get(service.url, headers=headers, params=params)
+            records = json.loads(request.content)
+            LOGGER.debug('Fetched %s' % request.url)
+            layers = records['items']
+            layer_n = 0
+            total = len(layers)
+            for layer in layers:
+                name = layer['id']
+                title = layer['title']
+                abstract = layer['description']
+                bbox = layer['bbox']
                 # dates
-                add_mined_dates(layer)
-                add_metadata_dates_to_layer(dates, layer)
-            layer_n = layer_n + 1
-            # exits if DEBUG_SERVICES
-            print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
-                return
+                dates = []
+                if 'published_date' in layer:
+                    dates.append(layer['published_date'])
+                if 'date_depicted' in layer:
+                    dates.append(layer['date_depicted'])
+                if 'depicts_year' in layer:
+                    dates.append(layer['depicts_year'])
+                if 'issue_year' in layer:
+                    dates.append(layer['issue_year'])
+                layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
+                if layer.active:
+                    # update fields
+                    layer.type = 'Hypermap:WARPER'
+                    layer.title = title
+                    layer.abstract = abstract
+                    layer.is_public = True
+                    layer.url = '%s/wms/%s?' % (service.url, name)
+                    layer.page_url = '%s/%s' % (service.url, name)
+                    # bbox
+                    x0 = None
+                    y0 = None
+                    x1 = None
+                    y1 = None
+                    if bbox:
+                        bbox_list = bbox.split(',')
+                        x0 = format_float(bbox_list[0])
+                        y0 = format_float(bbox_list[1])
+                        x1 = format_float(bbox_list[2])
+                        y1 = format_float(bbox_list[3])
+                    layer.bbox_x0 = x0
+                    layer.bbox_y0 = y0
+                    layer.bbox_x1 = x1
+                    layer.bbox_y1 = y1
+                    layer.save()
+                    # dates
+                    add_mined_dates(layer)
+                    add_metadata_dates_to_layer(dates, layer)
+                layer_n = layer_n + 1
+                # exits if DEBUG_SERVICES
+                LOGGER.debug("Updating layer n. %s/%s" % (layer_n, total))
+                if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
+                    return
+
+    except Exception as err:
+        message = "update_layers_warper: {0}. request={1} response={2}".format(
+            err,
+            service.url,
+            request.text
+        )
+        check = Check(
+            content_object=service,
+            success=False,
+            response_time=0,
+            message=message
+        )
+        check.save()
 
 
 def update_layers_esri_mapserver(service):
@@ -1165,95 +1331,112 @@ def update_layers_esri_mapserver(service):
     Update layers for an ESRI REST MapServer.
     Sample endpoint: https://gis.ngdc.noaa.gov/arcgis/rest/services/SampleWorldCities/MapServer/?f=json
     """
-    esri_service = ArcMapService(service.url)
-    # set srs
-    # both mapserver and imageserver exposes just one srs at the service level
-    # not sure if other ones are supported, for now we just store this one
+    try:
+        esri_service = ArcMapService(service.url)
+        # set srs
+        # both mapserver and imageserver exposes just one srs at the service level
+        # not sure if other ones are supported, for now we just store this one
 
-    # not sure why this is needed, for now commenting out
-    # if wkt_text:
-    #     params = {'exact': 'True', 'error': 'True', 'mode': 'wkt', 'terms': wkt_text}
-    #     req = requests.get('http://prj2epsg.org/search.json', params=params)
-    #     object = json.loads(req.content)
-    #     srs = int(object['codes'][0]['code'])
+        # not sure why this is needed, for now commenting out
+        # if wkt_text:
+        #     params = {'exact': 'True', 'error': 'True', 'mode': 'wkt', 'terms': wkt_text}
+        #     req = requests.get('http://prj2epsg.org/search.json', params=params)
+        #     object = json.loads(req.content)
+        #     srs = int(object['codes'][0]['code'])
 
-    srs_code = esri_service.spatialReference.wkid
-    srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
-    service.srs.add(srs)
-    # check if it has a WMS interface
-    if 'supportedExtensions' in esri_service._json_struct:
-        if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
-            # we need to change the url
-            # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
-            # http://cga1.cga.harvard.edu/arcgis/services/ecuador/ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
-            wms_url = service.url.replace('/rest/services/', '/services/')
-            if '?f=pjson' in wms_url:
-                wms_url = wms_url.replace('?f=pjson', 'WMSServer?')
-            if '?f=json' in wms_url:
-                wms_url = wms_url.replace('?f=json', 'WMSServer?')
-            print 'This ESRI REST endpoint has an WMS interface to process: %s' % wms_url
-            # import here as otherwise is circular (TODO refactor)
-            from utils import create_service_from_endpoint
-            create_service_from_endpoint(wms_url, 'OGC:WMS')
-    # now process the REST interface
-    layer_n = 0
-    total = len(esri_service.layers)
-    for esri_layer in esri_service.layers:
-        # in some case the json is invalid
-        # esri_layer._json_struct
-        # {u'currentVersion': 10.01,
-        # u'error':
-        # {u'message': u'An unexpected error occurred processing the request.', u'code': 500, u'details': []}}
-        if 'error' not in esri_layer._json_struct:
-            print 'Updating layer %s' % esri_layer.name
-            layer, created = Layer.objects.get_or_create(name=esri_layer.id, service=service)
-            if layer.active:
-                layer.type = 'ESRI:ArcGIS:MapServer'
-                links = [[layer.type, service.url]]
-                layer.title = esri_layer.name
-                layer.abstract = esri_service.serviceDescription
-                layer.url = service.url
-                layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
-                links.append([
-                    'WWW:LINK',
-                    settings.SITE_URL.rstrip('/') + layer.page_url
-                ])
-                try:
-                    layer.bbox_x0 = esri_layer.extent.xmin
-                    layer.bbox_y0 = esri_layer.extent.ymin
-                    layer.bbox_x1 = esri_layer.extent.xmax
-                    layer.bbox_y1 = esri_layer.extent.ymax
-                except KeyError:
-                    pass
-                try:
-                    layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
-                    layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
-                    layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
-                    layer.bbox_y1 = esri_layer._json_struct['extent']['ymax']
-                except Exception:
-                    pass
-                layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
-                layer.xml = create_metadata_record(
-                    identifier=layer.id_string,
-                    source=service.url,
-                    links=links,
-                    format='ESRI:ArcGIS:MapServer',
-                    type=layer.csw_type,
-                    relation=service.id_string,
-                    title=layer.title,
-                    alternative=layer.title,
-                    abstract=layer.abstract,
-                    wkt_geometry=layer.wkt_geometry
+        srs_code = esri_service.spatialReference.wkid
+        srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
+        service.srs.add(srs)
+        # check if it has a WMS interface
+        if 'supportedExtensions' in esri_service._json_struct:
+            if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
+                # we need to change the url
+                # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
+                # http://cga1.cga.harvard.edu/arcgis/services/ecuador/
+                # ecuadordata/MapServer/WMSServer?request=GetCapabilities&service=WMS
+                wms_url = service.url.replace('/rest/services/', '/services/')
+                if '?f=pjson' in wms_url:
+                    wms_url = wms_url.replace('?f=pjson', 'WMSServer?')
+                if '?f=json' in wms_url:
+                    wms_url = wms_url.replace('?f=json', 'WMSServer?')
+                LOGGER.debug('This ESRI REST endpoint has an WMS interface to process: %s' % wms_url)
+                # import here as otherwise is circular (TODO refactor)
+                from utils import create_service_from_endpoint
+                create_service_from_endpoint(wms_url, 'OGC:WMS', catalog=service.catalog)
+        # now process the REST interface
+        layer_n = 0
+        total = len(esri_service.layers)
+        for esri_layer in esri_service.layers:
+            # in some case the json is invalid
+            # esri_layer._json_struct
+            # {u'currentVersion': 10.01,
+            # u'error':
+            # {u'message': u'An unexpected error occurred processing the request.', u'code': 500, u'details': []}}
+            if 'error' not in esri_layer._json_struct:
+                LOGGER.debug('Updating layer %s' % esri_layer.name)
+                layer, created = Layer.objects.get_or_create(
+                    name=esri_layer.id,
+                    service=service,
+                    catalog=service.catalog
                 )
-                layer.anytext = gen_anytext(layer.title, layer.abstract)
-                layer.save()
-                # dates
-                add_mined_dates(layer)
-            layer_n = layer_n + 1
-            # exits if DEBUG_SERVICES
-            print "Updating layer n. %s/%s" % (layer_n, total)
-            if settings.DEBUG_SERVICES and layer_n == settings.DEBUG_LAYERS_NUMBER:
-                return
+                if layer.active:
+                    layer.type = 'ESRI:ArcGIS:MapServer'
+                    links = [[layer.type, service.url]]
+                    layer.title = esri_layer.name
+                    layer.abstract = esri_service.serviceDescription
+                    layer.url = service.url
+                    layer.page_url = layer.get_absolute_url
+                    links.append([
+                        'WWW:LINK',
+                        settings.SITE_URL.rstrip('/') + layer.page_url
+                    ])
+                    try:
+                        layer.bbox_x0 = esri_layer.extent.xmin
+                        layer.bbox_y0 = esri_layer.extent.ymin
+                        layer.bbox_x1 = esri_layer.extent.xmax
+                        layer.bbox_y1 = esri_layer.extent.ymax
+                    except KeyError:
+                        pass
+                    try:
+                        layer.bbox_x0 = esri_layer._json_struct['extent']['xmin']
+                        layer.bbox_y0 = esri_layer._json_struct['extent']['ymin']
+                        layer.bbox_x1 = esri_layer._json_struct['extent']['xmax']
+                        layer.bbox_y1 = esri_layer._json_struct['extent']['ymax']
+                    except Exception:
+                        pass
+                    layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
+                    layer.xml = create_metadata_record(
+                        identifier=layer.id_string,
+                        source=service.url,
+                        links=links,
+                        format='ESRI:ArcGIS:MapServer',
+                        type=layer.csw_type,
+                        relation=service.id_string,
+                        title=layer.title,
+                        alternative=layer.title,
+                        abstract=layer.abstract,
+                        wkt_geometry=layer.wkt_geometry
+                    )
+                    layer.anytext = gen_anytext(layer.title, layer.abstract)
+                    layer.save()
+                    # dates
+                    add_mined_dates(layer)
+                layer_n = layer_n + 1
+                # exits if DEBUG_SERVICES
+                LOGGER.debug("Updating layer n. %s/%s" % (layer_n, total))
+                if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
+                    return
+    except Exception as err:
+        message = "update_layers_esri_mapserver: {0}".format(
+            err
+        )
+        check = Check(
+            content_object=service,
+            success=False,
+            response_time=0,
+            message=message
+        )
+        check.save()
 
 
 def update_layers_esri_imageserver(service):
@@ -1261,47 +1444,59 @@ def update_layers_esri_imageserver(service):
     Update layers for an ESRI REST ImageServer.
     Sample endpoint: https://gis.ngdc.noaa.gov/arcgis/rest/services/bag_bathymetry/ImageServer/?f=json
     """
-    esri_service = ArcImageService(service.url)
-    # set srs
-    # both mapserver and imageserver exposes just one srs at the service level
-    # not sure if other ones are supported, for now we just store this one
-    obj = json.loads(esri_service._contents)
-    srs_code = obj['spatialReference']['wkid']
-    srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
-    service.srs.add(srs)
-    layer, created = Layer.objects.get_or_create(name=obj['name'], service=service)
-    if layer.active:
-        layer.type = 'ESRI:ArcGIS:ImageServer'
-        links = [[layer.type, service.url]]
-        layer.title = obj['name']
-        layer.abstract = esri_service.serviceDescription
-        layer.url = service.url
-        layer.bbox_x0 = str(obj['extent']['xmin'])
-        layer.bbox_y0 = str(obj['extent']['ymin'])
-        layer.bbox_x1 = str(obj['extent']['xmax'])
-        layer.bbox_y1 = str(obj['extent']['ymax'])
-        layer.page_url = reverse('layer_detail', kwargs={'layer_id': layer.id})
-        links.append([
-            'WWW:LINK',
-            settings.SITE_URL.rstrip('/') + layer.page_url
-        ])
-        layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
-        layer.xml = create_metadata_record(
-            identifier=layer.id_string,
-            source=service.url,
-            links=links,
-            format='ESRI:ArcGIS:ImageServer',
-            type=layer.csw_type,
-            relation=service.id_string,
-            title=layer.title,
-            alternative=layer.title,
-            abstract=layer.abstract,
-            wkt_geometry=layer.wkt_geometry
+    try:
+        esri_service = ArcImageService(service.url)
+        # set srs
+        # both mapserver and imageserver exposes just one srs at the service level
+        # not sure if other ones are supported, for now we just store this one
+        obj = json.loads(esri_service._contents)
+        srs_code = obj['spatialReference']['wkid']
+        srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
+        service.srs.add(srs)
+        layer, created = Layer.objects.get_or_create(name=obj['name'], service=service, catalog=service.catalog)
+        if layer.active:
+            layer.type = 'ESRI:ArcGIS:ImageServer'
+            links = [[layer.type, service.url]]
+            layer.title = obj['name']
+            layer.abstract = esri_service.serviceDescription
+            layer.url = service.url
+            layer.bbox_x0 = str(obj['extent']['xmin'])
+            layer.bbox_y0 = str(obj['extent']['ymin'])
+            layer.bbox_x1 = str(obj['extent']['xmax'])
+            layer.bbox_y1 = str(obj['extent']['ymax'])
+            layer.page_url = layer.get_absolute_url
+            links.append([
+                'WWW:LINK',
+                settings.SITE_URL.rstrip('/') + layer.page_url
+            ])
+            layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
+            layer.xml = create_metadata_record(
+                identifier=layer.id_string,
+                source=service.url,
+                links=links,
+                format='ESRI:ArcGIS:ImageServer',
+                type=layer.csw_type,
+                relation=service.id_string,
+                title=layer.title,
+                alternative=layer.title,
+                abstract=layer.abstract,
+                wkt_geometry=layer.wkt_geometry
+            )
+            layer.anytext = gen_anytext(layer.title, layer.abstract)
+            layer.save()
+            # dates
+            add_mined_dates(layer)
+    except Exception as err:
+        message = "update_layers_esri_imageserver: {0}".format(
+            err
         )
-        layer.anytext = gen_anytext(layer.title, layer.abstract)
-        layer.save()
-        # dates
-        add_mined_dates(layer)
+        check = Check(
+            content_object=service,
+            success=False,
+            response_time=0,
+            message=message
+        )
+        check.save()
 
 
 # signals
@@ -1314,12 +1509,13 @@ def endpointlist_post_save(instance, *args, **kwargs):
         lines = f.readlines()
     for url in lines:
         if len(url) > 255:
-            print 'Skipping this enpoint, as it is more than 255 characters: %s' % url
+            LOGGER.debug('Skipping this endpoint, as it is more than 255 characters: %s' % url)
         else:
-            if Endpoint.objects.filter(url=url).count() == 0:
+            if Endpoint.objects.filter(url=url, catalog=instance.catalog).count() == 0:
                 endpoint = Endpoint(url=url, endpoint_list=instance)
+                endpoint.catalog = instance.catalog
                 endpoint.save()
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoints.delay(instance)
     else:
         update_endpoints(instance)
@@ -1332,7 +1528,7 @@ def endpoint_post_save(instance, *args, **kwargs):
         endpoint = Endpoint(url=instance.url)
         endpoint.save()
         signals.post_save.connect(endpoint_post_save, sender=Endpoint)
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         update_endpoint.delay(instance)
     else:
         update_endpoint(instance)
@@ -1345,8 +1541,12 @@ def service_pre_save(instance, *args, **kwargs):
     # check if service is unique
     # we cannot use unique_together as it relies on a combination of fields
     # from different models (service, resource)
-    if Service.objects.filter(url=instance.url, type=instance.type).count() > 0:
-        raise Exception("There is already such a service")
+    if Service.objects.filter(url=instance.url,
+                              type=instance.type,
+                              catalog=instance.catalog).count() > 0:
+        raise Exception("There is already such a service. url={0} catalog={1}".format(
+            instance.url, instance.catalog
+        ))
 
 
 def service_post_save(instance, *args, **kwargs):
@@ -1354,7 +1554,7 @@ def service_post_save(instance, *args, **kwargs):
     Used to do a service full check when saving it.
     """
     # check service
-    if not settings.SKIP_CELERY_TASK:
+    if not settings.REGISTRY_SKIP_CELERY:
         check_service.delay(instance)
     else:
         check_service(instance)

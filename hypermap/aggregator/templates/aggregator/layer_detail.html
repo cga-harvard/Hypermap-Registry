@@ -21,7 +21,7 @@
     {% endif %}
     <ul>
       {% if layer.service %}
-      <li><a href="{% url 'service_detail' layer.service.id %}">Go to service page</a></li>
+      <li><a href="{% url 'service_detail' layer.catalog.slug layer.service.id %}">Go to service page</a></li>
       {% endif %}
       <li><a href="map/demo/">Go to demo page</a></li>
     </ul>
@@ -29,7 +29,7 @@
   <div class="col-md-6">
     {% if user.is_superuser %}
     Administrative actions:
-    <form action="{% url 'layer_detail' layer.id %}" method="post">
+    <form action="{{ layer.get_absolute_url }}" method="post">
       {% csrf_token %}
       <input type="submit" name="check" value="Check now">
       <input type="submit" name="remove" value="Remove checks">
@@ -52,20 +52,24 @@
           <td>
             <ul>
             {% if layer.service %}
-            <li>Service Hypermap Page: <a href="{% url 'service_detail' layer.service.id %}">{{ layer.service.title }}</a></li>
+            <li>Service Hypermap Page: <a href="{% url 'service_detail' layer.catalog.slug layer.service.id %}">{{ layer.service.title }}</a></li>
             {% endif %}
-            <li>Layer Page: <a href="{{ layer.page_url }}">{{ layer.page_url|truncatechars:80 }}</a></li>
-            <li>Layer Hypermap EndPoint: <a href="{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
+            <li>Layer Page: <a href="{{ layer.page_url }}">{{ request.scheme }}://{{ request.get_host }}{{ layer.page_url|truncatechars:80 }}</a></li>
+            <li>Layer Hypermap EndPoint: <a href="{{ request.scheme }}://{{ request.get_host }}{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
             {% if user.is_superuser %}
               <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
               <li>Layer EndPoint: <a href="{{ layer.url }}">{{ layer.url|truncatechars:80 }}</a></li>
               <li>Search EndPoint:
               {% if SEARCH_TYPE == 'elasticsearch' %}
-              <a href="{{SEARCH_URL}}/hypermap/layer/_search?q=layer_id={{ layer.id }}">{{SEARCH_URL}}/hypermap/layer/_search?q=layer_id={{ layer.id }}</a>
+              <a href="{{SEARCH_URL}}/hypermap/_search?q=layer_id:{{layer.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=layer_id:{{layer.id}}</a>
               {% elif SEARCH_TYPE == 'solr' %}
               <a href="{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true</a>
               {% endif %}
-              <li>Metadata: <a href="{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}" target="new">{{SITE_URL}}/search/csw?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}</a></li>
+              <li>Metadata:
+                  <a href="{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}" target="new">
+                      {{ request.scheme }}://{{ request.get_host }}{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}
+                  </a>
+              </li>
               </li>
             {% endif %}
           </ul>
@@ -156,7 +160,7 @@
               <li>Last Check: {{ layer.last_check }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
               <li>Reliability: {{ layer.reliability }}</li>
-              <li><a href="{% url 'layer_checks' layer.id %}">See full check stats</a></li>
+              <li><a href="{{ layer.get_check_stats_absolute_url }}">See full check stats</a></li>
             </ul>
             {% else %}
               No checks performed so far
