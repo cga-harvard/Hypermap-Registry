@@ -71,6 +71,7 @@ setup(
         'django-taggit',
         'django-extensions',
         'dj-database-url',
+        'django-cache-url',
         'django-basic-authentication-decorator',
         'elasticsearch',
         'pika',

@@ -6,6 +6,7 @@ beautifulsoup4==4.5.1
 billiard==3.3.0.23
 celery==3.1.19
 dj-database-url==0.4.0
+django-cache-url==1.2.0
 Django==1.8.7
 django-basic-authentication-decorator==0.9
 django-celery==3.1.17

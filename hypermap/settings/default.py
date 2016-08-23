@@ -15,6 +15,7 @@ import os.path
 import sys
 from datetime import timedelta
 import dj_database_url
+django_cache_url
 
 
 def str2bool(v):
@@ -272,11 +273,5 @@ MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
 REGISTRY_SEARCH_BATCH_SIZE = os.getenv('SEARCH_BATCH_SIZE', 50)
 
-# memcached
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-        'TIMEOUT': None,
-    }
-}
+# Read cache information from CACHE_URL
+CACHES={'default': django_cache_url.config()}
