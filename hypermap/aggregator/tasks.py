@@ -126,31 +126,47 @@ def index_cached_layers(self):
     Index all layers in the Django cache (Index all layers who have been checked).
     """
     from hypermap.aggregator.models import Layer
-    from hypermap.aggregator.solr import SolrHypermap
-    from hypermap.aggregator.elasticsearch_client import ESHypermap
     from hypermap.aggregator.models import TaskError
-    solrobject = SolrHypermap()
-    es = ESHypermap()
+
+    if SEARCH_TYPE == 'solr':
+        from hypermap.aggregator.solr import SolrHypermap
+        solrobject = SolrHypermap()
+    else:
+        from hypermap.aggregator.elasticsearch_client import ESHypermap
+        from elasticsearch import helpers
+        es_client = ESHypermap()
+
     layers_cache = cache.get('layers')
+
     if layers_cache:
         layers_list = list(layers_cache)
         print 'There are %s layers in cache: %s' % (len(layers_list), layers_list)
+
         batch_size = settings.REGISTRY_SEARCH_BATCH_SIZE
         batch_lists = [layers_list[i:i+batch_size] for i in range(0, len(layers_list), batch_size)]
+
         for batch_list_ids in batch_lists:
             layers = Layer.objects.filter(id__in=batch_list_ids)
+
             if batch_size > len(layers):
                 batch_size = len(layers)
-            print 'Syncing %s/%s layers: %s' % (batch_size, len(layers_cache), layers)
+
+            print 'Syncing %s/%s layers to %s: %s' % (batch_size, len(layers_cache), layers, SEARCH_TYPE)
+
             try:
                 if SEARCH_TYPE == 'solr':
                     success, message = solrobject.layers_to_solr(layers)
                 elif SEARCH_TYPE == 'elasticsearch':
-                    # TODO: connect implementation for now like this:
-                    # success, message = es.layers_to_es(layers)
-                    # TODO: remove this when bulk is implemented.
-                    for layer in layers:
-                        success, message = es.layer_to_es(layer)
+                    with_bulk, success = True, False
+                    layers_to_index = [es_client.layer_to_es(layer, with_bulk) for layer in layers]
+                    message = helpers.bulk(es_client.es, layers_to_index)
+
+                    # Check that all layers where indexed...if not, don't clear cache.
+                    # TODO: Check why es does not index all layers at first.
+                    len_indexed_layers = message[0]
+                    if len_indexed_layers == len(layers):
+                        print '%d layers indexed successfully' % (len_indexed_layers)
+                        success = True
                 else:
                     raise Exception("Incorrect SEARCH_TYPE=%s" % SEARCH_TYPE)
                 if success:

@@ -70,7 +70,7 @@ class ESHypermap(object):
         return (-180.0, -90.0, 180.0, 90.0)
 
     @staticmethod
-    def layer_to_es(layer):
+    def layer_to_es(layer, with_bulk=False):
         category = None
         username = None
         ESHypermap.logger.info("Elasticsearch: record to save: [%s] %s" % (layer.catalog.slug, layer.id))
@@ -168,13 +168,26 @@ class ESHypermap(object):
                 if layer.get_tile_url():
                     es_record['tile_url'] = layer.get_tile_url()
 
+                if with_bulk:
+                    es_record = {
+                        "_id": str(layer.id),
+                        "_type": "layer",
+                        "_index": layer.catalog.slug,
+                        "_source": es_record,
+                    }
+
                 ESHypermap.logger.info(es_record)
                 # TODO: cache index creation.
                 ESHypermap.create_indices(layer.catalog.slug)
-                ESHypermap.es.index(layer.catalog.slug, 'layer', json.dumps(es_record), id=layer.id,
-                                    request_timeout=20)
-                ESHypermap.logger.info("Elasticsearch: record saved for layer with id: %s" % layer.id)
-                return True, None
+                if not with_bulk:
+                    ESHypermap.es.index(layer.catalog.slug, 'layer', json.dumps(es_record), id=layer.id,
+                                        request_timeout=20)
+                    ESHypermap.logger.info("Elasticsearch: record saved for layer with id: %s" % layer.id)
+                    return True, None
+
+                # If we want to index with bulk we need to return the layer dictionary.
+                return es_record
+
         except Exception:
             ESHypermap.logger.error(sys.exc_info())
             ESHypermap.logger.error("Elasticsearch: Error saving record for layer with id: %s - %s"

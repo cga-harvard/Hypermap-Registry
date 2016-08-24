@@ -223,7 +223,7 @@ def celery_monitor(request):
             else:
                 index_all_layers.delay()
         if 'index_cached' in request.POST:
-            if settings.SKIP_CELERY_TASK:
+            if settings.REGISTRY_SKIP_CELERY:
                 index_cached_layers()
             else:
                 index_cached_layers.delay()
