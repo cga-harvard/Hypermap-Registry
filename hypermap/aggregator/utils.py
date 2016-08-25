@@ -153,11 +153,27 @@ def create_services_from_endpoint(url):
                 # try to parse metadata
                 try:
                     LOGGER.info('Looking for service links')
-                    if v.references:  # not empty
+
+                    LOGGER.debug('Looking for service links via dct:references')
+                    if v.references:
                         for ref in v.references:
                             if ref['scheme'] in [st[0] for st in SERVICE_TYPES]:
                                 if ref['url'] not in service_links:
                                     service_links[ref['url']] = ref['scheme']
+                            else:  # loose detection
+                                scheme = detect_metadata_url_scheme(ref['url'])
+                                if scheme is not None:
+                                    if ref['url'] not in service_links:
+                                        service_links[ref['url']] = scheme
+
+                    LOGGER.debug('Looking for service links via the GeoNetwork-ish dc:URI')
+                    if v.uris:
+                        for u in v.uris:  # loose detection
+                            scheme = detect_metadata_url_scheme(u['url'])
+                            if scheme is not None:
+                                if u['url'] not in service_links:
+                                    service_links[u['url']] = scheme
+
                 except Exception as err:  # parsing failed for some reason
                     LOGGER.warning('Metadata parsing failed %s', err)
 
@@ -516,3 +532,21 @@ def layer2dict(layer):
         layer_dict['tile_url'] = layer.get_tile_url()
 
     return layer_dict
+
+
+def detect_metadata_url_scheme(url):
+    """detect whether a url is a Service type that HHypermap supports"""
+
+    scheme = None
+    url_lower = url.lower()
+
+    if url_lower.find('wms') != -1:
+        scheme = 'OGC:WMS'
+    elif url_lower.find('wmts') != -1:
+        scheme = 'OGC:WMTS'
+    elif url.find('/MapServer') != -1:
+        scheme = 'ESRI:ArcGIS:MapServer'
+    elif url.find('/ImageServer') != -1:
+        scheme = 'ESRI:ArcGIS:ImageServer'
+
+    return scheme
