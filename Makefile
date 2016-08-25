@@ -34,20 +34,20 @@ down:
 	$(DOCKER_COMPOSE) down
 
 test-unit: DOCKER_FILES=$(DEV_DOCKER_FILES)
-test-unit: down start
+test-unit:
 	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.aggregator --failfast
 
 test-solr: DOCKER_FILES=-$(DEV_DOCKER_FILES) -f docker-compose.solr.yml
-test-solr: down start
+test-solr:
 	# Run tests API <--> Solr backend
 	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.search_api --failfast
 
 test-elastic: DOCKER_FILES=$(DEV_DOCKER_FILES) -f docker-compose.elasticsearch.yml
-test-elastic: down start
+test-elastic:
 	# Run tests API <--> Elastic backend
 	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.search_api --failfast
 
-test: test-unit test-solr test-elastic
+test: down start test-unit test-solr test-elastic
 
 shell: $(DOCKER_COMPOSE) run django python manage.py shell_plus
 
