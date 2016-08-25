@@ -271,7 +271,7 @@ class SearchApiTestCase(TestCase):
             # ES facets are returned from 2000-01... to 2003-01.
             # SOLR facets are returned from 2000-03... to 2003-03.
             # SOLR data seems more accurate since first and last Layers are in month 03.
-            # Example: http://localhost:8983/solr/hypermap/select?facet.field=layer_date&facet=on&indent=on&q=*:*&wt=json
+            # Example: http://panchicore.d.pr/12ESP
             # * TO * to first date and last date.
             self.assertEqual(results["a.time"]["start"].upper(), "2000-01-01T00:00:00Z")
             self.assertEqual(results["a.time"]["end"].upper(), "2003-01-01T00:00:00Z")

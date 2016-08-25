@@ -7,7 +7,6 @@ import math
 import traceback
 import datetime
 from urlparse import urlparse
-from lxml import etree
 
 from django.utils.html import strip_tags
 from django.conf import settings
