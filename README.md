@@ -1,4 +1,5 @@
 # HHypermap Registry
+[![Build Status](https://travis-ci.org/cga-harvard/HHypermap.svg?branch=registry)](https://travis-ci.org/cga-harvard/HHypermap)
 
 ## Introduction
 
