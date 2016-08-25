@@ -109,7 +109,7 @@ def elasticsearch(serializer, catalog):
                     "type": "envelope",
                     "coordinates": [[Xmin, Ymax], [Xmax, Ymin]]
                 },
-                "relation": "within"
+                "relation": "intersects"
             }
         }
         filter_dic["geo_shape"] = geoshape_query
@@ -182,7 +182,8 @@ def elasticsearch(serializer, catalog):
         aggs_dic['popular_users'] = users_limit
 
     if a_time_limit:
-        # Work in progress
+        # TODO: Work in progress, a_time_limit is incomplete.
+        # TODO: when times are * it does not work. also a a_time_gap is not required.
         if q_time:
             if not a_time_gap:
                 # getting time limit histogram.
