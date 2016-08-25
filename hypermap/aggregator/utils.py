@@ -540,13 +540,13 @@ def detect_metadata_url_scheme(url):
     scheme = None
     url_lower = url.lower()
 
-    if url_lower.find('wms') != -1:
+    if any(x in url_lower for x in ['wms', 'service=wms']):
         scheme = 'OGC:WMS'
-    elif url_lower.find('wmts') != -1:
+    if any(x in url_lower for x in ['wmts', 'service=wmts']):
         scheme = 'OGC:WMTS'
-    elif url.find('/MapServer') != -1:
+    elif all(x in url for x in ['/MapServer', 'f=json']):
         scheme = 'ESRI:ArcGIS:MapServer'
-    elif url.find('/ImageServer') != -1:
+    elif all(x in url for x in ['/ImageServer', 'f=json']):
         scheme = 'ESRI:ArcGIS:ImageServer'
 
     return scheme
