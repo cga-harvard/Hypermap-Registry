@@ -1,5 +1,9 @@
 DEV_DOCKER_FILES=-f docker-compose.yml -f docker-compose.override.yml
-DOCKER_FILES=$(DEV_DOCKER_FILES)
+
+ifndef DOCKER_FILES
+    DOCKER_FILES=$(DEV_DOCKER_FILES)
+endif
+
 DOCKER_COMPOSE=docker-compose $(DOCKER_FILES)
 TEST_FLAGS=-e REGISTRY_SKIP_CELERY=True
 
