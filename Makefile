@@ -35,7 +35,7 @@ logs:
 	$(DOCKER_COMPOSE) logs --follow
 
 down:
-	$(DOCKER_COMPOSE) down
+	$(DOCKER_COMPOSE) down --remove-orphans
 
 test-unit: DOCKER_FILES=$(DEV_DOCKER_FILES)
 test-unit:
