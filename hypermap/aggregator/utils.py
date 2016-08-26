@@ -430,8 +430,8 @@ def get_esri_extent(esriobj):
 
     try:
         srs = extent['spatialReference']['wkid']
-    except KeyError as err:
-        LOGGER.error(err)
+    except KeyError, err:
+        LOGGER.error(err, exc_info=True)
 
     return [extent, srs]
 

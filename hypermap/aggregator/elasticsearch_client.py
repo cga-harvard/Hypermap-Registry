@@ -189,8 +189,8 @@ class ESHypermap(object):
                 # If we want to index with bulk we need to return the layer dictionary.
                 return es_record
 
-        except Exception:
-            LOGGER.error(sys.exc_info())
+        except Exception, e:
+            LOGGER.error(e, exc_info=True)
             LOGGER.error("Elasticsearch: Error saving record for layer with id: %s - %s" % (
                          layer.id, sys.exc_info()[1]))
             return False, sys.exc_info()[1]

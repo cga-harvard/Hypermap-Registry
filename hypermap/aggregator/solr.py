@@ -32,8 +32,9 @@ class SolrHypermap(object):
             requests.post(url_solr_update, data=layers_json, params=params, headers=headers)
             LOGGER.info("Solr synced for the given layers.")
             return True, None
-        except Exception:
-            LOGGER.error("Error saving solr records - %s" % sys.exc_info()[1])
+        except Exception, e:
+            LOGGER.error("Error saving solr records")
+            LOGGER.error(e, exc_info=True)
             return False, sys.exc_info()[1]
 
     def layer_to_solr(self, layer):
@@ -56,8 +57,9 @@ class SolrHypermap(object):
                 LOGGER.info("Solr record saved for layer with id: %s" % layer.id)
 
             return True, None
-        except Exception:
-            LOGGER.error("Error saving solr record for layer with id: %s - %s" % (layer.id, sys.exc_info()[1]))
+        except Exception, e:
+            LOGGER.error("Error saving solr record for layer with id: %s" % layer.id)
+            LOGGER.error(e, exc_info=True)
             return False, sys.exc_info()[1]
 
     def clear_solr(self, catalog="hypermap"):

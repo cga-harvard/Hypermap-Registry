@@ -433,9 +433,9 @@ class Service(Resource):
             )
             anytexts = gen_anytext(title, abstract, keywords)
             Service.objects.filter(id=self.id).update(anytext=anytexts, xml=xml, csw_type='service')
-        except Exception as err:
-            LOGGER.error(str(err))
-            message = str(err)
+        except Exception, e:
+            LOGGER.error(e, exc_info=True)
+            message = str(e)
             success = False
 
         end_time = datetime.datetime.utcnow()
@@ -715,7 +715,8 @@ class Layer(Resource):
                     format='jpg'
                 )
             except Exception, e:
-                LOGGER.error(str(e))
+                LOGGER.error(e, exc_info=True)
+
             name = re.sub('[^\w\-_\. ]', '_', self.name)
             thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
             image.save(thumbnail_file_name)
@@ -733,7 +734,7 @@ class Layer(Resource):
                 )
                 image = arcserver.ExportImage(bbox=bbox)
             except Exception, e:
-                LOGGER.error(str(e))
+                LOGGER.error(e, exc_info=True)
             name = re.sub('[^\w\-_\. ]', '_', self.name)
             thumbnail_file_name = '%s%s.jpg' % ('/tmp/', name)
             image.save(thumbnail_file_name)

@@ -185,7 +185,7 @@ def index_cached_layers(self):
                     task_error.save()
             except Exception as e:
                 LOGGER.error('Layers were NOT indexed correctly')
-                LOGGER.error(str(e))
+                LOGGER.error(e, exc_info=True)
     else:
         LOGGER.debug('No cached layers.')
 
@@ -270,7 +270,7 @@ def index_layer(self, layer):
                 task_error.save()
         except Exception, e:
             LOGGER.error('Layers NOT indexed correctly')
-            LOGGER.error(str(e))
+            LOGGER.error(e, exc_info=True)
             self.retry(layer)
     elif SEARCH_TYPE == 'elasticsearch':
         from hypermap.aggregator.elasticsearch_client import ESHypermap
