@@ -97,6 +97,8 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
         message = traceback.format_exception(*sys.exc_info())
         LOGGER.error('Cannot open this endpoint: %s' % endpoint)
         LOGGER.error('ERROR MESSAGE: %s' % message)
+        LOGGER.error(e, exc_info=True)
+
         return False, message
 
     detected = False
@@ -149,11 +151,11 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
         if pagesize > matches:
             pagesize = matches
 
-        LOGGER.debug('Harvesting %d CSW records' % matches)
+        LOGGER.info('Harvesting %d CSW records' % matches)
 
         # loop over all catalogue records incrementally
         for r in range(1, matches+1, pagesize):
-            LOGGER.debug('Parsing %s from %s' % (r, matches))
+            LOGGER.info('Parsing %s from %s' % (r, matches))
             try:
                 csw.getrecords2(typenames=typenames, startposition=r,
                                 maxrecords=pagesize, outputschema=outputschema, esn='full')
@@ -176,6 +178,17 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                                     if ref['url'] not in service_links:
                                         service_links[ref['url']] = scheme
 
+                            if scheme is None:
+                                continue
+                            try:
+                                service = create_service_from_endpoint(ref['url'], scheme, catalog=catalog)
+
+                                if service is not None:
+                                    num_created = num_created + 1
+                                    LOGGER.info('Found %s services on endpoint' % num_created)
+                            except Exception, e:
+                                LOGGER.error('Could not create service for %s : %s' % (scheme, ref['url']))
+                                LOGGER.error(e, exc_info=True)
                     LOGGER.debug('Looking for service links via the GeoNetwork-ish dc:URI')
                     if v.uris:
                         for u in v.uris:  # loose detection
@@ -183,23 +196,29 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                             if scheme is not None:
                                 if u['url'] not in service_links:
                                     service_links[u['url']] = scheme
-                                    LOGGER.debug(service_links)
+
+                            if scheme is None:
+                                continue
+
+                            try:
+                                service = create_service_from_endpoint(u['url'], scheme, catalog=catalog)
+
+                                if service is not None:
+                                    num_created = num_created + 1
+                                    LOGGER.info('Found %s services on endpoint' % num_created)
+                            except Exception, e:
+                                LOGGER.error('Could not create service for %s : %s' % (scheme, u['url']))
+                                LOGGER.error(e, exc_info=True)
+
                 except Exception as err:  # parsing failed for some reason
                     LOGGER.warning('Metadata parsing failed %s', err)
+                    LOGGER.error(err, exc_info=True)
 
-        LOGGER.info('Service links found: %s', service_links)
-        for k, v in service_links.items():
-            try:
-                service = create_service_from_endpoint(k, v, catalog=catalog)
-                if service is not None:
-                    num_created = num_created + 1
-            except Exception as err:
-                raise RuntimeError('HHypermap error: %s' % err)
     except XMLSyntaxError as e:
         # This is not XML, so likely not a CSW. Moving on.
         pass
     except Exception as e:
-        LOGGER.error(str(e))
+        LOGGER.error(e, exc_info=True)
         messages.append(str(e))
 
     # WMS
@@ -214,7 +233,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             # This is not XML, so likely not a WMS. Moving on.
             pass
         except Exception as e:
-            LOGGER.error(str(e))
+            LOGGER.error(e, exc_info=True)
             messages.append(str(e))
 
     # TMS
@@ -229,7 +248,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             # This is not XML, so likely not a TsMS. Moving on.
             pass
         except Exception as e:
-            LOGGER.error(str(e))
+            LOGGER.error(e, exc_info=True)
             messages.append(str(e))
 
     # WMTS
@@ -245,7 +264,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             # This is not XML, so likely not a WMTS. Moving on.
             pass
         except Exception as e:
-            LOGGER.error(str(e))
+            LOGGER.error(e, exc_info=True)
             messages.append(str(e))
 
     # if detected, let's create the service
@@ -264,7 +283,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
             # This is not XML, so likely not a OGC:CSW. Moving on.
             pass
         except Exception as e:
-            LOGGER.error(str(e))
+            LOGGER.error(e, exc_info=True)
             messages.append(str(e))
 
     # Esri
@@ -294,7 +313,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                     num_created = num_created + len(folder_services)
 
             except Exception as e:
-                LOGGER.error(str(e))
+                LOGGER.error(e, exc_info=True)
                 messages.append(str(e))
 
     if detected:
@@ -465,7 +484,8 @@ def get_solr_date(pydate, is_negative):
             return solr_date
         else:
             return None
-    except Exception:
+    except Exception, e:
+        LOGGER.error(e, exc_info=True)
         return None
 
 
