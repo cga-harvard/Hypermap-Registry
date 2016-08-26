@@ -169,9 +169,12 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                     LOGGER.debug('Looking for service links via dct:references')
                     if v.references:
                         for ref in v.references:
+                            scheme = None
+
                             if ref['scheme'] in [st[0] for st in SERVICE_TYPES]:
                                 if ref['url'] not in service_links:
-                                    service_links[ref['url']] = ref['scheme']
+                                    scheme = ref['scheme']
+                                    service_links[ref['url']] = scheme
                             else:  # loose detection
                                 scheme = detect_metadata_url_scheme(ref['url'])
                                 if scheme is not None:
@@ -196,8 +199,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                             if scheme is not None:
                                 if u['url'] not in service_links:
                                     service_links[u['url']] = scheme
-
-                            if scheme is None:
+                            else:
                                 continue
 
                             try:
