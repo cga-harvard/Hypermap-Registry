@@ -39,9 +39,10 @@ for dirpath, dirnames, filenames in os.walk(hypermap_dir):
             del dirnames[i]
     if '__init__.py' in filenames:
         packages.append('.'.join(fullsplit(dirpath)))
+    if 'templates' in filenames:
+        packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
         data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
-
 
 
 setup(
@@ -60,7 +61,7 @@ setup(
     keywords="hypermap django",
     packages=packages,
     data_files=data_files,
-    zip_safe=False,
+    include_package_data=True,
     install_requires=[
         'amqplib',
         'arcrest',
