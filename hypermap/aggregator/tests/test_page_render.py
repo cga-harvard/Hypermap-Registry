@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 
 from django.db.models import signals
 
-from hypermap.aggregator.models import Service, Layer
+from hypermap.aggregator.models import Service, Layer, Catalog
 from hypermap.aggregator.models import layer_post_save, service_post_save
 
 
@@ -19,11 +19,17 @@ class PageRendererTestCase(TestCase):
         signals.post_save.disconnect(layer_post_save, sender=Layer)
         signals.post_save.disconnect(service_post_save, sender=Service)
 
+        catalog, created = Catalog.objects.get_or_create(
+            name="hypermap", slug="hypermap",
+            url="search_api"
+        )
+
         for s in range(0, SERVICE_NUMBER):
             service = Service(
                 url='http://%s.fakeurl.com' % s,
                 title='Title %s' % s,
                 type='OGC:WMS',
+                catalog=catalog
             )
             service.save()
             for l in range(0, LAYER_PER_SERVICE_NUMBER):
@@ -33,7 +39,8 @@ class PageRendererTestCase(TestCase):
                     bbox_x1=179,
                     bbox_y0=-89,
                     bbox_y1=89,
-                    service=service
+                    service=service,
+                    catalog=service.catalog
                 )
                 layer.save()
                 service.layer_set.add(layer)
@@ -61,11 +68,11 @@ class PageRendererTestCase(TestCase):
         # anonymous going to service_detail is authorized
         service = Service.objects.all()[0]
         response = self.client.get(
-            reverse('service_detail', args=(str(service.id),)))
+            reverse('service_detail', args=(service.catalog.slug, str(service.id),)))
         self.assertEqual(200, response.status_code)
 
         # anonymous going to layer_detail is authorized
         layer = Layer.objects.all()[0]
         response = self.client.get(
-            reverse('layer_detail', args=(str(layer.id),)))
+            reverse('layer_detail', args=(layer.catalog.slug, str(layer.id),)))
         self.assertEqual(200, response.status_code)

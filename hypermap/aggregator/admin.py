@@ -33,7 +33,6 @@ class LayerAdmin(admin.ModelAdmin):
     list_display = ('name', 'title', 'service', )
     search_fields = ['name', 'title', ]
     list_filter = ('is_public', )
-    filter_horizontal = ('catalogs', )
 
 
 class LayerWMAdmin(admin.ModelAdmin):
@@ -43,13 +42,15 @@ class LayerWMAdmin(admin.ModelAdmin):
 
 class CheckAdmin(admin.ModelAdmin):
     model = Check
-    list_display = ('content_type', 'content_object', 'checked_datetime', 'success', 'response_time', )
-    search_fields = ['resource__title', ]
+    list_display = ('id', 'content_type', 'content_object', 'checked_datetime', 'success', 'response_time', )
+    search_fields = ['=object_id']
+    list_filter = ('success', 'content_type')
+    date_hierarchy = 'checked_datetime'
 
 
 class EndpointListAdmin(admin.ModelAdmin):
     model = EndpointList
-    list_display = ('upload', 'endpoints_admin_url')
+    list_display = ('id', 'upload', 'endpoints_admin_url', 'catalog')
 
 
 class EndpointAdmin(admin.ModelAdmin):
@@ -59,16 +60,17 @@ class EndpointAdmin(admin.ModelAdmin):
     search_fields = ['url', ]
 
 
+class CatalogAdmin(admin.ModelAdmin):
+    model = Catalog
+    list_display = ('name', 'slug', 'url', 'get_search_url')
+    search_fields = ('name', )
+
+
 class TaskErrorAdmin(admin.ModelAdmin):
     model = TaskError
     list_display = ('task_name', 'args', 'error_datetime', 'message')
     list_filter = ('task_name',)
     date_hierarchy = 'error_datetime'
-
-
-class CatalogAdmin(admin.ModelAdmin):
-    model = Catalog
-    list_display = ('name', 'slug')
 
 
 admin.site.register(Service, ServiceAdmin)

@@ -8,7 +8,7 @@
   <h1>Service checks for: {{ service.title|truncatechars:40 }}</h1>
 </div>
 
-<a href="{% url 'service_detail' service.id %}">Go to service details page</a>
+<a href="{{ service.get_absolute_url }}">Go to service details page</a>
 
 <div class="row">
   <div class="col-md-6">

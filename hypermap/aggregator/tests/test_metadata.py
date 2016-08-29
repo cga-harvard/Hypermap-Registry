@@ -11,7 +11,7 @@ from lxml import etree
 
 from owslib.csw import CswRecord
 
-from hypermap.aggregator.models import gen_anytext, Layer, Service
+from hypermap.aggregator.models import gen_anytext, Layer, Service, Catalog
 import hypermap.aggregator.tests.mocks.wms
 import hypermap.aggregator.tests.mocks.warper
 import hypermap.aggregator.tests.mocks.worldmap
@@ -19,26 +19,45 @@ import hypermap.aggregator.tests.mocks.worldmap
 
 @with_httmock(hypermap.aggregator.tests.mocks.wms.resource_get)
 def create_wms_service():
+
+    catalog, created = Catalog.objects.get_or_create(
+        name="hypermap", slug="hypermap",
+        url="search_api"
+    )
+
     service = Service(
         type='OGC:WMS',
         url='http://wms.example.com/ows?',
+        catalog=Catalog.objects.get()
     )
     service.save()
 
 
 @with_httmock(hypermap.aggregator.tests.mocks.warper.resource_get)
 def create_warper_service():
+
+    catalog, created = Catalog.objects.get_or_create(
+        name="hypermap", slug="hypermap",
+        url="search_api"
+    )
+
     service = Service(
         type='Hypermap:WARPER',
         url='http://warper.example.com/warper/maps',
+        catalog=catalog
     )
     service.save()
 
 
 @with_httmock(hypermap.aggregator.tests.mocks.worldmap.resource_get)
 def create_wm_service():
+    catalog, created = Catalog.objects.get_or_create(
+        name="hypermap", slug="hypermap",
+        url="search_api"
+    )
     service = Service(
         type='Hypermap:WorldMap',
+        catalog=catalog
     )
     service.save()
 
@@ -91,8 +110,8 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(layer.service.id, int(csw_record.relation), 'Expected relation equality')
         self.assertEqual(layer.url, csw_record.source, 'Expected URL/source equality')
 
-        anytext = gen_anytext(layer.title, layer.abstract, list(layer.keywords.names()))
-        self.assertEqual(anytext, layer.anytext, 'Expected anytext equality')
+        anytext = gen_anytext(layer.title, layer.abstract, list(layer.keywords.names()).sort())
+        self.assertEqual(anytext, layer.anytext, 'Expected anytext equality: %s != %s' % (anytext, layer.anytext))
 
 if __name__ == '__main__':
     unittest.main()

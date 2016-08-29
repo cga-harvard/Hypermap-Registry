@@ -1,7 +1,10 @@
+import logging
 from django.conf import settings
 
 from models import Service
 from utils import create_services_from_endpoint
+
+LOGGER = logging.getLogger(__name__)
 
 
 def populate_initial_services():
@@ -48,11 +51,11 @@ def populate_initial_services():
     )
 
     esri_endpoint = 'https://gis.ngdc.noaa.gov/arcgis/rest/services'
-    print '*** Importing esri endpoint: %s' % esri_endpoint
+    LOGGER.debug('*** Importing esri endpoint: %s' % esri_endpoint)
     create_services_from_endpoint(esri_endpoint)
 
     for service in services_list:
-        print '*** Importing %s' % service[0]
+        LOGGER.debug('*** Importing %s' % service[0])
         service = Service(
             title=service[0],
             abstract=service[1],

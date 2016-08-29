@@ -1,0 +1,58 @@
+version: '2'
+services:
+
+  django:
+    build: .
+    # Loading the app is defined here to allow for autoreload on changes it is
+    # mounted on top of the old copy that docker added when creating the image
+    volumes:
+      - '.:/usr/src/app'
+    environment:
+      - DEBUG=True
+      - REGISTRY_LIMIT_LAYERS=20
+    ports:
+      - "8000:8000"
+
+  celery:
+    build: .
+    volumes:
+      - '.:/usr/src/app'
+    environment:
+      - DEBUG=True
+      - REGISTRY_LIMIT_LAYERS=20
+
+  elasticsearch:
+    ports:
+      - "9200:9200"
+
+  memcached:
+    image: memcached
+
+  solr:
+    image: solr
+    ports:
+     - "8983:8983"
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr-precreate
+      - hypermap
+
+  selenium-firefox:
+    image: selenium/standalone-firefox-debug
+    command: bash -c "rm /tmp/.X99-lock"
+    ports:
+      # to connect with a remote browser
+      - "4444:4444"
+      # to connect with vnc to see the remote browser
+      - "5900:5900"
+    links:
+      - django
+      - celery
+      - nginx
+      # TODO: sometimes celery does not see the search backend if this is not present here: why?
+      - elasticsearch
+      - solr
+    environment:
+      - no_proxy=*.local
+    entrypoint:
+      - /opt/bin/entry_point.sh
