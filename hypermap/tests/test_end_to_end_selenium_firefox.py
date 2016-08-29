@@ -27,6 +27,7 @@ SEARCH_TYPE_SOLR = 'solr'
 SEARCH_TYPE_ES = 'elasticsearch'
 catalog_test_slug = 'hypermap'
 
+
 class TestBrowser(unittest.TestCase):
     def setUp(self):
         if not SELENIUM_HUB_URL:
