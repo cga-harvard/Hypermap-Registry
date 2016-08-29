@@ -36,3 +36,23 @@ services:
       - docker-entrypoint.sh
       - solr-precreate
       - hypermap
+
+  selenium-firefox:
+    image: selenium/standalone-firefox-debug
+    command: bash -c "rm /tmp/.X99-lock"
+    ports:
+      # to connect with a remote browser
+      - "4444:4444"
+      # to connect with vnc to see the remote browser
+      - "5900:5900"
+    links:
+      - django
+      - celery
+      - nginx
+      # TODO: sometimes celery does not see the search backend if this is not present here: why?
+      - elasticsearch
+      - solr
+    environment:
+      - no_proxy=*.local
+    entrypoint:
+      - /opt/bin/entry_point.sh
