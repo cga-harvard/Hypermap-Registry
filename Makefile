@@ -6,6 +6,13 @@ endif
 
 DOCKER_COMPOSE=docker-compose $(DOCKER_FILES)
 TEST_FLAGS=-e REGISTRY_SKIP_CELERY=True
+END_TO_END_TEST_FLAGS=-e REGISTRY_SKIP_CELERY=False \
+                         -e REGISTRY_LIMIT_LAYERS=3 \
+                         -e REGISTRY_CHECK_PERIOD=2 \
+                         -e REGISTRY_INDEX_CACHED_LAYERS_PERIOD=1 \
+                         -e SELENIUM_HUB_URL=http://selenium-firefox:4444/wd/hub \
+                         -e BROWSER_HYPERMAP_URL=http://nginx \
+                         -e WAIT_FOR_CELERY_JOB_PERIOD=30
 
 pre-up:
 	# Bring up the database and rabbitmq first
@@ -51,7 +58,13 @@ test-elastic:
 	# Run tests API <--> Elastic backend
 	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.search_api --failfast
 
-test: down start test-unit test-solr test-elastic
+test-endtoend-selenium-firefox: DOCKER_FILES=$(DEV_DOCKER_FILES)
+test-endtoend-selenium-firefox:
+	# Run tests Selenium Firefox Browser <--> Nginx
+	# Want to see whats happening? connect to VNC server localhost:5900 password: secret
+	$(DOCKER_COMPOSE) run $(END_TO_END_TEST_FLAGS) django python manage.py test hypermap.tests.test_end_to_end_selenium_firefox --failfast
+
+test: down start test-unit test-solr test-elastic test-endtoend-selenium-firefox
 
 shell: $(DOCKER_COMPOSE) run django python manage.py shell_plus
 
