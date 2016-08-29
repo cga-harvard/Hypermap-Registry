@@ -10,6 +10,9 @@ from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+from hypermap.aggregator.elasticsearch_client import ESHypermap
+from hypermap.aggregator.solr import SolrHypermap
+
 SELENIUM_HUB_URL = os.environ.get("SELENIUM_HUB_URL", None)
 BROWSER_HYPERMAP_URL = os.environ.get("BROWSER_HYPERMAP_URL",
                                       "http://localhost")
@@ -18,6 +21,11 @@ BROWSER_MAPLOOM_URL = "{0}/_maploom/".format(BROWSER_HYPERMAP_URL)
 WAIT_FOR_CELERY_JOB_PERIOD = int(
     os.environ.get("WAIT_FOR_CELERY_JOB_PERIOD", 30))
 
+SEARCH_TYPE = settings.REGISTRY_SEARCH_URL.split('+')[0]
+SEARCH_URL = settings.REGISTRY_SEARCH_URL.split('+')[1]
+SEARCH_TYPE_SOLR = 'solr'
+SEARCH_TYPE_ES = 'elasticsearch'
+catalog_test_slug = 'hypermap'
 
 class TestBrowser(unittest.TestCase):
     def setUp(self):
@@ -34,6 +42,28 @@ class TestBrowser(unittest.TestCase):
         self.base_url = BROWSER_HYPERMAP_URL
         self.verificationErrors = []
         self.accept_next_alert = True
+
+        print '> clearing SEARCH_URL={0}'.format(SEARCH_URL)
+        if SEARCH_TYPE == SEARCH_TYPE_SOLR:
+            self.solr = SolrHypermap()
+            # delete solr documents
+            # add the schema
+            print '> updating schema'.format(SEARCH_URL)
+            self.solr.update_schema(catalog=catalog_test_slug)
+            self.solr.clear_solr(catalog=catalog_test_slug)
+
+            self.search_engine_endpoint = '{0}/solr/{1}/select'.format(
+                SEARCH_URL, catalog_test_slug
+            )
+        elif SEARCH_TYPE == SEARCH_TYPE_ES:
+            es = ESHypermap()
+            # delete ES documents
+            es.clear_es()
+            self.search_engine_endpoint = '{0}/{1}/_search'.format(
+                SEARCH_URL, catalog_test_slug
+            )
+        else:
+            raise Exception("SEARCH_TYPE not valid=%s" % SEARCH_TYPE)
 
     def test_browser(self):
 
