@@ -2,7 +2,6 @@ include README.md LICENSE
 recursive-include hypermap/static *.js
 recursive-include hypermap/static *.css
 recursive-include hypermap/static *.png
-recursive-include hypermap/static/font-awesome/fonts  *.eot *.woff *.tff *.svg
-recursive-include hypermap/static/fonts  *.eot *.woff *.tff *.svg
-recursive-include hypermap/templates *.html
-recursive-include hypermap/aggregator/templates *.html
+recursive-include hypermap/static/font-awesome/fonts *.eot *.woff *.tff *.svg
+recursive-include hypermap/static/fonts *.eot *.woff *.tff *.svg
+recursive-include hypermap *.html *.xml
