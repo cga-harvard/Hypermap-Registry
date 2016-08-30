@@ -5,3 +5,4 @@ recursive-include hypermap/static *.png
 recursive-include hypermap/static/font-awesome/fonts *.eot *.woff *.tff *.svg
 recursive-include hypermap/static/fonts *.eot *.woff *.tff *.svg
 recursive-include hypermap *.html *.xml
+recursive-include hypermap *.json
