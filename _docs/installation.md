@@ -92,26 +92,34 @@ Add this variables into your settings.py
 from hypermap.settings import REGISTRY_PYCSW
 
 REGISTRY = True # ensure the value is True
-REGISTRYURL = '%s/registry' % SITE_URL.rstrip('/')
-CATALOGLIST = [
-    {
-        "name": "local registry",
-        "url": "%s/hypermap/" % SITE_URL.rstrip("/")
+REGISTRY_SKIP_CELERY = False
+REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL',
+                                'elasticsearch+%s' % ES_URL)
+
+# Check layers every 24 hours
+REGISTRY_CHECK_PERIOD = int(os.environ.get('REGISTRY_CHECK_PERIOD', '1440'))
+# Index cached layers every minute
+REGISTRY_INDEX_CACHED_LAYERS_PERIOD = int(os.environ.get('REGISTRY_CHECK_PERIOD', '1'))
+
+CELERYBEAT_SCHEDULE = {
+    'Check All Services': {
+        'task': 'check_all_services',
+        'schedule': timedelta(minutes=REGISTRY_CHECK_PERIOD)
     },
-]
-SEARCH_ENABLED = True
-SEARCH_TYPE = 'elasticsearch'
-SEARCH_URL = ES_URL
-INSTALLED_APPS = (
-    'djmp',
-    'hypermap.aggregator',
-    'hypermap.dynasty',
-    'hypermap.search',
-    'hypermap',
-) + INSTALLED_APPS
+    'Index Cached Layers': {
+        'task': 'hypermap.aggregator.tasks.index_cached_layers',
+        'schedule': timedelta(minutes=REGISTRY_INDEX_CACHED_LAYERS_PERIOD)
+    }
+}
+
+# -1 Disables limit.
+REGISTRY_LIMIT_LAYERS = int(os.getenv('REGISTRY_LIMIT_LAYERS', '-1'))
+
 FILE_CACHE_DIRECTORY = '/tmp/mapproxy/'
-DEBUG_SERVICES = os.getenv('DEBUG_SERVICES', 'False') == 'True'
-DEBUG_LAYERS_NUMBER = int(os.getenv('DEBUG_LAYERS_NUMBER', '10'))
+REGISTRY_MAPPING_PRECISION = os.getenv('REGISTRY_MAPPING_PRECISION', '500m')
+
+# if DEBUG_SERVICES is set to True, only first DEBUG_LAYERS_NUMBER layers
+# for each service are updated and checked
 REGISTRY_PYCSW['server']['url'] = SITE_URL.rstrip('/') + '/registry/search/csw'
 
 REGISTRY_PYCSW['metadata:main'] = {
@@ -140,7 +148,6 @@ REGISTRY_PYCSW['metadata:main'] = {
     'contact_instructions': 'During hours of service. Off on weekends.',
     'contact_role': 'Point of Contact'
 }
-TAGGIT_CASE_INSENSITIVE = True
 ```
 
 ### Running Hypermap on Docker
