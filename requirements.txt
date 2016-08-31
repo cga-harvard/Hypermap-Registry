@@ -1,4 +1,4 @@
-git+git://github.com/geopython/pycsw.git@4fc1fc1eee3ac4b83d2862d311b20efb142e13bd#egg=pycsw
+git+git://github.com/geopython/pycsw.git@master#egg=pycsw
 
 amqp==1.4.9
 amqplib==1.0.2
