@@ -331,7 +331,7 @@ def get_single_service(esri, url, endpoint):
     len_list = len(url_split_list)
 
     service_name = url_split_list[0]
-    if len_list == 3:
+    if len_list <= 3:
         service_to_process = [s for s in esri.services if service_name in s.url]
     elif len_list == 4:
         folder_name, folder_service_name = url_split_list[0], url_split_list[1]
