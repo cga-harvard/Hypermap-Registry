@@ -26,7 +26,7 @@ PROJECT_DIR = os.path.abspath(os.path.join(__file__, os.pardir))
 BASE_URL = os.getenv('BASE_URL', 'localhost')
 BASE_PORT = os.getenv('BASE_PORT', '8000')
 
-SITE_URL = 'http://%s:%s' % (BASE_URL, BASE_PORT)
+SITE_URL = os.getenv('SITE_URL', 'http://%s:%s' % (BASE_URL, BASE_PORT))
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', [BASE_URL, ])
 
@@ -167,7 +167,7 @@ LOGGING = {
             'class': 'django.utils.log.NullHandler',
         },
         'console': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
