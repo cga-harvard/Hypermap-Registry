@@ -23,6 +23,7 @@ elasticsearch==1.9.0
 flake8==2.5.1
 geolinks==0.2.0
 httmock==1.2.5
+ipdb==0.10.1
 isodate==0.5.4
 kombu==3.0.35
 lxml==3.6.1
