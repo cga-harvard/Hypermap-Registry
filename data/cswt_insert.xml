@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<csw:Transaction xmlns:csw="http://www.opengis.net/cat/csw/2.0.2" xmlns:ows="http://www.opengis.net/ows" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-publication.xsd" service="CSW" version="2.0.2" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:registry="http://gis.harvard.edu/HHypermap/registry/0.1" >
+<csw:Insert>
+
+    <csw:Record>
+      <dc:identifier>12</dc:identifier>
+      <dc:title>Airports (OSM)</dc:title>
+      <dct:alternative>14</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Airports - major airports only.</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-23.63 -60.05</ows:LowerCorner>
+        <ows:UpperCorner>-3.03 -38.33</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>11</dc:identifier>
+      <dc:title>Stations (OSM)</dc:title>
+      <dct:alternative>13</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Public transit stations (BRT and Metro)</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-23.01 -43.44</ows:LowerCorner>
+        <ows:UpperCorner>-22.81 -43.18</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>10</dc:identifier>
+      <dc:title>Metro Lines (OSM)</dc:title>
+      <dct:alternative>12</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Metro lines</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-23.01 -43.37</ows:LowerCorner>
+        <ows:UpperCorner>-22.81 -43.17</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>9</dc:identifier>
+      <dc:title>BRT Lines (OSM)</dc:title>
+      <dct:alternative>11</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>BRT Lines</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-23.02 -43.68</ows:LowerCorner>
+        <ows:UpperCorner>-22.81 -43.23</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>8</dc:identifier>
+      <dc:title>Road Tunnels (OSM)</dc:title>
+      <dct:alternative>10</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Road Tunnels</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-23.02 -43.56</ows:LowerCorner>
+        <ows:UpperCorner>-22.67 -43.0</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>7</dc:identifier>
+      <dc:title>Bridges Tunnels (OSM)</dc:title>
+      <dct:alternative>9</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>bridges and tunnels identified from OpenStreetMap</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-23.06 -43.64</ows:LowerCorner>
+        <ows:UpperCorner>-22.66 -42.85</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>6</dc:identifier>
+      <dc:title>Rio Roads (OSM June 2015)</dc:title>
+      <dct:alternative>7</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Rio roads</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-23.07 -43.89</ows:LowerCorner>
+        <ows:UpperCorner>-22.52 -42.73</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>5</dc:identifier>
+      <dc:title>Belo Horizonte Roads (OSM May 2016)</dc:title>
+      <dct:alternative>6</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Belo Horizonte Roads (OSM May 2016)</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-20.1 -44.2</ows:LowerCorner>
+        <ows:UpperCorner>-19.55 -43.76</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>4</dc:identifier>
+      <dc:title>Brasilia Roads (OSM May 2016)</dc:title>
+      <dct:alternative>5</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Brasilia Roads (OSM May 2016)</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-16.05 -48.27</ows:LowerCorner>
+        <ows:UpperCorner>-15.49 -47.39</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+    <csw:Record>
+      <dc:identifier>3</dc:identifier>
+      <dc:title>Manaus Roads (OSM May 2016)</dc:title>
+      <dct:alternative>4</dct:alternative>
+      <dct:modified>2016-09-04T22:37:46Z</dct:modified>
+      <dct:abstract>Manaus Roads (OSM May 2016)</dct:abstract>
+      <dc:type>dataset</dc:type>
+      <dc:format>OGC:WMS</dc:format>
+      <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+      <dc:relation>1</dc:relation>
+      <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dct:references>
+      <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/4326" dimensions="2">
+        <ows:LowerCorner>-3.45 -60.47</ows:LowerCorner>
+        <ows:UpperCorner>-2.25 -59.7</ows:UpperCorner>
+      </ows:BoundingBox>
+      <registry:property name="nomination/serviceOwner" value="True"/>
+      <registry:property name="nominator/name" value="Random Person"/>
+      <registry:property name="nominator/email" value="contact@example.com"/>
+      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+      <registry:property name="updateFreq" value="as needed"/>
+      <registry:property name="mission" value="RIO"/>
+      <registry:property name="authentication" value="Open"/>
+      <registry:property name="crisis" value="False"/>
+      <registry:property name="intlAgreement/multi" value="none"/>
+      <registry:property name="intlAgreement/bilateral" value="none"/>
+      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+      <registry:property name="classificationData/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+      <registry:property name="description/classification/classification" value="Unclassified"/>
+      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555, DSN: 555-5555"/>
+      <registry:property name="license/restrictions" value="none"/>
+      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+    </csw:Record>
+
+</csw:Insert>
+</csw:Transaction>
