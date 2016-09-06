@@ -28,6 +28,7 @@ paths:
       description: The q. parameters qre query/constraints that limit the matching documents. The d. params control returning the documents. The a. params are faceting/aggregations on a field of the documents. The .limit params limit how many top values/docs to return. Some of the formatting and response structure has strong similarities with Apache Solr, unsurprisingly.
       # This is array of GET operation parameters:
       parameters:
+        -
         # An example parameter that is in query and is required
           name: catalog_slug
           in: path
