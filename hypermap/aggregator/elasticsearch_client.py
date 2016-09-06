@@ -166,6 +166,8 @@ class ESHypermap(object):
                     es_record['layer_date'] = es_date
                     es_record['layer_datetype'] = type
 
+                es_record['registry'] = layer.registry_tags()
+
                 if layer.get_tile_url():
                     es_record['tile_url'] = layer.get_tile_url()
 

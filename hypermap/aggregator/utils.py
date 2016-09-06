@@ -1,3 +1,4 @@
+import arcrest
 import urllib2
 import logging
 import requests
@@ -16,7 +17,6 @@ from owslib.csw import CatalogueServiceWeb, CswRecord
 from owslib.wms import WebMapService
 from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
-from arcrest import Folder as ArcFolder
 
 from hypermap.aggregator.enums import SERVICE_TYPES
 from lxml.etree import XMLSyntaxError
@@ -295,13 +295,13 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
     # a good sample is here: https://gis.ngdc.noaa.gov/arcgis/rest/services
 
     # we can safely assume the following condition (at least it is true for 1170 services)
-    # we need to test this as ArcFolder can freeze with not esri url such as this one:
+    # we need to test this as arcrest.Folder can freeze with not esri url such as this one:
     # http://hh.worldmap.harvard.edu/admin/aggregator/service/?q=%2Frest%2Fservices
 
     if '/rest/services' in endpoint:
         if not detected:
             try:
-                esri = ArcFolder(endpoint)
+                esri = arcrest.Folder(endpoint)
                 service_type = 'ESRI'
                 detected = True
 
@@ -331,18 +331,20 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
 
 def get_single_service(esri, url, endpoint):
     url_split_list = url.split(endpoint + '/')[1].split('/')
-    len_list = len(url_split_list)
 
-    service_name = url_split_list[0]
-    if len_list <= 3:
-        service_to_process = [s for s in esri.services if service_name in s.url]
-    elif len_list == 4:
-        folder_name, folder_service_name = url_split_list[0], url_split_list[1]
-        service_to_process = []
-        esri_folder = [f for f in esri.folders if folder_name in f.url]
-        if len(esri_folder) != 0:
-            for folder in esri_folder:
-                service_to_process = [s for s in folder.services if folder_service_name in s.url]
+    # Remove unnecessary items from list of the split url.
+    sections = url_split_list[:-2]
+
+    service_to_process = esri
+    for section in sections:
+        service_to_process = service_to_process[section]
+
+    # Determine return list depending on the type of the object.
+    service_type = type(service_to_process)
+    if service_type is arcrest.server.Folder:
+        service_to_process = service_to_process.services
+    elif service_type is arcrest.server.MapService:
+        service_to_process = [service_to_process]
 
     return service_to_process
 
