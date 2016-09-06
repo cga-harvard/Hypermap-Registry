@@ -6,8 +6,8 @@ HHypermap (Harvard Hypermap) Registry is a platform that manages OWS, Esri REST,
 
 ## Sections
 
-Users: People who use Registry via the UI
+[Users documentation](users.md): For people who use Registry via the UI
 
-Admins: People who configure Registry for others to use.
+[Admins documentation](admins.md): For people who configure Registry for others to use.
 
-Developers: People who develop Registry.
+[Developers documentation](developers.md): For people who develop Registry.
