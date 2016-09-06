@@ -151,3 +151,12 @@ To run all tests above in a single command:
 make test
 ```
 
+## Known Issues in version 0.3.9
+
+- Items from Brazil appear in Australia: https://github.com/cga-harvard/HHypermap/issues/199
+- Service name is not set up properly when ingesting via CSW-T: https://github.com/cga-harvard/HHypermap/issues/200
+- Some bounding boxes are advertised as EPSG:4326 but have values in an invalid range: https://github.com/cga-harvard/HHypermap/issues/192
+- Service and Layer checks can cause overload on remote servers. Checks should not be so exhaustive. https://github.com/cga-harvard/HHypermap/issues/173
+- Last check date is not being reported, last modification date is being reported instead. https://github.com/cga-harvard/HHypermap/issues/201
+
+ - https://github.com/elastic/elasticsearch/issues/1997
