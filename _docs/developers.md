@@ -177,7 +177,7 @@ Version 0.3.9
 
 Version 0.3
 
- - Swagger API support.
+ - Swagger API support. Deprecated CATALOGLIST.
  - Multi Catalog.
  - Docker for development.
  - Standalone third party app.
