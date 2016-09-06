@@ -42,7 +42,7 @@ paths:
           in: query
           required: false
           type: string
-          x-example: "[1900-01-01 TO 2016-01-01T00:00:00]"
+          x-example: "[1900-01-01 TO 2016-12-31T00:00:00]"
         -
           name: q.geo
           description: "A rectangular geospatial filter in decimal degrees going from the lower-left to the upper-right. The coordinates are in lat,lon format."
