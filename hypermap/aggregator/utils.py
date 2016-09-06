@@ -43,6 +43,9 @@ def create_layer_from_metadata_xml(resourcetype, xml, monitor=False):
         anytext=gen_anytext(md.title, md.abstract, md.subjects)
     )
 
+    if hasattr(md, 'alternative'):
+        layer.name = md.alternative
+
     if md.bbox is not None:
         layer.bbox_x0 = format_float(md.bbox.minx)
         layer.bbox_y0 = format_float(md.bbox.miny)
