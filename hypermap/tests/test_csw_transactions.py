@@ -86,7 +86,7 @@ class TestCSWTransactions(unittest.TestCase):
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
-        # self.assertEqual(res.content.count("Airports (OSM)"), 1)
+        self.assertEqual(res.content.count("Airports (OSM)"), 1)
 
         # are Layers in index?
         time.sleep(3)
