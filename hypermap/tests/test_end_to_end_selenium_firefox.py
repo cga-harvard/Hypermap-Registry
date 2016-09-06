@@ -68,9 +68,7 @@ class TestBrowser(unittest.TestCase):
 
     def test_browser(self):
 
-        ENDPOINT_FILE = os.path.join("/usr/src/app",
-                                     "hypermap",
-                                     "tests",
+        ENDPOINT_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                      "mesonet.agron.iastate.edu.txt")
 
         print ""
@@ -151,16 +149,16 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(
             "http://mesonet.agron.iastate.edu/cgi-bin/wms/us/wwa.cgi",
             driver.find_element_by_css_selector("td.field-url").text)
-        driver.find_element_by_link_text("1").click()
+        driver.find_element_by_xpath(
+            '//*[@id="result_list"]/tbody/tr/th/a').click()
         print driver.current_url
         print "> assert Service details."
         time.sleep(1)
-        try:
-            self.assertEqual("IEM NWS Warnings WMS Service",
-                             driver.find_element_by_id(
-                                 "id_title").get_attribute("value"))
-        except AssertionError as e:
-            self.verificationErrors.append(str(e))
+
+        self.assertEqual("IEM NWS Warnings WMS Service",
+                         driver.find_element_by_id(
+                             "id_title").get_attribute("value"))
+
         driver.find_element_by_link_text("Services").click()
         print driver.current_url
         driver.find_element_by_link_text("Aggregator").click()
