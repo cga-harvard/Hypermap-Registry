@@ -105,7 +105,18 @@ Please check ```django.env``` file as example.
 - ```REGISTRY_CHECK_PERIOD``` Time in minutes, is the value to perform the check of services. Should be around 30-120.
 - ```REGISTRY_LIMIT_LAYERS``` is the highest value that HHypermap Registry will create layers for each service. Set 0 to create all layers from a service.
 
+## Hhypermap registry troubleshootings
 
+**1. When I add an url into the database, services are not created**
+
+  - Verify that database service is ready with migrations.
+  - Check that celery process started after database migrations.
+
+**2. Services and layers are created, but layers are not indexed into search backend**
+
+As an administrator, verify in the *periodic tasks* section that index cached layers task is set.
+
+![](https://cloud.githubusercontent.com/assets/54999/18128944/f18219f0-6f4d-11e6-98d3-6dab0a2a37d9.png)
 
 
 
