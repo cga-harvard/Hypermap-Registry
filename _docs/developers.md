@@ -1,10 +1,4 @@
-# Hypermap registry
-
-## Introduction
-
-HHypermap (Harvard Hypermap) Registry is a platform that manages OWS, Esri REST, and other types of map service harvesting, and orchestration and maintains uptime statistics for services and layers. Where possible, layers will be cached by MapProxy. It is anticipated that other types of OGC service such as WFS, WCS, WPS, as well as flavors of Esri REST and other web-GIS protocols will eventually be included. The platform is initially being developed to collect and organize map services for Harvard WorldMap, but there is no dependency on WorldMap. HHypermap Registry publishes to HHypermap Search (based on Lucene) which provides a fast search and visualization environment for spatio-temporal materials. The initial funding for HHypermap Registry came from a grant to the Center for Geographic Analysis from the National Endowment for the Humanities.
-
-**source:** https://github.com/cga-harvard/HHypermap/README.md
+# HHypermap for developers
 
 ## Installation
 
@@ -57,14 +51,22 @@ Create environment variables.
 
 ```sh
 #!/bin/bash
-export DJANGO_SETTINGS_MODULE=hypermap.settings
-export REGISTRY_SEARCH_URL=elasticsearch+http://elasticsearch:9200/
-export DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
+export DATABASE_URL=hypermap://hypermap:postgres@postgres:5432/hypermap
 export BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+export CACHE_URL=memcached://memcached:11211/
+export BASE_URL=django
 export ALLOWED_HOSTS=['django',]
+export REGISTRY_SEARCH_URL=elasticsearch+http://elasticsearch:9200/
+export REGISTRY_MAPPING_PRECISION=500m
+export REGISTRY_CHECK_PERIOD=120
+export REGISTRY_SKIP_CELERY=False
+export REGISTRY_LIMIT_LAYERS=0
+export REGISTRY_INDEX_CACHED_LAYERS_PERIOD=1
+export REGISTRY_HARVEST_SERVICES=True
 export C_FORCE_ROOT=1
-export SEARCH_MAPPING_PRECISION=50m
 export CELERY_DEFAULT_EXCHANGE=hypermap
+
+
 ```
 
 Execute migrations.
@@ -104,18 +106,47 @@ sudo dockerd
 git clone https://github.com/cga-harvard/HHypermap.git
 cd HHypermap
 git checkout registry
-make build
 make up
 make sync
-make logs
 ```
 Wait for the instance to be provisioned (about 3/4 minutes).
 
-Then connect to: http://localhost:8000/registry and your instance should be up and running.
+Then connect to: http://localhost/registry and your instance should be up and running.
 
-You can edit the files with your IDE from your host, as the directory /code on the guest is synced with your host.
+You can edit the files with your IDE from your host, as the directory /code on the guest is synced with your host. Make sure to check the ```REGISTRY_SKIP_CELERY``` environment variable is set to False for debugging. If this value is set to False, it is always necessary to restart the celery container executing
 
-To run unit tests:
+```sh
+docker-compose restart celery
+```
+
+##### Tests commands
+
+Unit tests
+
+```sh
+make test-unit
+```
+
+Solr backend
+
+```sh
+make test-solr
+```
+
+Elasticsearch backend
+
+```sh
+make test-elastic
+```
+
+Selenium
+
+```sh
+make test-endtoend-selenium-firefox
+```
+
+To run all tests above in a single command:
+
 ```sh
 make test
 ```
