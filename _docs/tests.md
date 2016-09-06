@@ -24,3 +24,17 @@
 - Press *Reindex all layers* to add all created layers into the search backend. And verify in the search backend.
 ![image](https://cloud.githubusercontent.com/assets/3285923/17679268/584b7faa-6300-11e6-9bf3-31007ca6ce8f.png)
 ![image](http://d.pr/i/P0I1+)
+
+## CSW Transaction test
+
+Using Created Makefile, run csw transactions test
+
+```sh
+make test-csw-transactions
+```
+
+You should see the result shown in the figure below
+
+![image](https://cloud.githubusercontent.com/assets/3285923/18269953/3495dbe0-73f0-11e6-90a2-38785b9beeaa.png)
+
+
