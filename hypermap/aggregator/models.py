@@ -1639,7 +1639,9 @@ def set_service(instance):
     if hasattr(format_tag, 'text'):
         service_type = format_tag.text
 
-    service, created = Service.objects.get_or_create(url=service_url, type=service_type)
+    service, created = Service.objects.get_or_create(url=service_url,
+                                                     is_monitored=False,
+                                                     type=service_type)
     # TODO: dont hardcode SRS, get them from the parsed XML.
     srs, created = SpatialReferenceSystem.objects.get_or_create(code="EPSG:4326")
     service.srs.add(srs)
