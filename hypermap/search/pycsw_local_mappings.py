@@ -2,7 +2,7 @@ MD_CORE_MODEL = {
     'typename': 'pycsw:CoreMetadata',
     'outputschema': 'http://pycsw.org/metadata',
     'mappings': {
-        'pycsw:Identifier': 'id_string',
+        'pycsw:Identifier': 'uuid',
         'pycsw:Typename': 'csw_typename',
         'pycsw:Schema': 'csw_schema',
         'pycsw:MdSource': 'csw_mdsource',
@@ -21,7 +21,7 @@ MD_CORE_MODEL = {
         'pycsw:Type': 'csw_type',
         'pycsw:BoundingBox': 'wkt_geometry',
         'pycsw:CRS': 'crs',
-        'pycsw:AlternateTitle': 'title_alternate',
+        'pycsw:AlternateTitle': 'name',
         'pycsw:RevisionDate': 'date',
         'pycsw:CreationDate': 'date',
         'pycsw:PublicationDate': 'date',

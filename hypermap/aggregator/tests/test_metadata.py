@@ -107,7 +107,7 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(layer.csw_typename, 'csw:Record', 'Expected CSW typename equality')
         self.assertEqual(layer.csw_schema, 'http://www.opengis.net/cat/csw/2.0.2', 'Expected CSW schema equality')
 
-        self.assertEqual(layer.service.id, int(csw_record.relation), 'Expected relation equality')
+        self.assertEqual(str(layer.service.uuid), csw_record.relation, 'Expected relation equality')
         self.assertEqual(layer.url, csw_record.source, 'Expected URL/source equality')
 
         anytext = gen_anytext(layer.title, layer.abstract, list(layer.keywords.names()).sort())

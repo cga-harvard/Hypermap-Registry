@@ -255,6 +255,9 @@ REGISTRY_PYCSW = {
 # we need to get rid of this once we figure out how to bypass the broker in tests
 REGISTRY_SKIP_CELERY = strtobool(os.getenv('REGISTRY_SKIP_CELERY', 'False'))
 
+# For csw-transactions is not necessary to harvest layers for created services.
+REGISTRY_HARVEST_SERVICES = strtobool(os.getenv('REGISTRY_HARVEST_SERVICES', 'True'))
+
 # WorldMap Service credentials (override this in local_settings or _ubuntu in production)
 REGISTRY_WORLDMAP_USERNAME = os.getenv('REGISTRY_WORLDMAP_USERNAME', 'hypermap')
 REGISTRY_WORLDMAP_PASSWORD = os.getenv('REGISTRY_WORLDMAP_PASSWORD', 'secret')
