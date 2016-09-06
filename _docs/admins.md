@@ -84,11 +84,16 @@ Add the following django applications into the main project INSTALLED_APPS setti
 ## Test CSW transactions
 
 ```
+curl -v "http://(admin_username):(admin_password)@(host)/registry/(catalog)/csw/?service=CSW&request=Transaction&version=2.0.2" -d "@(document_body_path)"
+```
+
+As an example, using the template found in the data folder,
+
+```
 curl -v "http://admin:admin@localhost/registry/hypermap/csw/?service=CSW&request=Transaction&version=2.0.2" -d "@data/cswt_insert.xml"
 ```
 
 Verify that layers have been added into the database.
-
 
 ## Important notes
 
@@ -96,10 +101,9 @@ Please check ```django.env``` file as example.
 
 - ```REGISTRY_MAPPING_PRECISION``` string value, should be around 50m. Very small values (~1m) may cause the search backend to raise Timeout Error in small computers.
 - ```REGISTRY_HARVEST_SERVICES``` Boolean value, must be False if CSW transactions are used in order to add layers.
-- ```REGISTRY_INDEX_CACHED_LAYERS_PERIOD``` Time value in minutes, should be around 5-10. 
-- ```REGISTRY_CHECK_PERIOD``` Time in minutes, is the value to perform services check. Should be around 30-120.
+- ```REGISTRY_INDEX_CACHED_LAYERS_PERIOD``` Time value in minutes, should be around 5-10. This variable corresponds the time that layers from cache are indexed into the search backend
+- ```REGISTRY_CHECK_PERIOD``` Time in minutes, is the value to perform the check of services. Should be around 30-120.
 - ```REGISTRY_LIMIT_LAYERS``` is the highest value that HHypermap Registry will create layers for each service. Set 0 to create all layers from a service.
-
 
 
 
