@@ -2,7 +2,7 @@ MD_CORE_MODEL = {
     'typename': 'pycsw:CoreMetadata',
     'outputschema': 'http://pycsw.org/metadata',
     'mappings': {
-        'pycsw:Identifier': 'uuid',
+        'pycsw:Identifier': 'id_string',
         'pycsw:Typename': 'csw_typename',
         'pycsw:Schema': 'csw_schema',
         'pycsw:MdSource': 'csw_mdsource',

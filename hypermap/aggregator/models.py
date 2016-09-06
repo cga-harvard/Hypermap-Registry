@@ -171,6 +171,10 @@ class Resource(models.Model):
         abstract = True
 
     @property
+    def id_string(self):
+        return str(self.uuid)
+
+    @property
     def keywords_csv(self):
         keywords_qs = self.keywords.all()
         if keywords_qs:
@@ -283,6 +287,10 @@ class Service(Resource):
     srs = models.ManyToManyField(SpatialReferenceSystem, blank=True)
     catalog = models.ForeignKey("Catalog", default=1)
     is_monitored = models.BooleanField(default=True)
+
+    @property
+    def id_string(self):
+        return str(self.uuid)
 
     @property
     def get_domain(self):
@@ -420,7 +428,7 @@ class Service(Resource):
                 self.wkt_geometry = wkt_geometry
                 Service.objects.filter(id=self.id).update(wkt_geometry=wkt_geometry)
             xml = create_metadata_record(
-                identifier=str(self.uuid),
+                identifier=self.id_string,
                 source=self.url,
                 links=[[self.type, self.url]],
                 format=self.type,
@@ -1048,7 +1056,7 @@ def update_layers_wms(service):
                     links=links,
                     format='OGC:WMS',
                     type=layer.csw_type,
-                    relation=str(service.uuid),
+                    relation=service.id_string,
                     title=ows_layer.title,
                     alternative=ows_layer.name,
                     abstract=ows_layer.abstract,
@@ -1127,7 +1135,7 @@ def update_layers_wmts(service):
                     links=links,
                     format='OGC:WMS',
                     type=layer.csw_type,
-                    relation=str(service.uuid),
+                    relation=service.id_string,
                     title=ows_layer.title,
                     alternative=ows_layer.name,
                     abstract=layer.abstract,
@@ -1243,7 +1251,7 @@ def update_layers_wm(service):
                         links=links,
                         format='Hypermap:WorldMap',
                         type=layer.csw_type,
-                        relation=str(service.uuid),
+                        relation=service.id_string,
                         title=layer.title,
                         alternative=name,
                         abstract=layer.abstract,
@@ -1449,7 +1457,7 @@ def update_layers_esri_mapserver(service, greedy_opt=False):
                         links=links,
                         format='ESRI:ArcGIS:MapServer',
                         type=layer.csw_type,
-                        relation=str(service.uuid),
+                        relation=service.id_string,
                         title=layer.title,
                         alternative=layer.title,
                         abstract=layer.abstract,
@@ -1514,7 +1522,7 @@ def update_layers_esri_imageserver(service):
                 links=links,
                 format='ESRI:ArcGIS:ImageServer',
                 type=layer.csw_type,
-                relation=str(service.uuid),
+                relation=service.id_string,
                 title=layer.title,
                 alternative=layer.title,
                 abstract=layer.abstract,
