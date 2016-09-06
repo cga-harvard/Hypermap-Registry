@@ -1614,7 +1614,9 @@ def set_service(instance):
 
     # <dc:format>OGC:WMS</dc:format>
     source_tag = parsed.find("{http://purl.org/dc/elements/1.1/}source")
-    # <dc:source>http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer</dc:source>
+    # <dc:source>
+    #    http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
+    # </dc:source>
     format_tag = parsed.find("{http://purl.org/dc/elements/1.1/}format")
 
     service_url = None
