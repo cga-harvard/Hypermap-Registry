@@ -27,8 +27,6 @@ services:
 
   memcached:
     image: memcached
-    ports:
-      - "11211:11211"
 
   solr:
     image: solr
