@@ -174,6 +174,7 @@ Version 0.3.9
  - Added users, admins and developers documentation.
  - More robust parsing of ArcGIS services url.
  - Switched to q.param and a.param instead of a_param and q_param for future compatibility with angular-search.
+ - Added uuid field, requires migrations.
 
 Version 0.3
 
