@@ -90,4 +90,21 @@ curl -v "http://admin:admin@localhost/registry/hypermap/csw/?service=CSW&request
 Verify that layers have been added into the database.
 
 
+## Important notes
+
+Please check ```django.env``` file as example.
+
+- ```REGISTRY_MAPPING_PRECISION``` string value, should be around 50m. Very small values (~1m) may cause the search backend to raise Timeout Error in small computers.
+- ```REGISTRY_HARVEST_SERVICES``` Boolean value, must be False if CSW transactions are used in order to add layers.
+- ```REGISTRY_INDEX_CACHED_LAYERS_PERIOD``` Time value in minutes, should be around 5-10. 
+- ```REGISTRY_CHECK_PERIOD``` Time in minutes, is the value to perform services check. Should be around 30-120.
+- ```REGISTRY_LIMIT_LAYERS``` is the highest value that HHypermap Registry will create layers for each service. Set 0 to create all layers from a service.
+
+
+
+
+
+
+
+
 
