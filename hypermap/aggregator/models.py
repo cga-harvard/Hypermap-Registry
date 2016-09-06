@@ -1611,10 +1611,13 @@ def service_post_save(instance, *args, **kwargs):
 
 
 def set_service(instance):
-    """Set a service object based on the XML metadata
-       <dct:references scheme="OGC:WMS">
-       http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
+    """
+    Set a service object based on the XML metadata
+       <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis
+       /services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
        </dct:references>
+    :param instance:
+    :return: Layer
     """
     from pycsw.core.etree import etree
 
@@ -1636,13 +1639,15 @@ def set_service(instance):
     if hasattr(format_tag, 'text'):
         service_type = format_tag.text
 
-    service, created = Service.objects.get_or_create(url=service_url,
-                                                     type=service_type,
-                                                     is_monitored=False)
+    service, created = Service.objects.get_or_create(url=service_url, type=service_type)
+    # TODO: dont hardcode SRS, get them from the parsed XML.
+    srs, created = SpatialReferenceSystem.objects.get_or_create(code="EPSG:4326")
+    service.srs.add(srs)
 
     Layer.objects.filter(id=instance.id).update(service_id=service.id)
+    layer = Layer.objects.get(id=instance.id)
 
-    return instance
+    return layer
 
 
 def layer_post_save(instance, *args, **kwargs):
