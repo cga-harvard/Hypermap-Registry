@@ -36,7 +36,6 @@ def elasticsearch(serializer, catalog):
     :return:
     """
 
-    # search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
     search_engine_endpoint = "{0}/{1}/_search".format(SEARCH_URL, catalog.slug)
 
     q_text = serializer.validated_data.get("q_text")
