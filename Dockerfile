@@ -42,7 +42,7 @@ ONBUILD RUN pip install --no-cache-dir -r requirements.txt
 # Force a pycsw rebuild. Remove when pycsw 2.0.1 is released.
 RUN pip uninstall -y pycsw
 RUN rm -rf /usr/local/lib/python2.7/site-packages/pycsw/
-RUN pip install --upgrade git+git://github.com/terranodo/pycsw.git@2aa428835ba27e8189ca9a7b8c2db940a687f135#egg=pycsw
+RUN pip install --upgrade git+git://github.com/geopython/pycsw.git@2.0#egg=pycsw
 
 ONBUILD COPY . /usr/src/app/
 ONBUILD RUN pip install --no-deps --no-cache-dir -e /usr/src/app/
