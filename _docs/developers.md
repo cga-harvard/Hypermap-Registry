@@ -216,7 +216,7 @@ Note that Travis-CI will assert flake returns 0 code incidences.
 
 ## Changelog
 
-Version 0.3.9
+Version 0.3.10
 
  - CSW-T Insert support with custom <registry> tags.
  - Custom <registry> tags available in MapLoom UI.
@@ -228,6 +228,7 @@ Version 0.3.9
  - Added users, admins and developers documentation.
  - More robust parsing of ArcGIS services url.
  - Switched to q.param and a.param instead of a_param and q_param for future compatibility with angular-search.
+ - Added uuid field, requires migrations.
 
 Version 0.3
 

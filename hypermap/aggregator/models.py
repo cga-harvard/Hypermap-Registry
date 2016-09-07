@@ -137,7 +137,7 @@ class Resource(models.Model):
     active = models.BooleanField(default=True)
     url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
-    type = models.CharField(max_length=32, choices=SERVICE_TYPES)
+    type = models.CharField(max_length=32, choices=SERVICE_TYPES, default='OGC:WMS')
 
     check_set = generic.GenericRelation(Check, object_id_field='object_id')
 
@@ -516,10 +516,10 @@ class Layer(Resource):
     """
     name = models.CharField(max_length=255, null=True, blank=True)
     # bbox should be in WGS84
-    bbox_x0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_x1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    bbox_x0 = models.DecimalField(max_digits=19, decimal_places=10, default=-180, blank=True, null=True)
+    bbox_x1 = models.DecimalField(max_digits=19, decimal_places=10, default=180, blank=True, null=True)
+    bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, default=-90, blank=True, null=True)
+    bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, default=90, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)
@@ -1660,8 +1660,15 @@ def layer_post_save(instance, *args, **kwargs):
     # If a Layer is saved without a Service, we can safely assume it came via pycsw.
     if instance.service is None:
         instance = set_service(instance)
-        # Index it manually
-        index_layer(instance)
+
+        # TODO: DRY by adding inside tasks.index_layer(layer) method.
+        LOGGER.debug('Caching layer with id %s for syncing with search engine' % instance.id)
+        layers = cache.get('layers')
+        if layers is None:
+            layers = set([instance.id])
+        else:
+            layers.add(instance.id)
+        cache.set('layers', layers)
 
     if instance.is_monitored:  # index and monitor
         if not settings.SKIP_CELERY_TASK:
