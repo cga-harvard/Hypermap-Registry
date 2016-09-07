@@ -162,7 +162,7 @@ make test
 
 ## Changelog
 
-Version 0.3.9
+Version 0.3.10
 
  - CSW-T Insert support with custom <registry> tags.
  - Custom <registry> tags available in MapLoom UI.
