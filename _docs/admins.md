@@ -118,7 +118,21 @@ As an administrator, verify in the *periodic tasks* section that index cached la
 
 ![](https://cloud.githubusercontent.com/assets/54999/18128944/f18219f0-6f4d-11e6-98d3-6dab0a2a37d9.png)
 
+### Performance considerations
 
+#### Why REGISTRY_CHECK_PERIOD should be a big number 
+Describe problems here.
+explain Service.is_monitored=True
+#### Celery
+Workers count, scalability, indexing cache
+How to stop.
+How to purge.
+##### Celery Beats.
+How it works and how to troubleshoot
+#### Search backends considerations.
+Systems requirements
+Mapping precision.
+#### Register CSW endpoint information in the settings
 
 
 
