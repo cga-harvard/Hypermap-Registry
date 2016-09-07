@@ -120,20 +120,95 @@ As an administrator, verify in the *periodic tasks* section that index cached la
 
 ### Performance considerations
 
-#### Why REGISTRY_CHECK_PERIOD should be a big number 
-Describe problems here.
-explain Service.is_monitored=True
-#### Celery
-Workers count, scalability, indexing cache
-How to stop.
-How to purge.
-##### Celery Beats.
-How it works and how to troubleshoot
-#### Search backends considerations.
+The Hypermap architecture depends on 6 main components:
+
+
+```
++-------------------+      +----------------------+
+|                   |      |                      |
+|                   |      |    postgres          |
+|    django app     <--+--->                      |
+|                   |  |   |                      |
+|                   |  |   |                      |
++--------^----------+  |   +----------------------+
+         |             |
++--------v----------+  |   +----------------------+
+|                   |  |   |                      |
+|                   |  |   |                      |
+|     rabbitmq      |  +--->    elastic search    |
+|                   |  |   |                      |
+|                   |  |   |                      |
++---------^---------+  |   +----------------------+
+          |            |
++---------v--------+   |   +----------------------+
+|                  |   |   |                      |
+|                  |   |   |                      |
+|      celery      <---+--->      memcached       |
+|   & celery beats |       |                      |
+|                  |       |                      |
++------------------+       +----------------------+
+```
+
+If you want to see how to install those services, refer to "Manual Installations" in the developers documentation.
+
+#### Django app
+
+The application layer [#TODO: provide more info here]
+The app can be hosted via wsgi application located here: `hypermap/wsgi.py` for production enviroment is recommended to host it with uWSGI application server. Refer to https://uwsgi-docs.readthedocs.io/en/latest/ to more documentation.
+
+#### Rabbit MQ, Celery and Memcached
+
+The queue/task layer. It performs operations that works with dedicated async workers that could run in the local or remote machines connected to the Rabbit MQ instance.
+
+Operations:
+
+* Harvesting and Indexing: download metadata from Internet
+
+Each time an Endpoint, Service and Layer is created a worker starts async jobs to fetch the information for the remote services.
+
+* Perform Periodic/Scheduled Tasks (AKA beats): kicks off tasks at regular intervals, two important periodic tasks are placed in the settings file:
+
+Once a Layers are created, and checked with `hypermap.aggregator.tasks.check_all_services` are inserted to Memcached to store a buffer for the task `hypermap.aggregator.tasks.check_all_services` where inserts in batch the layers each period of time parametrized with the setting `REGISTRY_CHECK_PERIOD`.
+
+The setting `CELERYBEAT_SCHEDULE` registers the creation of the periodic tasks:
+
+```
+CELERYBEAT_SCHEDULE = {
+    'Check All Services': {
+        'task': 'hypermap.aggregator.tasks.check_all_services',
+        'schedule': timedelta(minutes=REGISTRY_CHECK_PERIOD)
+    },
+    'Index Cached Layers': {
+        'task': 'hypermap.aggregator.tasks.index_cached_layers',
+        'schedule': timedelta(minutes=REGISTRY_INDEX_CACHED_LAYERS_PERIOD)
+    }
+}
+```
+
+Those 2 periodic tasks should be automatically created in admin site when starting the celery workers. One way to check this is go to the admin site and verify in the "Periodic Tasks" page the presence of 3 tasks:
+
+![image](http://panchicore.d.pr/kLYB+)
+
+You have to ensure only a single scheduler is running for a schedule at a time, otherwise you would end up with duplicate tasks. Using a centralized approach means the schedule does not have to be synchronized, and the service can operate without using locks.
+
+##### Why REGISTRY_CHECK_PERIOD should be an extended period of time 
+
+`check_all_services` performs connections to the registered services, if checks periods are low could cause an denial of service attack. [#TODO: use better lang here] 
+
+One way to avoid `check_all_services` on some Services that you dont want to harvest, is to set `Service.is_monitored=True`.
+
+![image](http://panchicore.d.pr/1eC9N+)
+
+[# TODO complete here:]
+- Workers count, scalability, indexing cache
+- How to start.
+- How to stop.
+- How to purge.
+
+#### Elasticsearch
+[# TODO complete here:]
 Systems requirements
 Mapping precision.
-#### Register CSW endpoint information in the settings
-
 
 
 
