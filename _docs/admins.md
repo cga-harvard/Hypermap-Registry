@@ -2,7 +2,7 @@
 
 ## Integration within a Django project
 
-Make sure you have registry module installed inside your working environment.
+Make sure you have registry module installed inside your working environment and have an elasticsearch version of 2.4.0
 ```
 pip install django-registry
 ```
