@@ -137,7 +137,7 @@ class Resource(models.Model):
     active = models.BooleanField(default=True)
     url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
-    type = models.CharField(max_length=32, choices=SERVICE_TYPES)
+    type = models.CharField(max_length=32, choices=SERVICE_TYPES, default='OGC:WMS')
 
     check_set = generic.GenericRelation(Check, object_id_field='object_id')
 
