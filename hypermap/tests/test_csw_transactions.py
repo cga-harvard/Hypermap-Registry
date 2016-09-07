@@ -2,8 +2,6 @@
 import os
 import unittest
 
-import requests
-import time
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import Client
@@ -106,7 +104,7 @@ class TestCSWTransactions(unittest.TestCase):
         # TODO: it also does not work since those Layers.service does not have
         # SRS's
         for layer in Layer.objects.all():
-            #index_layer(layer)
+            # index_layer(layer)
             pass
 
         # TODO: uncomment when indexing for CSW transactions works
@@ -115,11 +113,11 @@ class TestCSWTransactions(unittest.TestCase):
         # url = "{0}hypermap/_search".format(
         #     SEARCH_URL
         # )
-        #res = requests.get(url)
-        #results_ok_in_search_backend = res.json()
-        #self.assertTrue("hits" in results_ok_in_search_backend)
-        #self.assertTrue("total" in results_ok_in_search_backend["hits"])
-        #self.assertEqual(results_ok_in_search_backend["hits"]["total"], 10)
+        # res = requests.get(url)
+        # results_ok_in_search_backend = res.json()
+        # self.assertTrue("hits" in results_ok_in_search_backend)
+        # self.assertTrue("total" in results_ok_in_search_backend["hits"])
+        # self.assertEqual(results_ok_in_search_backend["hits"]["total"], 10)
 
     def tearDown(self):
         pass
