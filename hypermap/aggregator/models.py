@@ -1660,8 +1660,15 @@ def layer_post_save(instance, *args, **kwargs):
     # If a Layer is saved without a Service, we can safely assume it came via pycsw.
     if instance.service is None:
         instance = set_service(instance)
-        # Index it manually
-        index_layer(instance)
+
+        # TODO: DRY by adding inside tasks.index_layer(layer) method.
+        LOGGER.debug('Caching layer with id %s for syncing with search engine' % instance.id)
+        layers = cache.get('layers')
+        if layers is None:
+            layers = set([instance.id])
+        else:
+            layers.add(instance.id)
+        cache.set('layers', layers)
 
     if instance.is_monitored:  # index and monitor
         if not settings.SKIP_CELERY_TASK:

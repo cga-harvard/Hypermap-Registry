@@ -111,7 +111,7 @@ def check_layer(self, layer):
             LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
             layers = cache.get('layers')
             if layers is None:
-                layers = set([layer.id])
+                layers = set([layer.id,])
             else:
                 layers.add(layer.id)
             cache.set('layers', layers)
