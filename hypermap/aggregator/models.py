@@ -516,10 +516,10 @@ class Layer(Resource):
     """
     name = models.CharField(max_length=255, null=True, blank=True)
     # bbox should be in WGS84
-    bbox_x0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_x1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    bbox_x0 = models.DecimalField(max_digits=19, decimal_places=10, default=-180, blank=True, null=True)
+    bbox_x1 = models.DecimalField(max_digits=19, decimal_places=10, default=180, blank=True, null=True)
+    bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, default=-90, blank=True, null=True)
+    bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, default=90, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)

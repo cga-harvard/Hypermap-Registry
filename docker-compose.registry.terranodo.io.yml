@@ -1,0 +1,20 @@
+version: "2"
+
+services:
+  django:
+    environment:
+      - DEBUG=False
+      - REGISTRY_LIMIT_LAYERS=0
+      - BASE_URL=registry.terranodo.io
+      - BASE_PORT=80
+      - SITE_URL=http://registry.terranodo.io
+      - ALLOWED_HOSTS=('django', 'registry.terranodo.io')
+        
+  celery:
+    environment:
+      - DEBUG=False
+      - REGISTRY_LIMIT_LAYERS=0
+      - BASE_URL=registry.terranodo.io
+      - BASE_PORT=80
+      - SITE_URL=http://registry.terranodo.io
+      - ALLOWED_HOSTS=('django', 'registry.terranodo.io')
