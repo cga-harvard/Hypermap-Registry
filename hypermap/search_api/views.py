@@ -58,9 +58,12 @@ def elasticsearch(serializer, catalog):
 
     # String searching
     if q_text:
+        # Wrapping query string into a query filter.
         query_string = {
-            "query_string": {
-                "query": q_text
+            "query": {
+                "query_string": {
+                    "query": q_text
+                }
             }
         }
         # add string searching
@@ -124,12 +127,17 @@ def elasticsearch(serializer, catalog):
 
     dic_query = {
         "query": {
-            "bool": {
-                "must": must_array,
-                "filter": filter_dic
+            "filtered": {
+                "filter":{
+                    "bool": {
+                        "must": must_array,
+                        "should": filter_dic
+                    }
+                }
             }
         }
     }
+
     # Page
     if d_docs_limit:
         dic_query["size"] = d_docs_limit

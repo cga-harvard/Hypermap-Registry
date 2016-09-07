@@ -2,7 +2,7 @@ version: '2'
 services:
 
   elasticsearch:
-    image: elasticsearch
+    image: elasticsearch:1.7
 
   django:
     links:

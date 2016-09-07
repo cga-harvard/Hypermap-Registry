@@ -154,10 +154,10 @@ class ESHypermap(object):
                     "centroid_y": rectangle.centroid.y,
                     "srs": [srs.encode('utf-8') for srs in layer.service.srs.values_list('code', flat=True)],
                     "layer_geoshape": {
-                        "type": "envelope",
-                        "coordinates": [
-                            [minX, maxY], [maxX, minY]
-                        ]
+                       "type": "envelope",
+                    "coordinates": [
+                           [minX, maxY], [maxX, minY]
+                       ]
                     },
                 }
 
@@ -216,9 +216,9 @@ class ESHypermap(object):
                 "layer": {
                     "properties": {
                         "layer_geoshape": {
-                            "type": "geo_shape",
-                            "tree": "quadtree",
-                            "precision": REGISTRY_MAPPING_PRECISION
+                           "type": "geo_shape",
+                           "tree": "quadtree",
+                           "precision": REGISTRY_MAPPING_PRECISION
                         }
                     }
                 }

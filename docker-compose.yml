@@ -5,7 +5,7 @@ services:
     image: postgres
 
   elasticsearch:
-   image: elasticsearch
+   image: elasticsearch:1.7
 
   rabbitmq:
      image: rabbitmq
