@@ -149,28 +149,56 @@ The Hypermap architecture depends on 6 main components:
 +------------------+       +----------------------+
 ```
 
+
 If you want to see how to install those services, refer to "Manual Installations" in the developers documentation.
 
 #### Django app
 
-The application layer [#TODO: provide more info here]
+The application layer [#TODO: provide more info here] 
+
 The app can be hosted via wsgi application located here: `hypermap/wsgi.py` for production enviroment is recommended to host it with uWSGI application server. Refer to https://uwsgi-docs.readthedocs.io/en/latest/ to more documentation.
+
+##### How to start?
+
+###### Development:
+```
+python manage.py runserver
+```
+
+###### Production:
+```
+uwsgi --module=hypermap.wsgi:application --env DJANGO_SETTINGS_MODULE=hypermap.settings
+```
+Read more about [Configuring and starting the uWSGI server for Django](https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/uwsgi/#configuring-and-starting-the-uwsgi-server-for-django)
+
+###### Docker:
+```
+make start
+```
+
 
 #### Rabbit MQ, Celery and Memcached
 
-The queue/task layer. It performs operations that works with dedicated async workers that could run in the local or remote machines connected to the Rabbit MQ instance.
+The queue/task layer. It performs operations (as follows above) that works with dedicated async workers that could run in the local or remote machines connected to a Rabbit MQ instance.
 
-Operations:
+ **Harvesting and Indexing**
 
-* Harvesting and Indexing: download metadata from Internet
+Download metadata from Internet, each time an Endpoint, Service and Layer is created a worker starts async jobs to fetch the information for the remote services.
 
-Each time an Endpoint, Service and Layer is created a worker starts async jobs to fetch the information for the remote services.
+**Perform Periodic/Scheduled Tasks (AKA beats)**
 
-* Perform Periodic/Scheduled Tasks (AKA beats): kicks off tasks at regular intervals, two important periodic tasks are placed in the settings file:
+Kicks off tasks at regular intervals, two important periodic tasks are placed in the settings file:
 
-Once a Layers are created, and checked with `hypermap.aggregator.tasks.check_all_services` are inserted to Memcached to store a buffer for the task `hypermap.aggregator.tasks.check_all_services` where inserts in batch the layers each period of time parametrized with the setting `REGISTRY_CHECK_PERIOD`.
+Once a Layers are created, and checked with `hypermap.aggregator.tasks.check_all_services` are inserted to Memcached to store a buffer for the task `hypermap.aggregator.tasks.index_cached_layers` where a batch call is made to Search engine in order to index. 
 
-The setting `CELERYBEAT_SCHEDULE` registers the creation of the periodic tasks:
+
+***Important settings***
+
+`REGISTRY_CHECK_PERIOD` (in minutes) defines the interval which the task `check_all_services` will be executed by the available workers to start checking the Service and Layers status.
+
+`REGISTRY_INDEX_CACHED_LAYERS_PERIOD` (in minutes) defines the interval which the task `index_cached_layers` will be executed by the available workers to start to send memcached buffered layers to the search backend.
+
+The setting `CELERYBEAT_SCHEDULE` registers the creation of those periodic tasks:
 
 ```
 CELERYBEAT_SCHEDULE = {
@@ -187,28 +215,54 @@ CELERYBEAT_SCHEDULE = {
 
 Those 2 periodic tasks should be automatically created in admin site when starting the celery workers. One way to check this is go to the admin site and verify in the "Periodic Tasks" page the presence of 3 tasks:
 
+##### How to start?
+
+```
+celery worker --app=hypermap.celeryapp:app --concurrency 4 -B -l INFO
+```
+
+###### Docker:
+```
+make start
+```
+
+##### How to check periodic tasks created by Celery?
+
 ![image](http://panchicore.d.pr/kLYB+)
 
 You have to ensure only a single scheduler is running for a schedule at a time, otherwise you would end up with duplicate tasks. Using a centralized approach means the schedule does not have to be synchronized, and the service can operate without using locks.
 
-##### Why REGISTRY_CHECK_PERIOD should be an extended period of time 
+**Why `REGISTRY_CHECK_PERIOD` should be an extended period of time**
 
-`check_all_services` performs connections to the registered services, if checks periods are low could cause an denial of service attack. [#TODO: use better lang here] 
+`check_all_services` performs connections to the registered services in order to make checks and download information, if checks periods are too low it could be causing massive connections to the services and cause high incoming traffic and workload that could looks like a denial of service attack. The recommended setting with `REGISTRY_CHECK_PERIOD` is `60*24` to perform a daily check.
 
-One way to avoid `check_all_services` on some Services that you dont want to harvest, is to set `Service.is_monitored=True`.
+One way to avoid those remote connections to the service servers not required/needed to harvest, is to set `Service.is_monitored=True`.
 
-![image](http://panchicore.d.pr/1eC9N+)
+As in admin site:
+<img src="http://panchicore.d.pr/1eC9N+" width="400">
 
-[# TODO complete here:]
-- Workers count, scalability, indexing cache
-- How to start.
-- How to stop.
-- How to purge.
+**Workers quantity (--concurrency N)**
 
-#### Elasticsearch
-[# TODO complete here:]
-Systems requirements
-Mapping precision.
+The recommended number of concurrent workers running in a machine should be near to the number of CPU cores.
 
+**Scalling up/down: Register celery nodes**
 
+Deploy the hypermap code in a different machine in the same cluster and use the same `BROKER_URL`. Task will be automaticaly starting on this node. Dont start with beats to ensure only a single scheduler is running for a schedule at a time, otherwise you would end up with duplicate tasks.
+
+**Starting celery without beats**
+
+Just remove the `-B` from the start command:
+
+```
+celery worker --app=hypermap.celeryapp:app --concurrency 4 -l INFO
+```
+
+**How to purge active and pending task from celery**
+
+this is unrecoverable, and the tasks will be deleted from the messaging server.
+
+First stop all workers and run:
+```
+celery worker --app=hypermap.celeryapp:app purge -f
+```
 
