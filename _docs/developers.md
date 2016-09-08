@@ -158,6 +158,7 @@ make test
  - Some bounding boxes are advertised as EPSG:4326 but have values in an invalid range: https://github.com/cga-harvard/HHypermap/issues/192
  - Service and Layer checks can cause overload on remote servers. Checks should not be so exhaustive. https://github.com/cga-harvard/HHypermap/issues/173
  - Last check date is not being reported, last modification date is being reported instead. https://github.com/cga-harvard/HHypermap/issues/201
+ - Sibling services are being imported in ArcGIS services: https://github.com/cga-harvard/HHypermap/issues/203
 
 
 ## Changelog
