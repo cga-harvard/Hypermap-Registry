@@ -55,7 +55,6 @@ setup(
         'python-memcached',
         'psycopg2',
         'pysolr',
-        'pylibmc',
         'requests',
         'webtest',
     ]

@@ -1,2 +1,2 @@
-FROM geonode/django:geonode
+FROM geonode/django
 MAINTAINER Ariel Núñez<ariel@terranodo.io>
