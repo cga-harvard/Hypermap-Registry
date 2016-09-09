@@ -162,6 +162,10 @@ make test
 
 
 ## Changelog
+Master
+
+ - Removed dependency on pylibmc. Fixes #181.
+
 Version 0.3.11
 
  - Move to Elasticsearch 1.7 compatible query syntax.
