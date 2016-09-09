@@ -118,7 +118,7 @@ As an administrator, verify in the *periodic tasks* section that index cached la
 
 ![](https://cloud.githubusercontent.com/assets/54999/18128944/f18219f0-6f4d-11e6-98d3-6dab0a2a37d9.png)
 
-### Performance considerations
+## Performance considerations
 
 The Hypermap architecture depends on 6 main components:
 
@@ -152,7 +152,7 @@ The Hypermap architecture depends on 6 main components:
 
 If you want to see how to install those services, refer to "Manual Installations" in the developers documentation.
 
-#### Django app
+### Django app
 
 The application layer [#TODO: provide more info here] 
 
@@ -160,24 +160,24 @@ The app can be hosted via wsgi application located here: `hypermap/wsgi.py` for 
 
 ##### How to start?
 
-###### Development:
+##### Development:
 ```
 python manage.py runserver
 ```
 
-###### Production:
+##### Production:
 ```
 uwsgi --module=hypermap.wsgi:application --env DJANGO_SETTINGS_MODULE=hypermap.settings
 ```
 Read more about [Configuring and starting the uWSGI server for Django](https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/uwsgi/#configuring-and-starting-the-uwsgi-server-for-django)
 
-###### Docker:
+##### Docker:
 ```
 make start
 ```
 
 
-#### Rabbit MQ, Celery and Memcached
+### Rabbit MQ, Celery and Memcached
 
 The queue/task layer. It performs operations (as follows above) that works with dedicated async workers that could run in the local or remote machines connected to a Rabbit MQ instance.
 
@@ -221,14 +221,14 @@ Those 2 periodic tasks should be automatically created in admin site when starti
 celery worker --app=hypermap.celeryapp:app --concurrency 4 -B -l INFO
 ```
 
-###### Docker:
+##### Docker:
 ```
 make start
 ```
 
 ##### How to check periodic tasks created by Celery?
 
-![image](http://panchicore.d.pr/kLYB+)
+<img src="http://panchicore.d.pr/kLYB+" width="400">
 
 You have to ensure only a single scheduler is running for a schedule at a time, otherwise you would end up with duplicate tasks. Using a centralized approach means the schedule does not have to be synchronized, and the service can operate without using locks.
 
@@ -239,7 +239,8 @@ You have to ensure only a single scheduler is running for a schedule at a time, 
 One way to avoid those remote connections to the service servers not required/needed to harvest, is to set `Service.is_monitored=True`.
 
 As in admin site:
-<img src="http://panchicore.d.pr/1eC9N+" width="400">
+
+<img src="http://panchicore.d.pr/1eC9N+" width="300">
 
 **Workers quantity (--concurrency N)**
 
@@ -266,3 +267,17 @@ First stop all workers and run:
 celery worker --app=hypermap.celeryapp:app purge -f
 ```
 
+
+### Elasticsearch
+
+**`REGISTRY_MAPPING_PRECISION`**
+
+This parameter may be used instead of tree_levels to set an appropriate value for the tree_levels parameter. The value specifies the desired precision and Elasticsearch will calculate the best tree_levels value to honor this precision. The value should be a number followed by `m` distance unit.
+
+**Performance considerations**
+
+Elasticsearch uses the paths in the prefix tree as terms in the index and in queries. The higher the levels is (and thus the precision), the more terms are generated. Of course, calculating the terms, keeping them in memory, and storing them on disk all have a price. Especially with higher tree levels, indices can become extremely large even with a modest amount of data. Additionally, the size of the features also matters. Big, complex polygons can take up a lot of space at higher tree levels. Which setting is right depends on the use case. Generally one trades off accuracy against index size and query performance.
+
+The defaults in Elasticsearch for both implementations are a compromise between index size and a reasonable level of precision of 50m at the equator. This allows for indexing tens of millions of shapes without overly bloating the resulting index too much relative to the input size.
+
+So take care settings low `REGISTRY_MAPPING_PRECISION` because at the moment of sending Layers to Elasticsearch it will become slow.
