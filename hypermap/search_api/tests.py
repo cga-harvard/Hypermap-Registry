@@ -181,7 +181,6 @@ class SearchApiTestCase(TestCase):
         for doc in results.get("d.docs", []):
             self.assertEqual(doc["title"], layer.title)
 
-
     def test_q_geo(self):
         print '> testing q geo'
         params = self.default_params
@@ -221,7 +220,6 @@ class SearchApiTestCase(TestCase):
         # validate the format
         print '> testing q geo (format validations)'
         self.assertEqual(results.status_code, 400)
-
 
     def test_q_time(self):
         print '> testing q time (format validations)'
