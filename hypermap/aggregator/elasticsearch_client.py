@@ -155,7 +155,7 @@ class ESHypermap(object):
                     "srs": [srs.encode('utf-8') for srs in layer.service.srs.values_list('code', flat=True)],
                     "layer_geoshape": {
                        "type": "envelope",
-                    "coordinates": [
+                       "coordinates": [
                            [minX, maxY], [maxX, minY]
                        ]
                     },
