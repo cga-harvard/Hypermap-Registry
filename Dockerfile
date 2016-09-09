@@ -31,11 +31,6 @@ RUN chmod +x /usr/bin/wait-for-postgres
 COPY requirements.txt /usr/src/app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Force a pycsw rebuild. Remove when pycsw 2.0.1 is released.
-RUN pip uninstall -y pycsw
-RUN rm -rf /usr/local/lib/python2.7/site-packages/pycsw/
-RUN pip install --no-cache-dir --upgrade git+git://github.com/geopython/pycsw.git@2.0#egg=pycsw
-
 COPY . /usr/src/app/
 RUN pip install --no-deps --no-cache-dir -e /usr/src/app/
 

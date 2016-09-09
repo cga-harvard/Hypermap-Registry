@@ -162,6 +162,9 @@ make test
 
 
 ## Changelog
+Version 0.3.11
+
+ - Move to Elasticsearch 1.7 compatible query syntax.
 
 Version 0.3.10
 
