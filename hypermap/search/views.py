@@ -56,7 +56,7 @@ def csw_global_dispatch(request, url=None, catalog_id=None):
     if catalog_id is not None:
         settings.REGISTRY_PYCSW['repository']['filter'] = 'catalog_id = %d' % catalog_id
 
-    csw = server.Csw(settings.REGISTRY_PYCSW, env, version='2.0.2')
+    csw = server.Csw(settings.REGISTRY_PYCSW, env)
 
     content = csw.dispatch_wsgi()
 
