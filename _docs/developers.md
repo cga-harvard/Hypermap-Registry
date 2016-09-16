@@ -88,6 +88,8 @@ Easiest way to have an HHypermap instance up and running is to use Docker.
 #### Docker installation
 ```
 wget https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz
+tar -xvzf docker-latest.tgz
+sudo mv docker/* /usr/bin/
 curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > docker-compose
 chmod +x docker-compose
 sudo mv docker-compose /usr/bin/
