@@ -1,4 +1,4 @@
--i https://testpypi.python.org/pypi
+--extra-index-url https://testpypi.python.org/pypi
 
 amqp==1.4.9
 amqplib==1.0.2
