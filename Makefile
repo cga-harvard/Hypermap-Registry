@@ -13,7 +13,9 @@ END_TO_END_TEST_FLAGS=-e REGISTRY_SKIP_CELERY=False \
                          -e SELENIUM_HUB_URL=http://selenium-firefox:4444/wd/hub \
                          -e BROWSER_HYPERMAP_URL=http://nginx \
                          -e WAIT_FOR_CELERY_JOB_PERIOD=30
-
+TEST_CSW_TRANSACTIONS_FLAGS=-e REGISTRY_SKIP_CELERY=True \
+                         -e BROWSER_HYPERMAP_URL=http://nginx \
+                         -e REGISTRY_HARVEST_SERVICES=False
 pre-up:
 	# Bring up the database and rabbitmq first
 	$(DOCKER_COMPOSE) up -d postgres rabbitmq
@@ -64,7 +66,12 @@ test-endtoend-selenium-firefox:
 	# Want to see whats happening? connect to VNC server localhost:5900 password: secret
 	$(DOCKER_COMPOSE) run $(END_TO_END_TEST_FLAGS) django python manage.py test hypermap.tests.test_end_to_end_selenium_firefox --failfast
 
-test: down start test-unit test-solr test-elastic test-endtoend-selenium-firefox
+test-csw-transactions: DOCKER_FILES=$(DEV_DOCKER_FILES)
+test-csw-transactions:
+	# Run tests CSW requests <--> Nginx
+	$(DOCKER_COMPOSE) run $(TEST_CSW_TRANSACTIONS_FLAGS) django python manage.py test hypermap.tests.test_csw_transactions --failfast
+
+test: down start test-unit test-solr test-elastic test-csw-transactions test-endtoend-selenium-firefox
 
 shell: $(DOCKER_COMPOSE) run django python manage.py shell_plus
 

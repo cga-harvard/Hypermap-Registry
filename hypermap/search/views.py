@@ -70,6 +70,7 @@ def csw_global_dispatch(request, url=None, catalog_id=None):
 
     response = HttpResponse(content, content_type=csw.contenttype)
 
+    # TODO: Fix before 1.0 release. CORS should not be enabled blindly like this.
     response['Access-Control-Allow-Origin'] = '*'
     return response
 

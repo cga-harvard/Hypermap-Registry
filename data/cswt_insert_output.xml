@@ -1,0 +1,49 @@
+<csw:TransactionResponse xmlns:csw="http://www.opengis.net/cat/csw/2.0.2" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml" xmlns:ows="http://www.opengis.net/ows" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0.2" xsi:schemaLocation="http://www.opengis.net/cat/csw/2.0.2 http://schemas.opengis.net/csw/2.0.2/CSW-publication.xsd">
+  <csw:TransactionSummary>
+    <csw:totalInserted>10</csw:totalInserted>
+    <csw:totalUpdated>0</csw:totalUpdated>
+    <csw:totalDeleted>0</csw:totalDeleted>
+  </csw:TransactionSummary>
+  <csw:InsertResult>
+    <csw:BriefRecord>
+      <dc:identifier>12</dc:identifier>
+      <dc:title>Airports (OSM)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>11</dc:identifier>
+      <dc:title>Stations (OSM)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>10</dc:identifier>
+      <dc:title>Metro Lines (OSM)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>9</dc:identifier>
+      <dc:title>BRT Lines (OSM)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>8</dc:identifier>
+      <dc:title>Road Tunnels (OSM)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>7</dc:identifier>
+      <dc:title>Bridges Tunnels (OSM)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>6</dc:identifier>
+      <dc:title>Rio Roads (OSM June 2015)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>5</dc:identifier>
+      <dc:title>Belo Horizonte Roads (OSM May 2016)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>4</dc:identifier>
+      <dc:title>Brasilia Roads (OSM May 2016)</dc:title>
+    </csw:BriefRecord>
+    <csw:BriefRecord>
+      <dc:identifier>3</dc:identifier>
+      <dc:title>Manaus Roads (OSM May 2016)</dc:title>
+    </csw:BriefRecord>
+  </csw:InsertResult>
+</csw:TransactionResponse>

@@ -43,7 +43,7 @@ setup(
         'pycsw>=2.0.0',
         'flake8',
         'httmock',
-        'djmp>=0.2.5',
+        'djmp>=0.2.9',
         'MapProxy>=1.9',
         'djangorestframework',
         'django-celery',

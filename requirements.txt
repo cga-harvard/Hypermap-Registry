@@ -1,4 +1,4 @@
-git+git://github.com/geopython/pycsw.git@master#egg=pycsw
+git+git://github.com/geopython/pycsw.git@2.0#egg=pycsw
 
 amqp==1.4.9
 amqplib==1.0.2
@@ -18,11 +18,12 @@ django-pagination==1.0.7
 django-taggit==0.18.0
 django-tastypie==0.13.3
 djangorestframework==3.3.3
-djmp==0.2.8
+djmp==0.2.9
 elasticsearch==1.9.0
 flake8==2.5.1
 geolinks==0.2.0
 httmock==1.2.5
+ipdb==0.10.1
 isodate==0.5.4
 kombu==3.0.35
 lxml==3.6.1

@@ -5,6 +5,8 @@ import json
 import urllib2
 import requests
 import logging
+import uuid
+
 from urlparse import urlparse
 from dateutil.parser import parse
 
@@ -126,6 +128,7 @@ class Resource(models.Model):
     """
     Resource represents basic information for a resource (service/layer).
     """
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, null=True, blank=True)
     abstract = models.TextField(null=True, blank=True)
     keywords = TaggableManager(blank=True)
@@ -134,7 +137,7 @@ class Resource(models.Model):
     active = models.BooleanField(default=True)
     url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
-    type = models.CharField(max_length=32, choices=SERVICE_TYPES)
+    type = models.CharField(max_length=32, choices=SERVICE_TYPES, default='OGC:WMS')
 
     check_set = generic.GenericRelation(Check, object_id_field='object_id')
 
@@ -169,7 +172,7 @@ class Resource(models.Model):
 
     @property
     def id_string(self):
-        return str(self.id)
+        return str(self.uuid)
 
     @property
     def keywords_csv(self):
@@ -283,6 +286,11 @@ class Service(Resource):
 
     srs = models.ManyToManyField(SpatialReferenceSystem, blank=True)
     catalog = models.ForeignKey("Catalog", default=1)
+    is_monitored = models.BooleanField(default=True)
+
+    @property
+    def id_string(self):
+        return str(self.uuid)
 
     @property
     def get_domain(self):
@@ -508,10 +516,10 @@ class Layer(Resource):
     """
     name = models.CharField(max_length=255, null=True, blank=True)
     # bbox should be in WGS84
-    bbox_x0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_x1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
-    bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    bbox_x0 = models.DecimalField(max_digits=19, decimal_places=10, default=-180, blank=True, null=True)
+    bbox_x1 = models.DecimalField(max_digits=19, decimal_places=10, default=180, blank=True, null=True)
+    bbox_y0 = models.DecimalField(max_digits=19, decimal_places=10, default=-90, blank=True, null=True)
+    bbox_y1 = models.DecimalField(max_digits=19, decimal_places=10, default=90, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='layers', blank=True, null=True)
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)
@@ -785,6 +793,47 @@ class Layer(Resource):
         LOGGER.debug('Layer checked in %s seconds, status is %s' % (response_time, success))
         return success, message
 
+    def registry_tags(self, query_string='{http://gis.harvard.edu/HHypermap/registry/0.1}property'):
+        """Get extra metadata tagged with a registry keyword.
+               For example:
+                      <registry:property name="nomination/serviceOwner" value="True"/>
+                      <registry:property name="nominator/name" value="Random Person"/>
+                      <registry:property name="nominator/email" value="contact@example.com"/>
+                      <registry:property name="lastmodifiedby" value="2016-10-23"/>
+                      <registry:property name="updateFreq" value="as needed"/>
+                      <registry:property name="mission" value="RIO"/>
+                      <registry:property name="authentication" value="Open"/>
+                      <registry:property name="crisis" value="False"/>
+                      <registry:property name="intlAgreement/multi" value="none"/>
+                      <registry:property name="intlAgreement/bilateral" value="none"/>
+                      <registry:property name="classificationRecord/classification" value="Unclassified"/>
+                      <registry:property name="classificationData/classification" value="Unclassified"/>
+                      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+                      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+                      <registry:property name="description/classification/classification" value="Unclassified"/>
+                      <registry:property name="description/classification/classifiedBy" value="TNT"/>
+                      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+                      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+                      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+                      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555"/>
+                      <registry:property name="license/restrictions" value="none"/>
+                      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+
+        """
+        from pycsw.core.etree import etree
+
+        parsed = etree.fromstring(self.xml, etree.XMLParser(resolve_entities=False))
+        registry_tags = parsed.findall(query_string)
+
+        registry_dict = {}
+        for tag in registry_tags:
+            try:
+                registry_dict[tag.attrib['name']] = tag.attrib['value']
+            except Exception, e:
+                LOGGER.error(e, exc_info=True)
+
+        return registry_dict
+
     @property
     def get_absolute_url(self):
         return reverse("layer_detail", args=[self.catalog.slug, self.id])
@@ -855,10 +904,6 @@ class Endpoint(models.Model):
 
     class Meta:
         unique_together = ("url", "catalog")
-
-    @property
-    def id_string(self):
-        return str(self.id)
 
 
 class TaskError(models.Model):
@@ -1006,7 +1051,7 @@ def update_layers_wms(service):
                 # crsOptions
                 # TODO we may rather prepopulate with fixutres the SpatialReferenceSystem table
                 layer.xml = create_metadata_record(
-                    identifier=layer.id_string,
+                    identifier=str(layer.uuid),
                     source=service.url,
                     links=links,
                     format='OGC:WMS',
@@ -1085,7 +1130,7 @@ def update_layers_wmts(service):
                 layer.bbox_y1 = bbox[3]
                 layer.wkt_geometry = bbox2wktpolygon(bbox)
                 layer.xml = create_metadata_record(
-                    identifier=layer.id_string,
+                    identifier=str(layer.uuid),
                     source=service.url,
                     links=links,
                     format='OGC:WMS',
@@ -1201,7 +1246,7 @@ def update_layers_wm(service):
 
                     layer.wkt_geometry = bbox2wktpolygon((bbox['minx'], bbox['miny'], bbox['maxx'], bbox['maxy']))
                     layer.xml = create_metadata_record(
-                        identifier=layer.id_string,
+                        identifier=str(layer.uuid),
                         source=endpoint,
                         links=links,
                         format='Hypermap:WorldMap',
@@ -1327,7 +1372,7 @@ def update_layers_warper(service):
         check.save()
 
 
-def update_layers_esri_mapserver(service):
+def update_layers_esri_mapserver(service, greedy_opt=False):
     """
     Update layers for an ESRI REST MapServer.
     Sample endpoint: https://gis.ngdc.noaa.gov/arcgis/rest/services/SampleWorldCities/MapServer/?f=json
@@ -1349,7 +1394,7 @@ def update_layers_esri_mapserver(service):
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
         service.srs.add(srs)
         # check if it has a WMS interface
-        if 'supportedExtensions' in esri_service._json_struct:
+        if 'supportedExtensions' in esri_service._json_struct and greedy_opt:
             if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
                 # we need to change the url
                 # http://cga1.cga.harvard.edu/arcgis/rest/services/ecuador/ecuadordata/MapServer?f=pjson
@@ -1407,7 +1452,7 @@ def update_layers_esri_mapserver(service):
                         pass
                     layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
                     layer.xml = create_metadata_record(
-                        identifier=layer.id_string,
+                        identifier=str(layer.uuid),
                         source=service.url,
                         links=links,
                         format='ESRI:ArcGIS:MapServer',
@@ -1472,7 +1517,7 @@ def update_layers_esri_imageserver(service):
             ])
             layer.wkt_geometry = bbox2wktpolygon([layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1])
             layer.xml = create_metadata_record(
-                identifier=layer.id_string,
+                identifier=str(layer.uuid),
                 source=service.url,
                 links=links,
                 format='ESRI:ArcGIS:ImageServer',
@@ -1542,9 +1587,13 @@ def service_pre_save(instance, *args, **kwargs):
     # check if service is unique
     # we cannot use unique_together as it relies on a combination of fields
     # from different models (service, resource)
-    if Service.objects.filter(url=instance.url,
-                              type=instance.type,
-                              catalog=instance.catalog).count() > 0:
+    exists = Service.objects.filter(url=instance.url,
+                                    type=instance.type,
+                                    catalog=instance.catalog).count() > 0
+
+    # TODO: When saving from the django admin, this should not be triggered.
+    # Reference: http://stackoverflow.com/questions/11561722/django-what-is-the-role-of-modelstate
+    if instance._state.adding and exists:
         raise Exception("There is already such a service. url={0} catalog={1}".format(
             instance.url, instance.catalog
         ))
@@ -1555,16 +1604,71 @@ def service_post_save(instance, *args, **kwargs):
     Used to do a service full check when saving it.
     """
     # check service
-    if not settings.REGISTRY_SKIP_CELERY:
-        check_service.delay(instance)
-    else:
+    if instance.is_monitored and settings.REGISTRY_SKIP_CELERY:
         check_service(instance)
+    elif instance.is_monitored:
+        check_service.delay(instance)
+
+
+def set_service(instance):
+    """
+    Set a service object based on the XML metadata
+       <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis
+       /services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
+       </dct:references>
+    :param instance:
+    :return: Layer
+    """
+    from pycsw.core.etree import etree
+
+    parsed = etree.fromstring(instance.xml, etree.XMLParser(resolve_entities=False))
+
+    # <dc:format>OGC:WMS</dc:format>
+    source_tag = parsed.find("{http://purl.org/dc/elements/1.1/}source")
+    # <dc:source>
+    #    http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
+    # </dc:source>
+    format_tag = parsed.find("{http://purl.org/dc/elements/1.1/}format")
+
+    service_url = None
+    service_type = None
+
+    if hasattr(source_tag, 'text'):
+        service_url = source_tag.text
+
+    if hasattr(format_tag, 'text'):
+        service_type = format_tag.text
+
+    service, created = Service.objects.get_or_create(url=service_url,
+                                                     is_monitored=False,
+                                                     type=service_type)
+    # TODO: dont hardcode SRS, get them from the parsed XML.
+    srs, created = SpatialReferenceSystem.objects.get_or_create(code="EPSG:4326")
+    service.srs.add(srs)
+
+    Layer.objects.filter(id=instance.id).update(service_id=service.id)
+    layer = Layer.objects.get(id=instance.id)
+
+    return layer
 
 
 def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
+    # TODO: Fix before 1.0
+    # If a Layer is saved without a Service, we can safely assume it came via pycsw.
+    if instance.service is None:
+        instance = set_service(instance)
+
+        # TODO: DRY by adding inside tasks.index_layer(layer) method.
+        LOGGER.debug('Caching layer with id %s for syncing with search engine' % instance.id)
+        layers = cache.get('layers')
+        if layers is None:
+            layers = set([instance.id])
+        else:
+            layers.add(instance.id)
+        cache.set('layers', layers)
 
     if instance.is_monitored:  # index and monitor
         if not settings.SKIP_CELERY_TASK:

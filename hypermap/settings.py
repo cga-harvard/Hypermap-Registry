@@ -26,7 +26,7 @@ PROJECT_DIR = os.path.abspath(os.path.join(__file__, os.pardir))
 BASE_URL = os.getenv('BASE_URL', 'localhost')
 BASE_PORT = os.getenv('BASE_PORT', '8000')
 
-SITE_URL = 'http://%s:%s' % (BASE_URL, BASE_PORT)
+SITE_URL = os.getenv('SITE_URL', 'http://%s:%s' % (BASE_URL, BASE_PORT))
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', [BASE_URL, ])
 
@@ -167,7 +167,7 @@ LOGGING = {
             'class': 'django.utils.log.NullHandler',
         },
         'console': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
@@ -254,6 +254,9 @@ REGISTRY_PYCSW = {
 
 # we need to get rid of this once we figure out how to bypass the broker in tests
 REGISTRY_SKIP_CELERY = strtobool(os.getenv('REGISTRY_SKIP_CELERY', 'False'))
+
+# For csw-transactions is not necessary to harvest layers for created services.
+REGISTRY_HARVEST_SERVICES = strtobool(os.getenv('REGISTRY_HARVEST_SERVICES', 'True'))
 
 # WorldMap Service credentials (override this in local_settings or _ubuntu in production)
 REGISTRY_WORLDMAP_USERNAME = os.getenv('REGISTRY_WORLDMAP_USERNAME', 'hypermap')

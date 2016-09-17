@@ -60,8 +60,10 @@ def check_service(self, service):
             )
 
     status_update(0)
-    service.update_layers()
-    service.index_layers()
+
+    if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
+        service.update_layers()
+        service.index_layers()
     # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
 
@@ -109,7 +111,7 @@ def check_layer(self, layer):
             LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
             layers = cache.get('layers')
             if layers is None:
-                layers = set([layer.id])
+                layers = set([layer.id, ])
             else:
                 layers.add(layer.id)
             cache.set('layers', layers)
