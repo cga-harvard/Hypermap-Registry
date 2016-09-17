@@ -56,16 +56,36 @@ def elasticsearch(serializer, catalog):
     filter_dic = {}
     aggs_dic = {}
 
+    # get ES version to make the query builder to be backward compatible with
+    # diffs versions.
+    # TODO: move this to a proper place. maybe ES client?.
+    # TODO: cache it to avoid overwhelm ES with this call.
+    # TODO: ask for ES_VERSION when building queries with an elegant way.
+    ES_VERSION = 2
+    response = requests.get(SEARCH_URL)
+    if response.ok:
+        # looks ugly but will work on normal ES response for "/".
+        ES_VERSION = int(response.json()["version"]["number"][0])
+
     # String searching
     if q_text:
         # Wrapping query string into a query filter.
-        query_string = {
-            "query": {
+
+        if ES_VERSION >= 2:
+            query_string = {
                 "query_string": {
                     "query": q_text
                 }
             }
-        }
+        else:
+            query_string = {
+                "query": {
+                    "query_string": {
+                        "query": q_text
+                    }
+                }
+            }
+
         # add string searching
         must_array.append(query_string)
 
@@ -125,18 +145,28 @@ def elasticsearch(serializer, catalog):
         }
         must_array.append(user_searching)
 
-    dic_query = {
-        "query": {
-            "filtered": {
-                "filter": {
-                    "bool": {
-                        "must": must_array,
-                        "should": filter_dic
+    if ES_VERSION >= 2:
+        dic_query = {
+            "query": {
+                "bool": {
+                    "must": must_array,
+                    "filter": filter_dic
+                }
+            }
+        }
+    else:
+        dic_query = {
+            "query": {
+                "filtered": {
+                    "filter": {
+                        "bool": {
+                            "must": must_array,
+                            "should": filter_dic
+                        }
                     }
                 }
             }
         }
-    }
 
     # Page
     if d_docs_limit:
