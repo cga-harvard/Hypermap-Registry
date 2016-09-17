@@ -83,21 +83,28 @@ HHypermap Registry visualization tool comes with different types of filtering:
 
 ## Testing
 
-### Creating layers
+
+### How to connect with Hypermap features
+
+There are tree ways to connect with hypermap functionalities:
+
+### 1. Registry web app
+
+#### Creating layers
 
 - **WMS testing:** Upload http://demo.opengeo.org/geoserver/wms. There should be 72 layers created and indexed in search backend.
 - Modify environment variable REGISTRY_LIMIT_LAYERS to 2. If you are using Docker, modify your docker-compose.yml file for both django and celery docker images and verify that no service has more than 2 layers.
 - Verify that the number of layers created in the database and documents indexed in search backend are the same.
 - the total number when the map UI client is loaded matches the total number of records in elasticsearch and the total number of layers in registry's home page.
 
-### Service detail page.
+#### Service detail page.
 
 - Using a previously generated service from an endpoint, remove checks using **Remove Checks** button. Then press Check now button and verify in the celery monitor tab that check task is run. After the check is finished  you can verify the number of total checks in the *monitoring period* section.
 ![image](https://cloud.githubusercontent.com/assets/3285923/17679102/91ec62b6-62ff-11e6-8672-4dfe306c7aa6.png)
 
 ![image](http://d.pr/i/16v0E+)
 
-### Celery monitor and search backend indexing
+#### Celery monitor and search backend indexing
 
 - Using a previously created service. Verify that all layers are indexed in search backend. For elasticsearch you can verify executing this commmand in terminal.
 ```sh
@@ -107,3 +114,90 @@ HHypermap Registry visualization tool comes with different types of filtering:
 - Press *Reindex all layers* to add all created layers into the search backend. And verify in the search backend.
 ![image](https://cloud.githubusercontent.com/assets/3285923/17679268/584b7faa-6300-11e6-9bf3-31007ca6ce8f.png)
 ![image](http://d.pr/i/P0I1+)
+
+### 2. Search API
+
+This document outlines the architecture and specifications of the HHypermap Search API.
+
+#### API Documentation powered by Swagger
+
+The goal of Swagger is to define a standard, language-agnostic interface to REST APIs which allows both humans and computers to discover and understand the capabilities of the service without access to source code, documentation, or through network traffic inspection. When properly defined via Swagger, a consumer can understand and interact with the remote service with a minimal amount of implementation logic. Similar to what interfaces have done for lower-level programming, Swagger removes the guesswork in calling the service.
+
+Technically speaking - Swagger is a formal specification surrounded by a large ecosystem of tools, which includes everything from front-end user interfaces, low-level code libraries and commercial API management solutions.
+
+The swagger file can be found here: `hypermap/search_api/static/swagger/search_api.yaml` and will be hosted while Hypermap server is up and running on here `http://localhost/registry/api/docs`
+
+![image](http://panchicore.d.pr/1jk74+)
+
+#### Architecture
+
+The Search API will connect to a dedicated Search backend instance and provide read only search capabilities.
+
+```
+  /registry/{catalog_slug}/api/
++---------------------------------+           +----------------------------------+
+|                                 |           |                                  |
+|   - filter params               |           |                                  |
+|   by text, geo, time            |           |                                  |
+|   facets params                 |  HTTP     |                                  |
+|   - text, geo heatmap,          <----------->                                  |
+|   time, username                |           |     Search backend               |
+|   - presentation params         |           |                                  |
+|   limits, pagination,           |           |                                  |
+|   ordering.                     |           |                                  |
+|                                 |           |                                  |
++---------------------------------+           +----------------------------------+
+
+```
+#### Parameters documentation
+
+As Swagger is the API documentation per se, all filter, facets, presentations parameters, data types, request and response data models, response messages, curl examples, etc,  are described in the Swagger UI  `http://localhost/registry/api/docs` as presented in this screenshot:
+
+![image](http://panchicore.d.pr/1gHWu+)
+
+### 3. Embebed CSW-T
+
+Hypermap has the ability to process CSW Harvest and Transaction requests via CSW-T
+
+pycsw is an OGC CSW server implementation written in Python.
+
+pycsw fully implements the OpenGIS Catalogue Service Implementation Specification (Catalogue Service for the Web). Initial development started in 2010 (more formally announced in 2011). The project is certified OGC Compliant, and is an OGC Reference Implementation.  Since 2015, pycsw is an official OSGeo Project.
+
+Please read the docs at http://docs.pycsw.org/en/2.0.0/ for more information.
+
+
+#### How to use
+ 
+The following instructions will show how to use the different requests types:
+
+#### 1. Insert
+Insert layers from a XML file located in `data/cswt_insert.xml` with `request=Transaction`, the file contains 10 layers.
+
+```
+curl -v -X "POST" \
+    "http://admin:admin@localhost/registry/hypermap/csw/?service=CSW&request=Transaction" \
+     -H "Content-Type: application/xml" \
+     -f "data:@data/cswt_insert.xml"
+```
+
+#### 1. Retrieve
+Return the 10 layers added before with `request=GetRecords`
+
+```
+curl -X "GET" \
+    "http://admin:admin@localhost/registry/hypermap/csw/?service=CSW&version=2.0.2&request=GetRecords&typenames=csw:Record&elementsetname=full&resulttype=results
+```
+
+#### 3. Filter layers
+Query records with `mode=opensearch` and `q=` parameter, in this example one layer is named "Airport" 
+
+```
+curl -X "GET" \
+    "http://admin:admin@localhost/registry/hypermap/csw/?mode=opensearch&service=CSW&version=2.0.2&request=GetRecords&elementsetname=full&typenames=csw:Record&resulttype=results&q=Airport"
+```
+
+#### 4. Ensure layers are also indexed in Search backend:
+```
+curl -X "GET" \ 
+    "http://localhost/_elastic/hypermap/_search"
+```
