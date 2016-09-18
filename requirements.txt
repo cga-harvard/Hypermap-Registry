@@ -1,3 +1,5 @@
+--extra-index-url https://testpypi.python.org/pypi
+
 amqp==1.4.9
 amqplib==1.0.2
 anyjson==0.3.3
@@ -35,7 +37,7 @@ pika==0.10.0
 Pillow==3.1.0rc1
 psutil==4.3.0
 psycopg2==2.6.1
-pycsw==2.0.1
+pycsw==2.1-dev
 pyflakes==1.0.0
 pyproj==1.9.3
 pysolr==3.3.3
