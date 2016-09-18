@@ -25,7 +25,7 @@ from shapely.geometry import box
 LOGGER = logging.getLogger(__name__)
 
 
-def create_layer_from_metadata_xml(resourcetype, xml, monitor=False):
+def create_layer_from_metadata_xml(resourcetype, xml, monitor=False, service=None, catalog=None):
     """
     Create a layer / keyword list from a metadata record if it does not already exist.
     """
@@ -40,6 +40,8 @@ def create_layer_from_metadata_xml(resourcetype, xml, monitor=False):
         title=md.title,
         abstract=md.abstract,
         xml=xml,
+        service=service,
+        catalog=catalog,
         anytext=gen_anytext(md.title, md.abstract, md.subjects)
     )
 

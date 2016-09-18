@@ -29,14 +29,18 @@
 # =================================================================
 
 import inspect
+import logging
 
 from django.db import connection
 from django.db.models import Max, Min, Count
 from django.conf import settings
 
 from pycsw.core import util
-from hypermap.aggregator.models import Catalog, Layer, Service, Endpoint
+from hypermap.aggregator.models import Catalog, Layer, Service, Endpoint, SpatialReferenceSystem
 from hypermap.aggregator.utils import create_layer_from_metadata_xml
+from hypermap.aggregator.tasks import index_layer
+
+LOGGER = logging.getLogger(__name__)
 
 HYPERMAP_SERVICE_TYPES = {
     # 'HHypermap enum': 'CSW enum'
@@ -47,6 +51,48 @@ HYPERMAP_SERVICE_TYPES = {
     'urn:x-esri:serviceType:ArcGIS:MapServer': 'ESRI:ArcGIS:MapServer',
     'urn:x-esri:serviceType:ArcGIS:ImageServer': 'ESRI:ArcGIS:ImageServer'
 }
+
+
+def get_service(raw_xml):
+    """
+    Set a service object based on the XML metadata
+       <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis
+       /services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
+       </dct:references>
+    :param instance:
+    :return: Layer
+    """
+    from pycsw.core.etree import etree
+
+    parsed = etree.fromstring(raw_xml, etree.XMLParser(resolve_entities=False))
+
+    # <dc:format>OGC:WMS</dc:format>
+    source_tag = parsed.find("{http://purl.org/dc/elements/1.1/}source")
+    # <dc:source>
+    #    http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
+    # </dc:source>
+    format_tag = parsed.find("{http://purl.org/dc/elements/1.1/}format")
+
+    service_url = None
+    service_type = None
+
+    if hasattr(source_tag, 'text'):
+        service_url = source_tag.text
+
+    if hasattr(format_tag, 'text'):
+        service_type = format_tag.text
+
+    if hasattr(format_tag, 'text'):
+        service_type = format_tag.text
+
+    service, created = Service.objects.get_or_create(url=service_url,
+                                                     is_monitored=False,
+                                                     type=service_type)
+    # TODO: dont hardcode SRS, get them from the parsed XML.
+    srs, created = SpatialReferenceSystem.objects.get_or_create(code="EPSG:4326")
+    service.srs.add(srs)
+
+    return service
 
 
 class HHypermapRepository(object):
@@ -181,6 +227,10 @@ class HHypermapRepository(object):
         ''' Insert or update a record in the repository '''
 
         keywords = []
+
+        if self.filter is not None:
+            catalog = Catalog.objects.get(id=int(self.filter.split()[-1]))
+
         try:
             if hhclass == 'Layer':
                 # TODO: better way of figuring out duplicates
@@ -204,16 +254,24 @@ class HHypermapRepository(object):
                             anytext=util.get_anytext([source.title, source.abstract, source.keywords_csv])
                         )
 
-                res, keywords = create_layer_from_metadata_xml(resourcetype, source.xml, monitor=False)
+                service = get_service(source.xml)
+                res, keywords = create_layer_from_metadata_xml(resourcetype, source.xml,
+                                                               monitor=False, service=service,
+                                                               catalog=catalog)
+
+                res.save()
+
+                LOGGER.debug('Indexing layer with id %s on search engine' % res.id)
+                index_layer(res, use_cache=True)
+
             else:
                 if resourcetype == 'http://www.opengis.net/cat/csw/2.0.2':
-                    res = Endpoint(url=source)
+                    res = Endpoint(url=source, catalog=catalog)
                 else:
-                    res = Service(type=HYPERMAP_SERVICE_TYPES[resourcetype], url=source)
+                    res = Service(type=HYPERMAP_SERVICE_TYPES[resourcetype], url=source, catalog=catalog)
 
-            if self.filter is not None:
-                res.catalog = Catalog.objects.get(id=int(self.filter.split()[-1]))
-            res.save()
+                res.save()
+
             if keywords:
                 for kw in keywords:
                     res.keywords.add(kw)

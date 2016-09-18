@@ -1610,66 +1610,10 @@ def service_post_save(instance, *args, **kwargs):
         check_service.delay(instance)
 
 
-def set_service(instance):
-    """
-    Set a service object based on the XML metadata
-       <dct:references scheme="OGC:WMS">http://ngamaps.geointapps.org/arcgis
-       /services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
-       </dct:references>
-    :param instance:
-    :return: Layer
-    """
-    from pycsw.core.etree import etree
-
-    parsed = etree.fromstring(instance.xml, etree.XMLParser(resolve_entities=False))
-
-    # <dc:format>OGC:WMS</dc:format>
-    source_tag = parsed.find("{http://purl.org/dc/elements/1.1/}source")
-    # <dc:source>
-    #    http://ngamaps.geointapps.org/arcgis/services/RIO/Rio_Foundation_Transportation/MapServer/WMSServer
-    # </dc:source>
-    format_tag = parsed.find("{http://purl.org/dc/elements/1.1/}format")
-
-    service_url = None
-    service_type = None
-
-    if hasattr(source_tag, 'text'):
-        service_url = source_tag.text
-
-    if hasattr(format_tag, 'text'):
-        service_type = format_tag.text
-
-    service, created = Service.objects.get_or_create(url=service_url,
-                                                     is_monitored=False,
-                                                     type=service_type)
-    # TODO: dont hardcode SRS, get them from the parsed XML.
-    srs, created = SpatialReferenceSystem.objects.get_or_create(code="EPSG:4326")
-    service.srs.add(srs)
-
-    Layer.objects.filter(id=instance.id).update(service_id=service.id)
-    layer = Layer.objects.get(id=instance.id)
-
-    return layer
-
-
 def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
-    # TODO: Fix before 1.0
-    # If a Layer is saved without a Service, we can safely assume it came via pycsw.
-    if instance.service is None:
-        instance = set_service(instance)
-
-        # TODO: DRY by adding inside tasks.index_layer(layer) method.
-        LOGGER.debug('Caching layer with id %s for syncing with search engine' % instance.id)
-        layers = cache.get('layers')
-        if layers is None:
-            layers = set([instance.id])
-        else:
-            layers.add(instance.id)
-        cache.set('layers', layers)
-
     if instance.is_monitored:  # index and monitor
         if not settings.SKIP_CELERY_TASK:
             check_layer.delay(instance)
