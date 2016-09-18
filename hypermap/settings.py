@@ -219,8 +219,8 @@ REGISTRY_PYCSW = {
         # 'csw_harvest_pagesize': '10',
     },
     'repository': {
-        'source': 'HHypermap',
-        'mappings': os.path.join(PROJECT_DIR, 'search', 'pycsw_local_mappings.py')
+        'source': 'hypermap.search.pycsw_plugin.HHypermapRepository',
+        'mappings': 'hypermap.search.pycsw_local_mappings',
     },
     'metadata:main': {
         'identification_title': 'HHypermap Catalogue',
