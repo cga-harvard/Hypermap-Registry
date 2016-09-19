@@ -347,6 +347,14 @@ def get_single_service(esri, url, endpoint):
         service_to_process = service_to_process.services
     elif service_type is arcrest.server.MapService:
         service_to_process = [service_to_process]
+    elif service_type is arcrest.server.ImageService:
+        service_to_process = [service_to_process]
+    # Some services have ImageServer and MapServer in its endpoint (AmbiguousService).
+    # We create a list with both services
+    else:
+        service_dict = service_to_process.__dict__
+        service_to_process = {idx: val for idx, val in service_dict.iteritems()
+                              if idx in ['ImageServer', 'MapServer']}.values()
 
     return service_to_process
 
@@ -367,16 +375,15 @@ def process_esri_services(esri_services, catalog):
                 )
                 services_created.append(service)
 
-        # Don't process ImageServer until the following issue has been resolved:
-        # https://github.com/mapproxy/mapproxy/issues/235
-        # if '/ImageServer/' in esri_service.url:
-        #     service = create_service_from_endpoint(
-        #         esri_service.url,
-        #         'ESRI:ArcGIS:ImageServer',
-        #         '',
-        #         esri_service.serviceDescription
-        #     )
-        #      services_created.append(service)
+        if '/ImageServer/' in esri_service.url:
+            service = create_service_from_endpoint(
+                esri_service.url,
+                'ESRI:ArcGIS:ImageServer',
+                '',
+                esri_service.serviceDescription,
+                catalog=catalog
+            )
+            services_created.append(service)
 
     return services_created
 
