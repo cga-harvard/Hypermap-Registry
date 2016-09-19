@@ -310,7 +310,8 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                 service_to_process, folder_to_process = esri.services, esri.folders
                 if not greedy_opt:
                     folder_to_process = []
-                    service_to_process = get_single_service(esri, url, endpoint)
+                    sections = service_url_parse(url)
+                    service_to_process = get_single_service(esri, sections)
 
                 processed_services = process_esri_services(service_to_process, catalog)
                 num_created = num_created + len(processed_services)
@@ -331,14 +332,26 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                       'endpoint %s or already existing. messages=(%s)' % (endpoint, m)
 
 
-def get_single_service(esri, url, endpoint):
-    url_split_list = url.split(endpoint + '/')[1].split('/')
+def service_url_parse(url):
+    """
+    Function that parses from url the service and folder of services.
+    """
+    endpoint = get_sanitized_endpoint(url)
+    url_split_list = url.split(endpoint + '/')
+    if len(url_split_list) != 0:
+        url_split_list = url_split_list[1].split('/')
+    else:
+        raise Exception('Wrong url parsed')
 
     # Remove unnecessary items from list of the split url.
-    sections = url_split_list[:-2]
+    parsed_url = [s for s in url_split_list if '?' not in s if 'Server' not in s]
 
+    return parsed_url
+
+
+def get_single_service(esri, url_sections):
     service_to_process = esri
-    for section in sections:
+    for section in url_sections:
         service_to_process = service_to_process[section]
 
     # Determine return list depending on the type of the object.
