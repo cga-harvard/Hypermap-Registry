@@ -107,14 +107,8 @@ def check_layer(self, layer):
         if settings.REGISTRY_SKIP_CELERY:
             index_layer(layer)
         else:
-            # we cache the layer id
-            LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
-            layers = cache.get('layers')
-            if layers is None:
-                layers = set([layer.id, ])
-            else:
-                layers.add(layer.id)
-            cache.set('layers', layers)
+            index_layer(layer, use_cache=True)
+
     if not success:
         from hypermap.aggregator.models import TaskError
         task_error = TaskError(
@@ -253,7 +247,24 @@ def index_service(self, service):
 
 
 @shared_task(bind=True)
-def index_layer(self, layer):
+def index_layer(self, layer, use_cache=False):
+    """Index a layer in the search backend.
+    If cache is set, append it to the list, if it isn't send the transaction right away.
+    cache needs memcached to be available.
+    """
+
+    if use_cache:
+        LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
+        layers = cache.get('layers')
+
+        if layers is None:
+            layers = set([layer.id])
+        else:
+            layers.add(layer.id)
+
+        cache.set('layers', layers)
+        return
+
     # TODO: Make this function more DRY
     # by abstracting the common bits.
     if SEARCH_TYPE == 'solr':

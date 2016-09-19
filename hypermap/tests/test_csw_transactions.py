@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+import time
 import unittest
+import requests
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -95,29 +97,21 @@ class TestCSWTransactions(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.content.count("Airports (OSM)"), 1)
 
-        # force cache layers
-        # TODO: it wont work since those Transactions does not trigger a
-        # post_save signal, what is in charge to insert layers in
-        # for-indexing cache :(
+        # Flush layers in the cache.
         index_cached_layers()
 
-        # TODO: it also does not work since those Layers.service does not have
-        # SRS's
-        for layer in Layer.objects.all():
-            # index_layer(layer)
-            pass
+        # Give celery some time.
+        time.sleep(3)
 
-        # TODO: uncomment when indexing for CSW transactions works
         # are Layers in index?
-        # time.sleep(3)
-        # url = "{0}hypermap/_search".format(
-        #     SEARCH_URL
-        # )
-        # res = requests.get(url)
-        # results_ok_in_search_backend = res.json()
-        # self.assertTrue("hits" in results_ok_in_search_backend)
-        # self.assertTrue("total" in results_ok_in_search_backend["hits"])
-        # self.assertEqual(results_ok_in_search_backend["hits"]["total"], 10)
+        url = "{0}hypermap/_search".format(
+             SEARCH_URL
+        )
+        res = requests.get(url)
+        results_ok_in_search_backend = res.json()
+        self.assertTrue("hits" in results_ok_in_search_backend)
+        self.assertTrue("total" in results_ok_in_search_backend["hits"])
+        self.assertEqual(results_ok_in_search_backend["hits"]["total"], 10)
 
     def tearDown(self):
         pass
