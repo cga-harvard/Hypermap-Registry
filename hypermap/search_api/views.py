@@ -36,12 +36,7 @@ def elasticsearch(serializer, catalog):
     :param serializer:
     :return:
     """
-
-    print 'X' * 100
-    search_engine_endpoint = "{0}/{1}/_search".format(SEARCH_URL, catalog.slug)
-    search_engine_endpoint = urljoin(SEARCH_URL, catalog.slug, "_search")
-
-
+    search_engine_endpoint = urljoin(SEARCH_URL, "{0}/_search".format(catalog.slug))
     q_text = serializer.validated_data.get("q_text")
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
@@ -53,6 +48,9 @@ def elasticsearch(serializer, catalog):
     a_user_limit = serializer.validated_data.get("a_user_limit")
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
+    a_hm_limit = serializer.validated_data.get("a_hm_limit")
+    a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
+    a_hm_filter = serializer.validated_data.get("a_hm_filter")
     original_response = serializer.validated_data.get("original_response")
 
     # Dict for search on Elastic engine
@@ -256,18 +254,44 @@ def elasticsearch(serializer, catalog):
         }
         aggs_dic['articles_over_time'] = time_gap
 
+    # for heatmap support
+    if a_hm_limit > 0:
+
+        # by default is q_geo.
+        heatmap_filter_box = [[Xmin, Ymax], [Xmax, Ymin]]
+
+        # but if user sends the hm filter:
+        if a_hm_filter:
+            a_hm_filter = str(a_hm_filter)[1:-1]
+            Ymin, Xmin = a_hm_filter.split(" TO ")[0].split(",")
+            Ymax, Xmax = a_hm_filter.split(" TO ")[1].split(",")
+            heatmap_filter_box = [[Xmin, Ymax], [Xmax, Ymin]]
+
+        heatmap = {
+            "heatmap": {
+                "field": GEO_HEATMAP_FIELD,
+                "grid_level": 4,
+                "max_cells": 100,
+                "geom": {
+                    "geo_shape": {
+                        GEO_HEATMAP_FIELD: {
+                            "shape": {
+                                "type": "envelope",
+                                "coordinates": heatmap_filter_box
+                            },
+                            "relation": "intersects"
+                        }
+                    }
+                }
+            }
+        }
+        aggs_dic["viewport"] = heatmap
+
     # adding aggreations on body query
     if aggs_dic:
         dic_query['aggs'] = aggs_dic
     try:
-
-        print '---'
-        print dic_query
-        print '---'
-
-        res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
-        print res.url
-        print '--'
+        res = requests.post(search_engine_endpoint, data=json.dumps({}))
     except Exception as e:
         return 500, {"error": {"msg": str(e)}}
 
@@ -355,6 +379,21 @@ def elasticsearch(serializer, catalog):
             a_time['counts'] = time_count
             data['a.time'] = a_time
 
+        if 'viewport' in aggs:
+            hm_facet_raw = aggs["viewport"]
+            hm_facet = {
+                'gridLevel': hm_facet_raw["grid_level"],
+                'columns': hm_facet_raw["columns"],
+                'rows': hm_facet_raw["rows"],
+                'minX': hm_facet_raw["min_x"],
+                'maxX': hm_facet_raw["max_x"],
+                'minY': hm_facet_raw["min_y"],
+                'maxY': hm_facet_raw["max_x"],
+                'counts_ints2D': hm_facet_raw["counts"],
+                'projection': 'EPSG:4326'
+            }
+            data["a.hm"] = hm_facet
+
     if not int(d_docs_limit) == 0:
         for item in es_response['hits']['hits']:
             # data
@@ -379,6 +418,7 @@ def solr(serializer):
     :return:
     """
     search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
+
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
     q_text = serializer.validated_data.get("q_text")
