@@ -5,9 +5,9 @@ services:
     image: postgres
 
   elasticsearch:
-   image: elasticsearch:1.7
+#   image: elasticsearch:1.7
    # TODO: switch comment to test heatmap support.
-   # image: panchicore/elasticsearch-docker
+    image: panchicore/elasticsearch-docker
 
   rabbitmq:
      image: rabbitmq

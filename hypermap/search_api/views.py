@@ -3,6 +3,7 @@ import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from urlparse import urljoin
 
 from hypermap.aggregator.models import Catalog
 from django.conf import settings
@@ -36,7 +37,10 @@ def elasticsearch(serializer, catalog):
     :return:
     """
 
+    print 'X' * 100
     search_engine_endpoint = "{0}/{1}/_search".format(SEARCH_URL, catalog.slug)
+    search_engine_endpoint = urljoin(SEARCH_URL, catalog.slug, "_search")
+
 
     q_text = serializer.validated_data.get("q_text")
     q_time = serializer.validated_data.get("q_time")
@@ -256,7 +260,14 @@ def elasticsearch(serializer, catalog):
     if aggs_dic:
         dic_query['aggs'] = aggs_dic
     try:
+
+        print '---'
+        print dic_query
+        print '---'
+
         res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
+        print res.url
+        print '--'
     except Exception as e:
         return 500, {"error": {"msg": str(e)}}
 
