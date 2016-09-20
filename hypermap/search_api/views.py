@@ -13,22 +13,26 @@ from .utils import parse_geo_box, request_time_facet, \
 from .serializers import SearchSerializer, CatalogSerializer
 import json
 
-# - OPEN API specs
-# https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
-
-TIME_FILTER_FIELD = "layer_date"
-GEO_FILTER_FIELD = "bbox"
-GEO_HEATMAP_FIELD = "bbox"
-USER_FIELD = "layer_originator"
-TEXT_FIELD = "title"
-TIME_SORT_FIELD = "layer_date"
-GEO_SORT_FIELD = "bbox"
-
 REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+http://localhost:9200")
 
 SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
 SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 
+# - OPEN API specs
+# https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
+
+TIME_FILTER_FIELD = "layer_date"
+GEO_FILTER_FIELD = "bbox"
+USER_FIELD = "layer_originator"
+TEXT_FIELD = "title"
+TIME_SORT_FIELD = "layer_date"
+
+if SEARCH_TYPE == 'solr':
+    GEO_HEATMAP_FIELD = "bbox"
+else:
+    GEO_HEATMAP_FIELD = "layer_geoshape"
+
+GEO_SORT_FIELD = GEO_HEATMAP_FIELD
 
 def elasticsearch(serializer, catalog):
     """
@@ -49,7 +53,7 @@ def elasticsearch(serializer, catalog):
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
     a_hm_limit = serializer.validated_data.get("a_hm_limit")
-    # a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
+    a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
     a_hm_filter = serializer.validated_data.get("a_hm_filter")
     original_response = serializer.validated_data.get("original_response")
 
@@ -267,11 +271,14 @@ def elasticsearch(serializer, catalog):
             Ymax, Xmax = a_hm_filter.split(" TO ")[1].split(",")
             heatmap_filter_box = [[Xmin, Ymax], [Xmax, Ymin]]
 
+        grid_level = int(a_hm_gridlevel)
+        max_cells = (32 * grid_level) * (64 * grid_level)
+
         heatmap = {
             "heatmap": {
                 "field": GEO_HEATMAP_FIELD,
-                "grid_level": 4,
-                "max_cells": 100,
+                "grid_level": grid_level,
+                "max_cells": max_cells,
                 "geom": {
                     "geo_shape": {
                         GEO_HEATMAP_FIELD: {
@@ -291,7 +298,7 @@ def elasticsearch(serializer, catalog):
     if aggs_dic:
         dic_query['aggs'] = aggs_dic
     try:
-        res = requests.post(search_engine_endpoint, data=json.dumps({}))
+        res = requests.post(search_engine_endpoint, data=json.dumps(dic_query))
     except Exception as e:
         return 500, {"error": {"msg": str(e)}}
 
