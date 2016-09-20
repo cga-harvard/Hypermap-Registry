@@ -49,7 +49,7 @@ def elasticsearch(serializer, catalog):
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
     a_hm_limit = serializer.validated_data.get("a_hm_limit")
-    a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
+    # a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
     a_hm_filter = serializer.validated_data.get("a_hm_filter")
     original_response = serializer.validated_data.get("original_response")
 
@@ -411,13 +411,15 @@ def elasticsearch(serializer, catalog):
     return data
 
 
-def solr(serializer):
+def solr(serializer, catalog):
     """
     Search on solr endpoint
     :param serializer:
     :return:
     """
-    search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
+    # comment it since does not comes with the swagger input
+    # search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
+    search_engine_endpoint = urljoin(SEARCH_URL, "solr/{0}/select".format(catalog.slug))
 
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
@@ -674,11 +676,17 @@ class Search(APIView):
                     return Response(response.text,
                                     status=response.status_code)
 
-            search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
+            # comment this since search_engine is not an input anymore.
+            # search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
+            # get it instead of the enabled backend.
+            search_engine = SEARCH_TYPE
             if search_engine == 'solr':
-                data = solr(serializer)
-            else:
+                data = solr(serializer, catalog)
+            elif search_engine == 'elasticsearch':
                 data = elasticsearch(serializer, catalog)
+            else:
+                raise Exception("settings.REGISTRY_SEARCH_URL needs a "
+                                "valid search backend")
 
             status = 200
             if type(data) is tuple:
