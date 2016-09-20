@@ -97,14 +97,16 @@ class ESHypermap(object):
                 halfWidth = (maxX - minX) / 2.0
                 halfHeight = (maxY - minY) / 2.0
                 area = (halfWidth * 2) * (halfHeight * 2)
-                if (minX < -180):
+
+                if minX < -180 or minX > 180:
                     minX = -180
-                if (maxX > 180):
+                if maxX > 180 or maxX < 180:
                     maxX = 180
-                if (minY < -90):
+                if minY < -90 or minY > 90:
                     minY = -90
-                if (maxY > 90):
+                if maxY > 90 or maxY < 90:
                     maxY = 90
+
                 wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
                 rectangle = box(minX, minY, maxX, maxY)
                 domain = ESHypermap.get_domain(layer.service.url)
