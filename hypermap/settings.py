@@ -266,7 +266,8 @@ REGISTRY_WORLDMAP_PASSWORD = os.getenv('REGISTRY_WORLDMAP_PASSWORD', 'secret')
 # If it's > 0, only reads n layers from service, for debugging.
 REGISTRY_LIMIT_LAYERS = int(os.getenv('REGISTRY_LIMIT_LAYERS', '-1'))
 REGISTRY_MAPPING_PRECISION = os.getenv("REGISTRY_MAPPING_PRECISION", "500m")
-MAPPROXY_CACHE_DIR = os.getenv('MAPPROXY_CACHE_DIR', '/tmp/mapproxy/')
+
+MAPPROXY_CACHE_URL = os.getenv('MAPPROXY_CACHE_URL', 'file:/tmp/mapproxy/')
 MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 
 # REGISTRY_SEARCH_URL Examples:
@@ -276,5 +277,19 @@ MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
 REGISTRY_SEARCH_BATCH_SIZE = os.getenv('SEARCH_BATCH_SIZE', 50)
 
+# AWS S3 for mapproxy
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+
 # Read cache information from CACHE_URL
 CACHES = {'default': django_cache_url.config()}
+
+if int(os.getenv('DISCONNECT_SIGNALS', 0)):
+    from django.db.models import signals
+    from aggregator.models import layer_post_save, service_post_save, service_pre_save, endpoint_post_save, endpointlist_post_save
+    from aggregator.models import Layer, Service, Endpoint, EndpointList
+    signals.post_save.disconnect(layer_post_save, sender=Layer)
+    signals.post_save.disconnect(service_post_save, sender=Service)
+    signals.post_save.disconnect(service_pre_save, sender=Service)
+    signals.post_save.disconnect(endpoint_post_save, sender=Endpoint)
+    signals.post_save.disconnect(endpointlist_post_save, sender=EndpointList)

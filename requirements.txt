@@ -18,7 +18,8 @@ django-pagination==1.0.7
 django-taggit==0.18.0
 django-tastypie==0.13.3
 djangorestframework==3.3.3
-djmp==0.2.9
+#djmp==0.2.9
+#-e git+https://github.com/panchicore/django-mapproxy#egg=djmp
 elasticsearch==1.9.0
 flake8==2.5.1
 geolinks==0.2.0
@@ -27,7 +28,8 @@ ipdb==0.10.1
 isodate==0.5.4
 kombu==3.0.35
 lxml==3.6.1
-MapProxy==1.9.0
+#MapProxy==1.9.0
+#-e git+https://github.com/mapproxy/mapproxy.git@s3#egg=mapproxy
 mccabe==0.3.1
 nose==1.3.7
 OWSLib==0.10.3
