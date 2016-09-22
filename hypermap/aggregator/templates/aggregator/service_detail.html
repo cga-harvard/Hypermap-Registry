@@ -131,7 +131,7 @@
                   <td>
                     {% if layer.checks_count > 0 %}
                     <ul>
-                      <li>{{ layer.last_updated }}</li>
+                      <li>{{ layer.last_check }}</li>
                       <li>{{ layer.last_response_time|floatformat:2 }}s</li>
                     </ul>
                     {% endif %}
