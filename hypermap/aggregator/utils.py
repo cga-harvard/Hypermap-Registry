@@ -231,7 +231,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
     # WMS
     if not detected:
         try:
-            service = WebMapService(endpoint, timeout=10)
+            service = get_wms_version_negotiate(endpoint, timeout=10)
             service_type = 'OGC:WMS'
             title = service.identification.title,
             abstract = service.identification.abstract
@@ -410,6 +410,20 @@ def inverse_mercator(xy):
     lat = 180 / math.pi * \
         (2 * math.atan(math.exp(lat * math.pi / 180)) - math.pi / 2)
     return (lon, lat)
+
+
+def get_wms_version_negotiate(url, timeout=10):
+    """
+    OWSLib wrapper function to perform version negotiation against owslib.wms.WebMapService
+    """
+
+    try:
+        LOGGER.debug('Trying a WMS 1.3.0 GetCapabilities request')
+        return WebMapService(url, version='1.3.0', timeout=timeout)
+    except Exception as err:
+        LOGGER.warning('WMS 1.3.0 support not found: %s', err)
+        LOGGER.debug('Trying a WMS 1.1.1 GetCapabilities request instead')
+        return WebMapService(url, version='1.1.1', timeout=timeout)
 
 
 def mercator_to_llbbox(bbox):
