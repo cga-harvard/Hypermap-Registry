@@ -158,7 +158,7 @@ class TestCSW(LiveServerTestCase):
         self.assertEqual(res['atom:feed']['os:totalResults'], '1')
 
     @classmethod
-    def tearDown(self):
+    def tearDownClass(self):
         # Workaround for https://code.djangoproject.com/ticket/22414
         # Persistent connections not closed by LiveServerTestCase, preventing dropping test databases
         # https://github.com/cjerdonek/django/commit/b07fbca02688a0f8eb159f0dde132e7498aa40cc
@@ -176,7 +176,6 @@ class TestCSW(LiveServerTestCase):
                     # We get kicked out after closing.
                     pass
 
-        self.client.logout()
         for alias in connections:
             connections[alias].close()
             close_sessions(connections[alias])
