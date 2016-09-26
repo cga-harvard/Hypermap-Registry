@@ -21,7 +21,7 @@ pre-up:
 	$(DOCKER_COMPOSE) up -d postgres rabbitmq
 
 wait:
-	sleep 2
+	sleep 60
 
 
 up:
@@ -80,7 +80,7 @@ test-csw-transactions:
 	# Run tests CSW requests <--> Nginx
 	$(DOCKER_COMPOSE) run $(TEST_CSW_TRANSACTIONS_FLAGS) django python manage.py test hypermap.tests.test_csw_transactions --failfast
 
-test: down start test-unit test-solr test-elastic test-csw test-csw-transactions test-endtoend-selenium-firefox
+test: down start test-unit test-csw test-csw-transactions test-solr test-elastic test-endtoend-selenium-firefox
 
 shell: $(DOCKER_COMPOSE) run django python manage.py shell_plus
 
