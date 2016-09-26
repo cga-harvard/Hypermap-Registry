@@ -27,7 +27,7 @@ def create_wms_service():
 
     service = Service(
         type='OGC:WMS',
-        url='http://wms.example.com/ows?',
+        url='http://wms.example.com/ows111?',
         catalog=Catalog.objects.get()
     )
     service.save()
