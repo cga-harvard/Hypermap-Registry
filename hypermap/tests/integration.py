@@ -18,7 +18,7 @@ from hypermap.aggregator.tasks import index_all_layers
 def create_wms_service():
     service = Service(
         type='OGC:WMS',
-        url='http://wms.example.com/ows?',
+        url='http://wms.example.com/ows111?',
     )
     service.save()
 
