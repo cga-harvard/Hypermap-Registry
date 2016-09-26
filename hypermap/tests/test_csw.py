@@ -4,6 +4,8 @@ import os
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import connections
+from django.db.utils import OperationalError
 from django.test import Client, LiveServerTestCase
 from lxml.etree import XMLSyntaxError
 from owslib.csw import CatalogueServiceWeb
@@ -157,3 +159,28 @@ class TestCSW(LiveServerTestCase):
 
     def tearDown(self):
         pass
+
+    @classmethod
+    def tearDown(cls):
+        # Workaround for https://code.djangoproject.com/ticket/22414
+        # Persistent connections not closed by LiveServerTestCase, preventing dropping test databases
+        # https://github.com/cjerdonek/django/commit/b07fbca02688a0f8eb159f0dde132e7498aa40cc
+        def close_sessions(conn):
+            database_name = conn.settings_dict['NAME']
+            close_sessions_query = """
+                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = '%s';
+            """ % database_name
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute(close_sessions_query)
+                except OperationalError:
+                    # We get kicked out after closing.
+                    pass
+
+        for alias in connections:
+            connections[alias].close()
+            close_sessions(connections[alias])
+
+        print "Forcefully closed database connections."
