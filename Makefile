@@ -46,6 +46,10 @@ logs:
 down:
 	$(DOCKER_COMPOSE) down --remove-orphans
 
+test-url-parse: DOCKER_FILES=$(DEV_DOCKER_FILES)
+test-url-parse:
+	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.aggregator.tests.test_url_parse --failfast
+
 test-unit: DOCKER_FILES=$(DEV_DOCKER_FILES)
 test-unit:
 	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.aggregator --failfast
