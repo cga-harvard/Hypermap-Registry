@@ -84,13 +84,13 @@ Add the following django applications into the main project INSTALLED_APPS setti
 ## Test CSW transactions
 
 ```
-curl -v "http://(admin_username):(admin_password)@(host)/registry/(catalog)/csw/?service=CSW&request=Transaction&version=2.0.2" -d "@(document_body_path)"
+curl -v "http://(admin_username):(admin_password)@(host)/registry/(catalog)/csw?service=CSW&request=Transaction&version=2.0.2" -d "@(document_body_path)"
 ```
 
 As an example, using the template found in the data folder,
 
 ```
-curl -v "http://admin:admin@localhost/registry/hypermap/csw/?service=CSW&request=Transaction&version=2.0.2" -d "@data/cswt_insert.xml"
+curl -v "http://admin:admin@localhost/registry/hypermap/csw?service=CSW&request=Transaction&version=2.0.2" -d "@data/cswt_insert.xml"
 ```
 
 Verify that layers have been added into the database.

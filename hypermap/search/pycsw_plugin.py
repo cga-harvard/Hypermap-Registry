@@ -109,7 +109,7 @@ class HHypermapRepository(object):
         self.dbtype = settings.DATABASES['default']['ENGINE'].split('.')[-1]
 
         # HHypermap PostgreSQL installs are PostGIS enabled
-        if self.dbtype == 'postgresql_psycopg2':
+        if self.dbtype == 'postgis':
             self.dbtype = 'postgresql+postgis+wkt'
 
         if self.dbtype in ['sqlite', 'sqlite3']:  # load SQLite query bindings

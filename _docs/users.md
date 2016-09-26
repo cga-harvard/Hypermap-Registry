@@ -175,7 +175,7 @@ Insert layers from a XML file located in `data/cswt_insert.xml` with `request=Tr
 
 ```
 curl -v -X "POST" \
-    "http://admin:admin@localhost/registry/hypermap/csw/?service=CSW&request=Transaction" \
+    "http://admin:admin@localhost/registry/hypermap/csw?service=CSW&request=Transaction" \
      -H "Content-Type: application/xml" \
      -f "data:@data/cswt_insert.xml"
 ```
@@ -185,7 +185,7 @@ Return the 10 layers added before with `request=GetRecords`
 
 ```
 curl -X "GET" \
-    "http://admin:admin@localhost/registry/hypermap/csw/?service=CSW&version=2.0.2&request=GetRecords&typenames=csw:Record&elementsetname=full&resulttype=results
+    "http://admin:admin@localhost/registry/hypermap/csw?service=CSW&version=2.0.2&request=GetRecords&typenames=csw:Record&elementsetname=full&resulttype=results
 ```
 
 #### 3. Filter layers
@@ -193,7 +193,7 @@ Query records with `mode=opensearch` and `q=` parameter, in this example one lay
 
 ```
 curl -X "GET" \
-    "http://admin:admin@localhost/registry/hypermap/csw/?mode=opensearch&service=CSW&version=2.0.2&request=GetRecords&elementsetname=full&typenames=csw:Record&resulttype=results&q=Airport"
+    "http://admin:admin@localhost/registry/hypermap/csw?mode=opensearch&service=CSW&version=2.0.2&request=GetRecords&elementsetname=full&typenames=csw:Record&resulttype=results&q=Airport"
 ```
 
 #### 4. Ensure layers are also indexed in Search backend:
