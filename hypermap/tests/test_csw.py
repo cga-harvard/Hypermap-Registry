@@ -163,12 +163,11 @@ class TestCSW(LiveServerTestCase):
         # Persistent connections not closed by LiveServerTestCase, preventing dropping test databases
         # https://github.com/cjerdonek/django/commit/b07fbca02688a0f8eb159f0dde132e7498aa40cc
         def close_sessions(conn):
-            database_name = conn.settings_dict['NAME']
             close_sessions_query = """
-                SELECT pg_terminate_backend(pg_stat_activity.pid)
-                FROM pg_stat_activity
-                WHERE pg_stat_activity.datname = '%s';
-            """ % database_name
+                SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE
+                    datname = current_database() AND
+                    pid <> pg_backend_pid();
+            """
             with conn.cursor() as cursor:
                 try:
                     cursor.execute(close_sessions_query)
@@ -180,5 +179,4 @@ class TestCSW(LiveServerTestCase):
             connections[alias].close()
             close_sessions(connections[alias])
 
-        print('TEST', settings.CONN_MAX_AGE)
         print "Forcefully closed database connections."
