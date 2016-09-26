@@ -180,5 +180,5 @@ class TestCSW(LiveServerTestCase):
             connections[alias].close()
             close_sessions(connections[alias])
 
-        print('TEST',settings.CONN_MAX_AGE)
+        print('TEST', settings.CONN_MAX_AGE)
         print "Forcefully closed database connections."
