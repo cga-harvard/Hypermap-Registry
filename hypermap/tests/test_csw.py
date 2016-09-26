@@ -176,6 +176,7 @@ class TestCSW(LiveServerTestCase):
                     # We get kicked out after closing.
                     pass
 
+        self.client.logout()
         for alias in connections:
             connections[alias].close()
             close_sessions(connections[alias])
