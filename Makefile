@@ -21,7 +21,7 @@ pre-up:
 	$(DOCKER_COMPOSE) up -d postgres rabbitmq
 
 wait:
-	sleep 60
+	sleep 2
 
 
 up:
