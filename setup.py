@@ -73,7 +73,7 @@ setup(
         'pycsw==2.0.0',
         'flake8==2.5.1',
         'httmock==1.2.5',
-        'MapProxy==1.8.1',
+        'MapProxy>=1.9.0',
         'pyelasticsearch==1.4',
         'django-celery==3.1.17',
         'nose==1.3.7',

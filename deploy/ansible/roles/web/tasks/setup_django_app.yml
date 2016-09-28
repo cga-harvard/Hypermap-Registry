@@ -3,6 +3,10 @@
 - name: Install packages required by the Django app inside virtualenv
   pip: virtualenv={{ virtualenv_path }} name={{ project_path }} state=present
 
+- name: Install Mapproxy 
+  pip: virtualenv={{ virtualenv_path }} name=MapProxy version=1.10.0a0.dev20160928
+       extra_args='-i https://testpypi.python.org/pypi/' state=present
+
 - name: Run the Django syncdb command
   django_manage:
     command: syncdb
