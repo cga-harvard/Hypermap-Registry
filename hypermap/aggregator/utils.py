@@ -554,13 +554,13 @@ def layer2dict(layer):
         maxX = bbox[2]
         maxY = bbox[3]
         # coords hack needed by solr
-        if minX < -180 or minX > 180:
+        if minX < -180:
             minX = -180
-        if maxX > 180 or maxX < 180:
+        if maxX > 180:
             maxX = 180
-        if minY < -90 or minY > 90:
+        if minY < -90:
             minY = -90
-        if maxY > 90 or maxY < 90:
+        if maxY > 90:
             maxY = 90
 
         rectangle = box(minX, minY, maxX, maxY)

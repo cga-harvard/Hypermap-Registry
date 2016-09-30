@@ -271,8 +271,10 @@ def elasticsearch(serializer, catalog):
             Ymax, Xmax = a_hm_filter.split(" TO ")[1].split(",")
             heatmap_filter_box = [[Xmin, Ymax], [Xmax, Ymin]]
 
-        grid_level = int(a_hm_gridlevel)
-        max_cells = (32 * grid_level) * (64 * grid_level)
+        # TODO: remove this when distErr be ready in ES heatmaps:
+        # grid_level = int(a_hm_gridlevel)
+        grid_level = int(8)
+        max_cells = (32 * grid_level) * (32 * grid_level)
 
         heatmap = {
             "heatmap": {
@@ -395,10 +397,11 @@ def elasticsearch(serializer, catalog):
                 'minX': hm_facet_raw["min_x"],
                 'maxX': hm_facet_raw["max_x"],
                 'minY': hm_facet_raw["min_y"],
-                'maxY': hm_facet_raw["max_x"],
-                'counts_ints2D': hm_facet_raw["counts"],
+                'maxY': hm_facet_raw["max_y"],
                 'projection': 'EPSG:4326'
             }
+            counts = hm_facet_raw["counts"]
+            hm_facet['counts_ints2D'] = counts
             data["a.hm"] = hm_facet
 
     if not int(d_docs_limit) == 0:
@@ -424,8 +427,6 @@ def solr(serializer, catalog):
     :param serializer:
     :return:
     """
-    # comment it since does not comes with the swagger input
-    # search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
     search_engine_endpoint = urljoin(SEARCH_URL, "solr/{0}/select".format(catalog.slug))
 
     q_time = serializer.validated_data.get("q_time")
@@ -573,7 +574,7 @@ def solr(serializer, catalog):
             'maxX': hm_facet_raw[9],
             'minY': hm_facet_raw[11],
             'maxY': hm_facet_raw[13],
-            'counts_ints2D': hm_facet_raw[15],
+            'counts_ints2D': hm_facet_raw[15] or [],
             'projection': 'EPSG:4326'
         }
         data["a.hm"] = hm_facet
@@ -687,6 +688,7 @@ class Search(APIView):
             # search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
             # get it instead of the enabled backend.
             search_engine = SEARCH_TYPE
+            # search_engine = request.GET.get("search_backend")
             if search_engine == 'solr':
                 data = solr(serializer, catalog)
             elif search_engine == 'elasticsearch':
@@ -700,7 +702,11 @@ class Search(APIView):
                 status = data[0]
                 data = data[1]
 
-            return Response(data, status=status)
+            # TODO: remove this in production
+            headers = {
+                "Access-Control-Allow-Origin": "*"
+            }
+            return Response(data, status=status, headers=headers)
 
 
 class CatalogViewSet(ModelViewSet):

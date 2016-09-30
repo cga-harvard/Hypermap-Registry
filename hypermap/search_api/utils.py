@@ -308,7 +308,9 @@ def request_heatmap_facet(field, hm_filter, hm_grid_level, hm_limit):
         degrees_side_length = rectangle.length / 2
         cell_side_length = math.sqrt(float(hm_limit))
         cell_side_length_degrees = degrees_side_length / cell_side_length * 2
-        params['facet.heatmap.distErr'] = str(float(cell_side_length_degrees))
+        params['facet.heatmap.distErr'] = str(
+            float(cell_side_length_degrees / 100)
+        )
         # TODO: not sure about if returning correct param values.
 
     # get_params = urllib.urlencode(params)
