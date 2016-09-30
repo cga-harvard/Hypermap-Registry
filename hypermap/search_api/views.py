@@ -34,6 +34,7 @@ else:
 
 GEO_SORT_FIELD = GEO_HEATMAP_FIELD
 
+
 def elasticsearch(serializer, catalog):
     """
     https://www.elastic.co/guide/en/elasticsearch/reference/current/_the_search_api.html
@@ -53,7 +54,7 @@ def elasticsearch(serializer, catalog):
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
     a_hm_limit = serializer.validated_data.get("a_hm_limit")
-    a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
+    # a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
     a_hm_filter = serializer.validated_data.get("a_hm_filter")
     original_response = serializer.validated_data.get("original_response")
 
