@@ -33,6 +33,7 @@
   <fieldType name="ints" class="solr.TrieIntField" positionIncrementGap="0" multiValued="true" precisionStep="0"/>
   <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
   <fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType" geo="true" maxDistErr="0.001" distErrPct="0.025" distanceUnits="kilometers"/>
+  <fieldType name="location_rpt_quad" class="solr.SpatialRecursivePrefixTreeFieldType" geo="false" maxDistErr="0.000045" worldBounds="ENVELOPE(-180, 180, 180, -180)" distErrPct="0.025" distanceUnits="degrees" prefixTree="packedQuad"/>
   <fieldType name="long" class="solr.TrieLongField" positionIncrementGap="0" precisionStep="0"/>
   <fieldType name="longs" class="solr.TrieLongField" positionIncrementGap="0" multiValued="true" precisionStep="0"/>
   <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
@@ -403,6 +404,7 @@
   <field name="area" type="tdoubles" multiValued="false"/>
   <field name="availability" type="string" multiValued="false" indexed="true"/>
   <field name="bbox" type="location_rpt" multiValued="false" indexed="true" stored="true"/>
+  <field name="bbox_quad" type="location_rpt_quad" multiValued="false" indexed="true" stored="true"/>
   <field name="domain_name" type="string" multiValued="false" indexed="true"/>
   <field name="id" type="tlongs" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="is_public" type="booleans" multiValued="false"/>
@@ -505,4 +507,5 @@
   <copyField source="title" dest="title_txt" />
   <copyField source="abstract" dest="abstract_txt" />
   <copyField source="layer_originator" dest="layer_originator_txt" />
+  <copyField source="bbox" dest="bbox_quad" />
 </schema>
