@@ -231,7 +231,7 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
     # WMS
     if not detected:
         try:
-            service = WebMapService(endpoint, timeout=10)
+            service = get_wms_version_negotiate(endpoint, timeout=10)
             service_type = 'OGC:WMS'
             title = service.identification.title,
             abstract = service.identification.abstract
@@ -310,7 +310,8 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                 service_to_process, folder_to_process = esri.services, esri.folders
                 if not greedy_opt:
                     folder_to_process = []
-                    service_to_process = get_single_service(esri, url, endpoint)
+                    sections = service_url_parse(url)
+                    service_to_process = get_single_service(esri, sections)
 
                 processed_services = process_esri_services(service_to_process, catalog)
                 num_created = num_created + len(processed_services)
@@ -331,14 +332,26 @@ def create_services_from_endpoint(url, catalog, greedy_opt=True):
                       'endpoint %s or already existing. messages=(%s)' % (endpoint, m)
 
 
-def get_single_service(esri, url, endpoint):
-    url_split_list = url.split(endpoint + '/')[1].split('/')
+def service_url_parse(url):
+    """
+    Function that parses from url the service and folder of services.
+    """
+    endpoint = get_sanitized_endpoint(url)
+    url_split_list = url.split(endpoint + '/')
+    if len(url_split_list) != 0:
+        url_split_list = url_split_list[1].split('/')
+    else:
+        raise Exception('Wrong url parsed')
 
     # Remove unnecessary items from list of the split url.
-    sections = url_split_list[:-2]
+    parsed_url = [s for s in url_split_list if '?' not in s if 'Server' not in s]
 
+    return parsed_url
+
+
+def get_single_service(esri, url_sections):
     service_to_process = esri
-    for section in sections:
+    for section in url_sections:
         service_to_process = service_to_process[section]
 
     # Determine return list depending on the type of the object.
@@ -347,6 +360,14 @@ def get_single_service(esri, url, endpoint):
         service_to_process = service_to_process.services
     elif service_type is arcrest.server.MapService:
         service_to_process = [service_to_process]
+    elif service_type is arcrest.server.ImageService:
+        service_to_process = [service_to_process]
+    # Some services have ImageServer and MapServer in its endpoint (AmbiguousService).
+    # We create a list with both services
+    else:
+        service_dict = service_to_process.__dict__
+        service_to_process = {idx: val for idx, val in service_dict.iteritems()
+                              if idx in ['ImageServer', 'MapServer']}.values()
 
     return service_to_process
 
@@ -367,16 +388,15 @@ def process_esri_services(esri_services, catalog):
                 )
                 services_created.append(service)
 
-        # Don't process ImageServer until the following issue has been resolved:
-        # https://github.com/mapproxy/mapproxy/issues/235
-        # if '/ImageServer/' in esri_service.url:
-        #     service = create_service_from_endpoint(
-        #         esri_service.url,
-        #         'ESRI:ArcGIS:ImageServer',
-        #         '',
-        #         esri_service.serviceDescription
-        #     )
-        #      services_created.append(service)
+        if '/ImageServer/' in esri_service.url:
+            service = create_service_from_endpoint(
+                esri_service.url,
+                'ESRI:ArcGIS:ImageServer',
+                '',
+                esri_service.serviceDescription,
+                catalog=catalog
+            )
+            services_created.append(service)
 
     return services_created
 
@@ -390,6 +410,20 @@ def inverse_mercator(xy):
     lat = 180 / math.pi * \
         (2 * math.atan(math.exp(lat * math.pi / 180)) - math.pi / 2)
     return (lon, lat)
+
+
+def get_wms_version_negotiate(url, timeout=10):
+    """
+    OWSLib wrapper function to perform version negotiation against owslib.wms.WebMapService
+    """
+
+    try:
+        LOGGER.debug('Trying a WMS 1.3.0 GetCapabilities request')
+        return WebMapService(url, version='1.3.0', timeout=timeout)
+    except Exception as err:
+        LOGGER.warning('WMS 1.3.0 support not found: %s', err)
+        LOGGER.debug('Trying a WMS 1.1.1 GetCapabilities request instead')
+        return WebMapService(url, version='1.1.1', timeout=timeout)
 
 
 def mercator_to_llbbox(bbox):

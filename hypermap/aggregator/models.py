@@ -34,7 +34,7 @@ from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
 from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
 from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
-from utils import get_esri_extent, get_esri_service_name, format_float, flip_coordinates
+from utils import get_esri_extent, get_esri_service_name, get_wms_version_negotiate, format_float, flip_coordinates
 
 from hypermap.dynasty.utils import get_mined_dates
 
@@ -366,7 +366,7 @@ class Service(Resource):
                 abstract = ows.identification.abstract
                 keywords = ows.identification.keywords
             if self.type == 'OGC:WMS':
-                ows = WebMapService(self.url)
+                ows = get_wms_version_negotiate(self.url)
                 title = ows.identification.title
                 abstract = ows.identification.abstract
                 keywords = ows.identification.keywords
@@ -610,7 +610,7 @@ class Layer(Resource):
         format_error_message = 'This layer does not expose valid formats (png, jpeg) to generate the thumbnail'
         img = None
         if self.type == 'OGC:WMS':
-            ows = WebMapService(self.service.url)
+            ows = get_wms_version_negotiate(self.service.url)
             op_getmap = ows.getOperationByName('GetMap')
             image_format = 'image/png'
             if image_format not in op_getmap.formatOptions:
@@ -1003,7 +1003,7 @@ def update_layers_wms(service):
     Sample endpoint: http://demo.geonode.org/geoserver/ows
     """
     try:
-        wms = WebMapService(service.url)
+        wms = get_wms_version_negotiate(service.url)
         layer_names = list(wms.contents)
         parent = wms.contents[layer_names[0]].parent
         # fallback, some endpoint like this one:

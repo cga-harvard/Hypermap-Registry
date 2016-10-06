@@ -68,16 +68,14 @@ class TestCSWTransactions(unittest.TestCase):
         payload = open(path, 'rb').read()
         content_type = "application/xml"
 
-        url = "/registry/{0}/csw/?service=CSW&request=Transaction".format(
-            catalog_test_slug
-        )
+        url = "/registry/{0}/csw".format(catalog_test_slug)
 
         res = self.client.post(url, data=payload, content_type=content_type)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(Layer.objects.all().count(), 10)
 
         # List the Layers posted above
-        url = "/registry/{0}/csw/?service=CSW&version=2.0.2&request=" \
+        url = "/registry/{0}/csw?service=CSW&version=2.0.2&request=" \
               "GetRecords&typenames=csw:Record&elementsetname=full&" \
               "resulttype=results".format(catalog_test_slug)
         res = self.client.get(url)
@@ -87,7 +85,7 @@ class TestCSWTransactions(unittest.TestCase):
         self.assertEqual(res.content.count("Manaus Roads (OSM May 2016)"), 2)
 
         # Search one Layer posted above
-        url = "/registry/{0}/csw/?mode=opensearch&service=CSW&version" \
+        url = "/registry/{0}/csw?mode=opensearch&service=CSW&version" \
               "=2.0.2&request=GetRecords&elementsetname=full&typenames=" \
               "csw:Record&resulttype=results" \
               "&q=Airport".format(catalog_test_slug)

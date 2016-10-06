@@ -4,7 +4,7 @@ services:
   elasticsearch:
 #   image: elasticsearch:1.7
    # TODO: switch comment to test heatmap support.
-    image: panchicore/elasticsearch-docker
+    image: terranodo/elasticsearch
 
   django:
     links:

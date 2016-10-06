@@ -46,6 +46,10 @@ logs:
 down:
 	$(DOCKER_COMPOSE) down --remove-orphans
 
+test-url-parse: DOCKER_FILES=$(DEV_DOCKER_FILES)
+test-url-parse:
+	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.aggregator.tests.test_url_parse --failfast
+
 test-unit: DOCKER_FILES=$(DEV_DOCKER_FILES)
 test-unit:
 	$(DOCKER_COMPOSE) run $(TEST_FLAGS) django python manage.py test hypermap.aggregator --failfast
@@ -66,12 +70,17 @@ test-endtoend-selenium-firefox:
 	# Want to see whats happening? connect to VNC server localhost:5900 password: secret
 	$(DOCKER_COMPOSE) run $(END_TO_END_TEST_FLAGS) django python manage.py test hypermap.tests.test_end_to_end_selenium_firefox --failfast
 
+test-csw: DOCKER_FILES=$(DEV_DOCKER_FILES)
+test-csw:
+	# Run tests CSW requests <--> Nginx
+	$(DOCKER_COMPOSE) run $(TEST_CSW_TRANSACTIONS_FLAGS) django python manage.py test hypermap.tests.test_csw --failfast
+
 test-csw-transactions: DOCKER_FILES=$(DEV_DOCKER_FILES)
 test-csw-transactions:
 	# Run tests CSW requests <--> Nginx
 	$(DOCKER_COMPOSE) run $(TEST_CSW_TRANSACTIONS_FLAGS) django python manage.py test hypermap.tests.test_csw_transactions --failfast
 
-test: down start test-unit test-solr test-elastic test-csw-transactions test-endtoend-selenium-firefox
+test: down start test-unit test-csw test-csw-transactions test-solr test-elastic test-endtoend-selenium-firefox
 
 shell: $(DOCKER_COMPOSE) run django python manage.py shell_plus
 

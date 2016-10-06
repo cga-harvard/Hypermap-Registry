@@ -60,12 +60,29 @@ class ESHypermap(object):
     def get_bbox(layer):
         candidate_bbox = layer.bbox_x0, layer.bbox_y0, layer.bbox_x1, layer.bbox_y1
         if None not in candidate_bbox:
-            return [float(coord) for coord in candidate_bbox]
+            coords = [float(coord) for coord in candidate_bbox]
+
+            return coords
 
         wkt = layer.wkt_geometry
         # If a coordinate is None and 'POLYGON'
         if 'POLYGON' in wkt:
             from shapely.wkt import loads
+            from osgeo import ogr, osr
+
+            source = osr.SpatialReference()
+            source.ImportFromEPSG(3089)
+
+            target = osr.SpatialReference()
+            target.ImportFromEPSG(4326)
+
+            transform = osr.CoordinateTransformation(source, target)
+
+            point = ogr.CreateGeometryFromWkt(wkt)
+            point.Transform(transform)
+
+            wkt = point.ExportToWkt()
+
             return loads(wkt).bounds
 
         return (-180.0, -90.0, 180.0, 90.0)
@@ -216,6 +233,10 @@ class ESHypermap(object):
         mapping = {
             "mappings": {
                 "layer": {
+                    "min_x": {"type": "float"},
+                    "min_y": {"type": "float"},
+                    "max_x": {"type": "float"},
+                    "max_y": {"type": "float"},
                     "properties": {
                         "layer_geoshape": {
                            "type": "geo_shape",
