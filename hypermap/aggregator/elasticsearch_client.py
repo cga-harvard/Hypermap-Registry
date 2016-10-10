@@ -233,10 +233,10 @@ class ESHypermap(object):
         mapping = {
             "mappings": {
                 "layer": {
-                    "min_x": {"type": "float"},
-                    "min_y": {"type": "float"},
-                    "max_x": {"type": "float"},
-                    "max_y": {"type": "float"},
+                    # "min_x": {"type": "float"},
+                    # "min_y": {"type": "float"},
+                    # "max_x": {"type": "float"},
+                    # "max_y": {"type": "float"},
                     "properties": {
                         "layer_geoshape": {
                            "type": "geo_shape",
