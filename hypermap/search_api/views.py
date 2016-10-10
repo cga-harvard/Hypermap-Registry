@@ -54,7 +54,7 @@ def elasticsearch(serializer, catalog):
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
     a_hm_limit = serializer.validated_data.get("a_hm_limit")
-    # a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
+    a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
     a_hm_filter = serializer.validated_data.get("a_hm_filter")
     original_response = serializer.validated_data.get("original_response")
 
@@ -272,16 +272,9 @@ def elasticsearch(serializer, catalog):
             Ymax, Xmax = a_hm_filter.split(" TO ")[1].split(",")
             heatmap_filter_box = [[Xmin, Ymax], [Xmax, Ymin]]
 
-        # TODO: remove this when distErr be ready in ES heatmaps:
-        # grid_level = int(a_hm_gridlevel)
-        grid_level = int(8)
-        max_cells = (32 * grid_level) * (32 * grid_level)
-
         heatmap = {
             "heatmap": {
                 "field": GEO_HEATMAP_FIELD,
-                "grid_level": grid_level,
-                "max_cells": max_cells,
                 "geom": {
                     "geo_shape": {
                         GEO_HEATMAP_FIELD: {
@@ -295,6 +288,13 @@ def elasticsearch(serializer, catalog):
                 }
             }
         }
+        if a_hm_gridlevel is not None:
+            grid_level = int(a_hm_gridlevel)
+            max_cells = (32 * grid_level) * (32 * grid_level)
+
+            heatmap['heatmap']['grid_level'] = grid_level
+            heatmap['heatmap']['max_cells'] = max_cells
+
         aggs_dic["viewport"] = heatmap
 
     # adding aggreations on body query
