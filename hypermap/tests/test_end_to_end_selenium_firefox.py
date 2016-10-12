@@ -17,6 +17,9 @@ SELENIUM_HUB_URL = os.environ.get("SELENIUM_HUB_URL", None)
 BROWSER_HYPERMAP_URL = os.environ.get("BROWSER_HYPERMAP_URL",
                                       "http://localhost")
 BROWSER_SEARCH_URL = "{0}/_elastic".format(BROWSER_HYPERMAP_URL)
+# TODO: Uncomment this when a fix for ES 6.0 with nginx is found.
+#BROWSER_SEARCH_URL = "{0}/_elastic".format(BROWSER_HYPERMAP_URL)
+BROWSER_SEARCH_URL = "http://elasticsearch:9200"
 BROWSER_MAPLOOM_URL = "{0}/_maploom/".format(BROWSER_HYPERMAP_URL)
 WAIT_FOR_CELERY_JOB_PERIOD = int(
     os.environ.get("WAIT_FOR_CELERY_JOB_PERIOD", 30))
