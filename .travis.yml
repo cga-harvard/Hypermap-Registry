@@ -17,6 +17,7 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   - sudo apt-get install -y python-flake8
+  - sudo sysctl -w vm.max_map_count=262144
 
 install:
   - make build
