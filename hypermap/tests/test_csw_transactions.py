@@ -12,9 +12,6 @@ from hypermap.aggregator.models import Catalog, Layer, Service
 from hypermap.aggregator.solr import SolrHypermap
 from hypermap.aggregator.tasks import index_cached_layers
 
-BROWSER_HYPERMAP_URL = os.environ.get("BROWSER_HYPERMAP_URL",
-                                      "http://localhost")
-BROWSER_SEARCH_URL = "{0}/_elastic".format(BROWSER_HYPERMAP_URL)
 SEARCH_TYPE = settings.REGISTRY_SEARCH_URL.split('+')[0]
 SEARCH_URL = settings.REGISTRY_SEARCH_URL.split('+')[1]
 SEARCH_TYPE_SOLR = 'solr'
