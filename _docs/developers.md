@@ -96,6 +96,13 @@ sudo mv docker-compose /usr/bin/
 sudo usermod -aG docker $(whoami)
 ```
 
+#### Increase virtual memory map area (Linux)
+
+```
+sudo sysctl -w vm.max_map_count=262144
+```
+
+
 #### Run docker in daemon
 
 ```sh
