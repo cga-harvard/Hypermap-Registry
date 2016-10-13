@@ -3,6 +3,7 @@ import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from urlparse import urljoin
 
 from hypermap.aggregator.models import Catalog
 from django.conf import settings
@@ -12,21 +13,26 @@ from .utils import parse_geo_box, request_time_facet, \
 from .serializers import SearchSerializer, CatalogSerializer
 import json
 
+REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+http://localhost:9200")
+
+SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
+
 # - OPEN API specs
 # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/1.2.md#parameterObject
 
 TIME_FILTER_FIELD = "layer_date"
 GEO_FILTER_FIELD = "bbox"
-GEO_HEATMAP_FIELD = "bbox"
 USER_FIELD = "layer_originator"
 TEXT_FIELD = "title"
 TIME_SORT_FIELD = "layer_date"
-GEO_SORT_FIELD = "bbox"
 
-REGISTRY_SEARCH_URL = getattr(settings, "REGISTRY_SEARCH_URL", "elasticsearch+http://localhost:9200")
+if SEARCH_TYPE == 'solr':
+    GEO_HEATMAP_FIELD = "bbox"
+else:
+    GEO_HEATMAP_FIELD = "layer_geoshape"
 
-SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
-SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
+GEO_SORT_FIELD = GEO_HEATMAP_FIELD
 
 
 def elasticsearch(serializer, catalog):
@@ -35,9 +41,7 @@ def elasticsearch(serializer, catalog):
     :param serializer:
     :return:
     """
-
-    search_engine_endpoint = "{0}/{1}/_search".format(SEARCH_URL, catalog.slug)
-
+    search_engine_endpoint = urljoin(SEARCH_URL, "{0}/_search".format(catalog.slug))
     q_text = serializer.validated_data.get("q_text")
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
@@ -49,6 +53,9 @@ def elasticsearch(serializer, catalog):
     a_user_limit = serializer.validated_data.get("a_user_limit")
     a_time_gap = serializer.validated_data.get("a_time_gap")
     a_time_limit = serializer.validated_data.get("a_time_limit")
+    a_hm_limit = serializer.validated_data.get("a_hm_limit")
+    a_hm_gridlevel = serializer.validated_data.get("a_hm_gridlevel")
+    a_hm_filter = serializer.validated_data.get("a_hm_filter")
     original_response = serializer.validated_data.get("original_response")
 
     # Dict for search on Elastic engine
@@ -252,6 +259,45 @@ def elasticsearch(serializer, catalog):
         }
         aggs_dic['articles_over_time'] = time_gap
 
+    # for heatmap support
+    if a_hm_limit > 0:
+
+        # by default is q_geo.
+        heatmap_filter_box = [[Xmin, Ymax], [Xmax, Ymin]]
+
+        # but if user sends the hm filter:
+        if a_hm_filter:
+            a_hm_filter = str(a_hm_filter)[1:-1]
+            Ymin, Xmin = a_hm_filter.split(" TO ")[0].split(",")
+            Ymax, Xmax = a_hm_filter.split(" TO ")[1].split(",")
+            heatmap_filter_box = [[Xmin, Ymax], [Xmax, Ymin]]
+
+        heatmap = {
+            "heatmap": {
+                "field": GEO_HEATMAP_FIELD,
+                "geom": {
+                    "geo_shape": {
+                        GEO_HEATMAP_FIELD: {
+                            "shape": {
+                                "type": "envelope",
+                                "coordinates": heatmap_filter_box
+                            },
+                            "relation": "intersects"
+                        }
+                    }
+                }
+            }
+        }
+
+        if a_hm_gridlevel is not None:
+            grid_level = int(a_hm_gridlevel)
+            max_cells = (32 * grid_level) * (32 * grid_level)
+
+            heatmap['heatmap']['grid_level'] = grid_level
+            heatmap['heatmap']['max_cells'] = max_cells
+
+        aggs_dic["viewport"] = heatmap
+
     # adding aggreations on body query
     if aggs_dic:
         dic_query['aggs'] = aggs_dic
@@ -344,6 +390,22 @@ def elasticsearch(serializer, catalog):
             a_time['counts'] = time_count
             data['a.time'] = a_time
 
+        if 'viewport' in aggs:
+            hm_facet_raw = aggs["viewport"]
+            hm_facet = {
+                'gridLevel': hm_facet_raw["grid_level"],
+                'columns': hm_facet_raw["columns"],
+                'rows': hm_facet_raw["rows"],
+                'minX': hm_facet_raw["min_x"],
+                'maxX': hm_facet_raw["max_x"],
+                'minY': hm_facet_raw["min_y"],
+                'maxY': hm_facet_raw["max_y"],
+                'projection': 'EPSG:4326'
+            }
+            counts = hm_facet_raw["counts"]
+            hm_facet['counts_ints2D'] = counts
+            data["a.hm"] = hm_facet
+
     if not int(d_docs_limit) == 0:
         for item in es_response['hits']['hits']:
             # data
@@ -361,13 +423,14 @@ def elasticsearch(serializer, catalog):
     return data
 
 
-def solr(serializer):
+def solr(serializer, catalog):
     """
     Search on solr endpoint
     :param serializer:
     :return:
     """
-    search_engine_endpoint = serializer.validated_data.get("search_engine_endpoint")
+    search_engine_endpoint = urljoin(SEARCH_URL, "solr/{0}/select".format(catalog.slug))
+
     q_time = serializer.validated_data.get("q_time")
     q_geo = serializer.validated_data.get("q_geo")
     q_text = serializer.validated_data.get("q_text")
@@ -513,7 +576,7 @@ def solr(serializer):
             'maxX': hm_facet_raw[9],
             'minY': hm_facet_raw[11],
             'maxY': hm_facet_raw[13],
-            'counts_ints2D': hm_facet_raw[15],
+            'counts_ints2D': hm_facet_raw[15] or [],
             'projection': 'EPSG:4326'
         }
         data["a.hm"] = hm_facet
@@ -623,18 +686,29 @@ class Search(APIView):
                     return Response(response.text,
                                     status=response.status_code)
 
-            search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
+            # comment this since search_engine is not an input anymore.
+            # search_engine = serializer.validated_data.get("search_engine", "elasticsearch")
+            # get it instead of the enabled backend.
+            search_engine = SEARCH_TYPE
+            # search_engine = request.GET.get("search_backend")
             if search_engine == 'solr':
-                data = solr(serializer)
-            else:
+                data = solr(serializer, catalog)
+            elif search_engine == 'elasticsearch':
                 data = elasticsearch(serializer, catalog)
+            else:
+                raise Exception("settings.REGISTRY_SEARCH_URL needs a "
+                                "valid search backend")
 
             status = 200
             if type(data) is tuple:
                 status = data[0]
                 data = data[1]
 
-            return Response(data, status=status)
+            # TODO: remove this in production
+            headers = {
+                "Access-Control-Allow-Origin": "*"
+            }
+            return Response(data, status=status, headers=headers)
 
 
 class CatalogViewSet(ModelViewSet):

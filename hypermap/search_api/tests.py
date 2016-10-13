@@ -297,6 +297,89 @@ class SearchApiTestCase(TestCase):
         # the facet counters are all facets excluding < 2000
         self.assertEqual(len(results["a.time"]["counts"]), Layer.objects.all().count())
 
+
+    def test_hm_filter_and_hm_limit(self):
+
+        params = self.default_params
+        params["d_docs_limit"] = 0
+        params["a_hm_limit"] = 1
+        params["a_hm_filter"] = params["q_geo"]
+
+        # wide open view
+        results = self.client.get(self.api_url, params)
+        self.assertEqual(results.status_code, 200)
+        results = json.loads(results.content)
+        self.assertEqual(results["a.matchDocs"], Layer.objects.all().count())
+        heatmap_data_a = results.get("a.hm")
+        self.assertIsNotNone(heatmap_data_a)
+
+        # assert it comes with a matrix format
+        self.assertTrue(type(heatmap_data_a["counts_ints2D"]) is list)
+        # assert it comes with something inside
+        self.assertTrue(len(heatmap_data_a["counts_ints2D"]) > 0)
+        # in this case should come a diff matrix because view port is wide
+        # lets close it to get less details, assert new heatmap is different
+        params["a_hm_filter"] = "[-30,-30 TO 30,30]"
+        results = self.client.get(self.api_url, params)
+        self.assertEqual(results.status_code, 200)
+        results = json.loads(results.content)
+        self.assertEqual(results["a.matchDocs"], Layer.objects.all().count())
+        heatmap_data_b = results.get("a.hm")
+        self.assertIsNotNone(heatmap_data_b)
+
+        self.assertTrue(
+            len(heatmap_data_b["counts_ints2D"]) !=
+            len(heatmap_data_a["counts_ints2D"])
+        )
+
+        # there should not be heatmap, no layers in there.
+        params["q_geo"] = "[-5,-5 TO 5,5]"
+        params["a_hm_filter"] = "[-5,-5 TO 5,5]"
+        results = self.client.get(self.api_url, params)
+        self.assertEqual(results.status_code, 200)
+        results = json.loads(results.content)
+        self.assertEqual(results["a.matchDocs"], 0)
+        heatmap_data_empty = results.get("a.hm")
+        self.assertEqual(heatmap_data_empty["counts_ints2D"], [])
+
+        '''
+        # also there, q_geo contains 1 layer, but heatmap is requested out
+        params["q_geo"] = "[0,0 TO 30,30]"
+        params["a_hm_filter"] = "[-30,-30 TO 0,0]"
+        results = self.client.get(self.api_url, params)
+        self.assertEqual(results.status_code, 200)
+        results = json.loads(results.content)
+        self.assertEqual(results["a.matchDocs"], 1)
+        heatmap_data_empty = results.get("a.hm")
+        self.assertIsNone(heatmap_data_empty["counts_ints2D"])
+
+        SOLR returns - > []
+        Elasticsearch returns -> [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+        '''
+
+
+    def test_hm_gridlevel(self):
+        params = self.default_params
+        params["d_docs_limit"] = 0
+        params["a_hm_limit"] = 1
+        params["a_hm_filter"] = params["q_geo"]
+
+        # Make elasticsearch calculate gridlevel.
+        results = self.client.get(self.api_url, params)
+        self.assertEqual(results.status_code, 200)
+        results = json.loads(results.content)
+        heatmap_data= results.get("a.hm")
+        self.assertIsNotNone(heatmap_data["gridLevel"])
+
+        # Apply user-defined gridlevel value.
+        params["a_hm_gridlevel"] = 8
+        results = self.client.get(self.api_url, params)
+        self.assertEqual(results.status_code, 200)
+        results = json.loads(results.content)
+        heatmap_data= results.get("a.hm")
+        self.assertEqual(heatmap_data["gridLevel"], 8)
+
+
     def test_utilities(self):
         print '> testing utilities functions'
         # test_parse_datetime_range
