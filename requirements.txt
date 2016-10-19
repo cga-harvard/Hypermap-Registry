@@ -37,7 +37,7 @@ pika==0.10.0
 Pillow==3.1.0rc1
 psutil==4.3.0
 psycopg2==2.6.1
-pycsw==2.1-dev
+pycsw==2.1-dev-20161019
 pyflakes==1.0.0
 pyproj==1.9.3
 pysolr==3.3.3
