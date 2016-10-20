@@ -128,7 +128,7 @@ class Resource(models.Model):
     """
     Resource represents basic information for a resource (service/layer).
     """
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     abstract = models.TextField(null=True, blank=True)
     keywords = TaggableManager(blank=True)
