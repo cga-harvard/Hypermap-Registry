@@ -40,7 +40,7 @@ setup(
         'django-basic-authentication-decorator',
         'elasticsearch',
         'pika',
-        'pycsw>=2.0.1',
+        'pycsw>=2.0.2',
         'flake8',
         'httmock',
         'djmp>=0.2.9',
