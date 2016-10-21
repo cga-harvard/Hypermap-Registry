@@ -236,11 +236,12 @@ def index_service(self, service):
             )
 
     count = 0
+
     for layer in layer_to_process:
         # update state
         status_update(count)
         if not settings.REGISTRY_SKIP_CELERY:
-            index_layer.delay(layer)
+            index_layer(layer, use_cache=True)
         else:
             index_layer(layer)
         count = count + 1
@@ -315,7 +316,7 @@ def index_all_layers(self):
                 meta={'current': count, 'total': total}
             )
         if not settings.REGISTRY_SKIP_CELERY:
-            index_layer.delay(layer)
+            index_layer.delay(layer, use_cache=True)
         else:
             index_layer(layer)
         count = count + 1
