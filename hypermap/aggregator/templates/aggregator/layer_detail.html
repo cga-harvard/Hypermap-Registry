@@ -63,7 +63,7 @@
               {% if SEARCH_TYPE == 'elasticsearch' %}
               <a href="{{SEARCH_URL}}/hypermap/_search?q=layer_id:{{layer.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=layer_id:{{layer.id}}</a>
               {% elif SEARCH_TYPE == 'solr' %}
-              <a href="{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=layer_id:{{layer.id}}&wt=json&indent=true</a>
+              <a href="{{SEARCH_URL}}/solr/hypermap/select?q=layer_id:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/solr/hypermap/select?q=layer_id:{{layer.id}}&wt=json&indent=true</a>
               {% endif %}
               <li>Metadata:
                   <a href="{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}" target="new">

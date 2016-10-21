@@ -62,7 +62,7 @@
                     {% if SEARCH_TYPE == 'elasticsearch' %}
                     <a href="{{SEARCH_URL}}/hypermap/_search?q=service_id:{{service.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=service_id:{{ service.id }}</a>
                     {% elif SEARCH_TYPE == 'solr' %}
-                    <a href="{{SEARCH_URL}}/select?q=service_id:{{service.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/select?q=service_id:{{service.id}}&wt=json&indent=true</a>
+                    <a href="{{SEARCH_URL}}/solr/hypermap/select?q=service_id:{{service.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/solr/hypermap/select?q=service_id:{{service.id}}&wt=json&indent=true</a>
                     {% endif %}
                 </li>
                 <li>Metadata:
