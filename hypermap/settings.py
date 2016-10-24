@@ -275,6 +275,8 @@ MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 # elasticsearch+https://user:pass/domain:port/
 REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
 REGISTRY_SEARCH_BATCH_SIZE = os.getenv('SEARCH_BATCH_SIZE', 50)
+SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
+SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 
 # Read cache information from CACHE_URL
 CACHES = {'default': django_cache_url.config()}
