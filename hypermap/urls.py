@@ -4,8 +4,11 @@ from django.conf import settings
 from django.contrib import admin
 admin.autodiscover()
 
+from hypermap.aggregator import views
+
 urlpatterns = patterns(
     '',
+    url(r'^$', views.index, name='index'),
     url(r'^admin/', include(admin.site.urls)),
     (r'^registry/', include('hypermap.search_api.urls')),
     (r'^registry/', include('hypermap.search.urls')),
