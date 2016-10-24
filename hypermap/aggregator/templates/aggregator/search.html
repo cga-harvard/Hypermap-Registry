@@ -76,11 +76,11 @@
                 <br />{{ service.get_type_display }}
 {#                  <a href="{{ service.catalog.get_absolute_url }}"><span class="label label-default">{{ service.catalog.name }}</span></a>#}
               </td>
-              <td>{{ service.layer_set.all.count }}</td>
+              <td>{{ service.layer_set.all.count|intcomma }}</td>
               <td>
                   {{ service.last_updated }}
               </td>
-              <td>{{ service.checks_count }}</td>
+              <td>{{ service.checks_count|intcomma }}</td>
               <td>
                 {% if service.last_status %}
                   <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>

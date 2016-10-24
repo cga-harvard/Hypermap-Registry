@@ -28,6 +28,10 @@
 
 <script>
 
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 var json_data = '{{ data|safe }}';
 var obj = JSON.parse(json_data)['facet_counts']['facet_pivot']['domain_name,service_id'];
 for(var i=0, l1=obj.length; i<l1; i++){
@@ -35,8 +39,8 @@ for(var i=0, l1=obj.length; i<l1; i++){
   console.log(domain);
   tr = $('<tr/>');
   tr.append("<td>" + domain.value + "</td>");
-  tr.append("<td><a href='/?q=" + domain.value + "'>" + domain.count + "</a></td>");
-  tr.append("<td><a href='/?q=" + domain.value + "'>" + domain.pivot.length + "</td>");
+  tr.append("<td><a href='/?q=" + domain.value + "'>" + numberWithCommas(domain.count) + "</a></td>");
+  tr.append("<td><a href='/?q=" + domain.value + "'>" + numberWithCommas(domain.pivot.length) + "</td>");
   $('#report').append(tr);
 }
 
