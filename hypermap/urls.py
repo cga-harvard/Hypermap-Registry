@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 admin.autodiscover()
 
-from hypermap.aggregator import views
+from .aggregator import views
 
 urlpatterns = patterns(
     '',

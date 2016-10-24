@@ -1,7 +1,7 @@
 from django.conf import settings
 from urlparse import urlparse
 
-import hypermap
+from . import __description__, __version__
 
 
 def resource_urls(request):
@@ -9,8 +9,8 @@ def resource_urls(request):
 
     url_parsed = urlparse(settings.SEARCH_URL)
     defaults = dict(
-        APP_NAME=hypermap.__description__,
-        APP_VERSION=hypermap.__version__,
+        APP_NAME=__description__,
+        APP_VERSION=__version__,
         SITE_URL=settings.SITE_URL.rstrip('/'),
         SEARCH_TYPE=settings.SEARCH_TYPE,
         SEARCH_URL=settings.SEARCH_URL,
