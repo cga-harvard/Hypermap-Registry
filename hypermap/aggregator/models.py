@@ -750,7 +750,7 @@ class Layer(Resource):
             os.remove(thumbnail_file_name)
 
         # update thumb in model
-        if img and hasattr(img, 'close'):
+        if img:
             thumbnail_file_name = '%s.jpg' % self.name
             upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
             self.thumbnail.save(thumbnail_file_name, upfile, True)
