@@ -304,6 +304,10 @@ def layer_mapproxy(request, catalog_slug, layer_id, path_info):
                               pk=layer_id,
                               catalog__slug=catalog_slug)
 
+    # for WorldMap layers we need to use the url of the layer
+    if layer.service.type == 'Hypermap:WorldMap':
+        layer.service.url = layer.url
+
     # Set up a mapproxy app for this particular layer
     mp, yaml_config = get_mapproxy(layer)
 
