@@ -1615,7 +1615,7 @@ def layer_post_save(instance, *args, **kwargs):
     Used to do a layer full check when saving it.
     """
     if instance.is_monitored:  # index and monitor
-        if not settings.SKIP_CELERY_TASK:
+        if not settings.REGISTRY_SKIP_CELERY:
             check_layer.delay(instance)
         else:
             check_layer(instance)
