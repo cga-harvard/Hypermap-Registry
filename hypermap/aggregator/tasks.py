@@ -79,25 +79,29 @@ def check_service(self, service):
     count = 3
 
     # 2. check layers
-    if not settings.REGISTRY_SKIP_CELERY:
-        tasks = []
-        for layer in layer_to_process:
-            # update state
-            status_update(count)
-            # send subtasks to make a non-parallel execution.
-            tasks.append(check_layer.si(layer))
-            count += 1
-        # non-parallel execution will be performed in chunks of 100 tasks
-        # to avoid run time errors with big chains.
-        size = 100
-        chunks = [tasks[i:i + size] for i in range(0, len(tasks), size)]
-        for chunk in chunks:
-            chain(chunk)()
+    if settings.REGISTRY_SKIP_LAYERS_CHECK:
+        LOGGER.debug('Skipping layers check for this service (REGISTRY_SKIP_LAYERS_CHECK is True)')
     else:
-        for layer in layer_to_process:
-            status_update(count)
-            check_layer(layer)
-            count += 1
+        LOGGER.debug('Running layers check for this service (REGISTRY_SKIP_LAYERS_CHECK is False)')
+        if not settings.REGISTRY_SKIP_CELERY:
+            tasks = []
+            for layer in layer_to_process:
+                # update state
+                status_update(count)
+                # send subtasks to make a non-parallel execution.
+                tasks.append(check_layer.si(layer))
+                count += 1
+            # non-parallel execution will be performed in chunks of 100 tasks
+            # to avoid run time errors with big chains.
+            size = 100
+            chunks = [tasks[i:i + size] for i in range(0, len(tasks), size)]
+            for chunk in chunks:
+                chain(chunk)()
+        else:
+            for layer in layer_to_process:
+                status_update(count)
+                check_layer(layer)
+                count += 1
 
     # 3. index layers
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
