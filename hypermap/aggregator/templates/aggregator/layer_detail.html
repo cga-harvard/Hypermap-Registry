@@ -40,7 +40,11 @@
 </div>
 
 <div class="layer-thumb">
-  <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" />
+  {% if layer.thymbnail %}
+    <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" />
+  {% else %}
+    No thumbnail is available for this layer
+  {% endif %}
 </div>
 
 <div class="row">
