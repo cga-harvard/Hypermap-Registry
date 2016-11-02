@@ -921,10 +921,19 @@ def bbox2wktpolygon(bbox):
     Return OGC WKT Polygon of a simple bbox list
     """
 
-    minx = float(bbox[0])
-    miny = float(bbox[1])
-    maxx = float(bbox[2])
-    maxy = float(bbox[3])
+    try:
+        minx = float(bbox[0])
+        miny = float(bbox[1])
+        maxx = float(bbox[2])
+        maxy = float(bbox[3])
+
+    except:
+        LOGGER.debug("Invalid bbox, setting it to a zero POLYGON")
+        minx = 0
+        miny = 0
+        maxx = 0
+        maxy = 0
+
     return 'POLYGON((%.2f %.2f, %.2f %.2f, %.2f %.2f, %.2f %.2f, %.2f %.2f))' \
         % (minx, miny, minx, maxy, maxx, maxy, maxx, miny, minx, miny)
 
@@ -1170,25 +1179,26 @@ def update_layers_wm(service):
     Sample endpoint: http://worldmap.harvard.edu/
     """
 
-    try:
-        response = requests.get('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
-        data = json.loads(response.content)
-        total = data['total']
+    response = requests.get('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
+    data = json.loads(response.content)
+    total = data['total']
 
-        # set srs
-        # WorldMap supports only 4326, 900913, 3857
-        for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
-            srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
-            service.srs.add(srs)
+    # set srs
+    # WorldMap supports only 4326, 900913, 3857
+    for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
+        srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+        service.srs.add(srs)
 
-        layer_n = 0
-        for i in range(0, total, 10):
+    layer_n = 0
+    for i in range(0, total, 10):
+        try:
             url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
             LOGGER.debug('Fetching %s' % url)
             response = requests.get(url)
             data = json.loads(response.content)
             for row in data['rows']:
                 name = row['name']
+                LOGGER.debug('Updating layer %s' % name)
                 title = row['title']
                 abstract = row['abstract']
                 bbox = row['bbox']
@@ -1263,22 +1273,15 @@ def update_layers_wm(service):
                     # dates
                     add_mined_dates(layer)
                     add_metadata_dates_to_layer([layer_wm.temporal_extent_start, layer_wm.temporal_extent_end], layer)
-                layer_n = layer_n + 1
-                # exits if DEBUG_SERVICES
-                LOGGER.debug("Updating layer n. %s/%s" % (layer_n, total))
-                if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
-                    return
-    except Exception as err:
-        message = "update_layers_wm: {0}".format(
-            err
-        )
-        check = Check(
-            content_object=service,
-            success=False,
-            response_time=0,
-            message=message
-        )
-        check.save()
+
+                    layer_n = layer_n + 1
+                    # exits if DEBUG_SERVICES
+                    LOGGER.debug("Updated layer n. %s/%s" % (layer_n, total))
+                    if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
+                        return
+
+        except Exception as err:
+            LOGGER.error('Error! %s' % err)
 
 
 def update_layers_warper(service):
