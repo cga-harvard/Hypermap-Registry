@@ -7,6 +7,7 @@ from django.core.cache import cache
 
 from celery import shared_task
 
+
 LOGGER = logging.getLogger(__name__)
 
 REGISTRY_LIMIT_LAYERS = getattr(settings, 'REGISTRY_LIMIT_LAYERS', -1)
@@ -96,13 +97,13 @@ def check_service(self, service):
             check_layer(layer)
             count += 1
 
-
-@shared_task(bind=True, time_limit=10)
+@shared_task(bind=True, soft_time_limit=10)
 def check_layer(self, layer):
     LOGGER.debug('Checking layer %s' % layer.name)
     success, message = layer.check_available()
     # every time a layer is checked it should be indexed
     # for now we remove indexing but we do it using a scheduled task unless SKIP_CELERY_TASK
+
     if success and SEARCH_ENABLED:
         if settings.REGISTRY_SKIP_CELERY:
             index_layer(layer)
