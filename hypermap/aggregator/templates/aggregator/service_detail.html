@@ -85,6 +85,8 @@
               <li>Total Checks: {{ service.checks_count }}</li>
               <li>Reliability: {{ service.reliability }}</li>
             </ul>
+            {% else %}
+              No checks performed so far
             {% endif %}
           </td>
         </tr>
@@ -109,9 +111,11 @@
               <th></th>
               <th>Info</th>
               <th>Last Check</th>
-              <th>Status</th>
-              <th>Response Times</th>
-              <th>Reliability</th>
+              {% if layer.checks_count > 0 %}
+                <th>Status</th>
+                <th>Response Times</th>
+                <th>Reliability</th>
+              {% endif %}
             </tr>
           </thead>
           <tbody>
@@ -135,35 +139,36 @@
                       <li>{{ layer.last_check }}</li>
                       <li>{{ layer.last_response_time|floatformat:2 }}s</li>
                     </ul>
+                    {% else %}
+                      No checks for this layer
                     {% endif %}
                   </td>
-                  <td>
-                    {% if layer.checks_count > 0 %}
-                      <a href="{{ layer.get_absolute_url }}">
-                      {% if layer.last_status %}
-                        <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
-                      {% else %}
-                        <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
-                      {% endif %}
-                      </a>
-                    {% endif %}
-                  </td>
-                  <td>
-                    <ul>
-                      <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
-                      <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
-                      <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
-                    </ul>
-                  </td>
-                  <td>
-                    {% if layer.checks_count > 0 %}
+                  {% if layer.checks_count > 0 %}
+                    <td>
+                        <a href="{{ layer.get_absolute_url }}">
+                        {% if layer.last_status %}
+                          <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                        {% else %}
+                          <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                        {% endif %}
+                        </a>
+
+                    </td>
+                    <td>
+                      <ul>
+                        <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
+                        <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
+                        <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
+                      </ul>
+                    </td>
+                    <td>
                       {% if layer.reliability > 97 %}
                         <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
                       {% else %}
                         <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
                       {% endif %}
-                     {% endif %}
-                  </td>
+                    </td>
+                  {% endif %}
                 </tr>
             {% endfor %}
           </tbody>
