@@ -97,6 +97,7 @@ def check_service(self, service):
             check_layer(layer)
             count += 1
 
+
 @shared_task(bind=True, soft_time_limit=10)
 def check_layer(self, layer):
     LOGGER.debug('Checking layer %s' % layer.name)
