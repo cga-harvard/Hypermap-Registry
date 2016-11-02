@@ -62,9 +62,10 @@ def check_service(self, service):
 
     status_update(0)
 
+    # 1. update layers
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
         service.update_layers()
-        service.index_layers()
+
     # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
 
@@ -77,6 +78,7 @@ def check_service(self, service):
     status_update(2)
     count = 3
 
+    # 2. check layers
     if not settings.REGISTRY_SKIP_CELERY:
         tasks = []
         for layer in layer_to_process:
@@ -96,6 +98,10 @@ def check_service(self, service):
             status_update(count)
             check_layer(layer)
             count += 1
+
+    # 3. index layers
+    if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
+        service.index_layers()
 
 
 @shared_task(bind=True, soft_time_limit=10)
