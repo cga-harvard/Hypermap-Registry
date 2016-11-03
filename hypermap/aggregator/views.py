@@ -1,6 +1,4 @@
 import urllib2
-import json
-import pika
 import logging
 
 from django.conf import settings
@@ -19,7 +17,6 @@ from tasks import (check_all_services, check_service, check_layer, remove_servic
                    SEARCH_TYPE, SEARCH_URL)
 from enums import SERVICE_TYPES
 
-from hypermap import celeryapp
 
 LOGGER = logging.getLogger(__name__)
 
@@ -185,41 +182,10 @@ def layer_checks(request, catalog_slug, layer_id):
 
 
 @login_required
-def celery_monitor(request):
+def tasks_runner(request):
     """
-    A raw celery monitor to figure out which processes are active and reserved.
+    A page that let the admin to run global tasks.
     """
-    inspect = celeryapp.app.control.inspect()
-    active_json = inspect.active()
-    reserved_json = inspect.reserved()
-    active_tasks = []
-    if active_json:
-        for worker in active_json.keys():
-            for task in active_json[worker]:
-                id = task['id']
-                # not sure why these 2 fields are not already in AsyncResult
-                name = task['name']
-                time_start = task['time_start']
-                args = task['args']
-                active_task = celeryapp.app.AsyncResult(id)
-                active_task.name = name
-                active_task.args = args
-                active_task.worker = '%s, pid: %s' % (worker, task['worker_pid'])
-                active_task.time_start = time_start
-                task_id_sanitized = id.replace('-', '_')
-                active_task.task_id_sanitized = task_id_sanitized
-                active_tasks.append(active_task)
-    reserved_tasks = []
-    if reserved_json:
-        for worker in active_json.keys():
-            for task in reserved_json[worker]:
-                id = task['id']
-                name = task['name']
-                args = task['args']
-                reserved_task = celeryapp.app.AsyncResult(id)
-                reserved_task.name = name
-                reserved_task.args = args
-                reserved_tasks.append(reserved_task)
 
     if request.method == 'POST':
         if 'check_all' in request.POST:
@@ -243,59 +209,8 @@ def celery_monitor(request):
             else:
                 clear_index.delay()
     return render(
-        request,
-        'aggregator/celery_monitor.html',
-        {
-            'active_tasks': active_tasks,
-            'reserved_tasks': reserved_tasks,
-            'jobs': get_queued_jobs_number(),
-        }
+        request, 'aggregator/tasks_runner.html', {}
     )
-
-
-def get_queued_jobs_number():
-    # to detect tasks in the queued the only way is to use amqplib so far
-    from amqplib import client_0_8 as amqp
-
-    params = pika.URLParameters(settings.BROKER_URL)
-
-    conn = amqp.Connection(host='{0}:{1}'.format(params.host, params.port),
-                           userid=params.credentials.username,
-                           password=params.credentials.password,
-                           virtual_host=params.virtual_host,
-                           insist=False)
-    chan = conn.channel()
-    name, jobs, consumers = chan.queue_declare(queue="hypermap", passive=False)
-    return jobs
-
-
-@login_required
-def update_jobs_number(request):
-    response_data = {}
-    response_data['jobs'] = get_queued_jobs_number()
-    json_data = json.dumps(response_data)
-    return HttpResponse(json_data, content_type="application/json")
-
-
-@login_required
-def update_progressbar(request, task_id):
-    response_data = {}
-    active_task = celeryapp.app.AsyncResult(task_id)
-    progressbar = 100
-    status = '100%'
-    state = 'COMPLETED'
-    if active_task:
-        if not active_task.ready():
-            current = active_task.info['current']
-            total = active_task.info['total']
-            progressbar = (current / float(total) * 100)
-            status = "%s/%s (%.2f %%)" % (current, total, progressbar)
-            state = active_task.state
-    response_data['progressbar'] = progressbar
-    response_data['status'] = status
-    response_data['state'] = state
-    json_data = json.dumps(response_data)
-    return HttpResponse(json_data, content_type="application/json")
 
 
 def layer_mapproxy(request, catalog_slug, layer_id, path_info):

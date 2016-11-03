@@ -9,9 +9,7 @@ from hypermap.aggregator import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^domains/$', views.domains, name='domains'),
-    url(r'^celery_monitor/$', views.celery_monitor, name='celery_monitor'),
-    url(r'^update_progressbar/(?P<task_id>[^/]*)$', views.update_progressbar, name='update_progressbar'),
-    url(r'^update_jobs_number/$', views.update_jobs_number, name='update_jobs_number'),
+    url(r'^tasks_runner/$', views.tasks_runner, name='tasks_runner'),
 
     url(r'^(?P<catalog_slug>[-\w]+)/$', views.index, name='index'),
     url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_id>\d+)/$', views.service_detail, name='service_detail'),

@@ -1,0 +1,25 @@
+{% extends "aggregator/base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>Tasks Runner</h1>
+</div>
+
+{% if user.is_superuser %}
+
+  <h2>Admin Commands</h2>
+
+  <form action="." method="post">
+    {% csrf_token %}
+    <input type="submit" name='check_all' value="Check all services">
+    <input type="submit" name='index_all' value="Reindex all layers">
+    <input type="submit" name='index_cached' value="Index cached layers">
+    <input type="submit" name='clear_index' value="Clear index">
+  </form>
+{% endif %}
+
+{% endblock %}

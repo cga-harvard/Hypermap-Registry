@@ -35,48 +35,21 @@ else:
 def check_all_services(self):
     from hypermap.aggregator.models import Service
     service_to_processes = Service.objects.filter(active=True)
-    total = service_to_processes.count()
-    count = 0
     for service in service_to_processes:
-        # update state
-        if not self.request.called_directly:
-            self.update_state(
-                state='PROGRESS',
-                meta={'current': count, 'total': total}
-            )
         check_service.delay(service)
-        count = count + 1
 
 
 @shared_task(bind=True)
 def check_service(self, service):
-    # total is determined (and updated) exactly after service.update_layers
-    total = 100
-
-    def status_update(count):
-        if not self.request.called_directly:
-            self.update_state(
-                state='PROGRESS',
-                meta={'current': count, 'total': total}
-            )
-
-    status_update(0)
-
-    # 1. update layers
+    # 1. update layers and check service
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
         service.update_layers()
 
-    # we count 1 for update_layers and 1 for service check for simplicity
     layer_to_process = service.layer_set.all()
-
     if DEBUG_SERVICES:
         layer_to_process = layer_to_process[0:DEBUG_LAYERS_NUMBER]
 
-    total = layer_to_process.count() + 2
-    status_update(1)
     service.check_available()
-    status_update(2)
-    count = 3
 
     # 2. check layers
     if settings.REGISTRY_SKIP_LAYERS_CHECK:
@@ -86,11 +59,8 @@ def check_service(self, service):
         if not settings.REGISTRY_SKIP_CELERY:
             tasks = []
             for layer in layer_to_process:
-                # update state
-                status_update(count)
                 # send subtasks to make a non-parallel execution.
                 tasks.append(check_layer.si(layer))
-                count += 1
             # non-parallel execution will be performed in chunks of 100 tasks
             # to avoid run time errors with big chains.
             size = 100
@@ -99,9 +69,7 @@ def check_service(self, service):
                 chain(chunk)()
         else:
             for layer in layer_to_process:
-                status_update(count)
                 check_layer(layer)
-                count += 1
 
     # 3. index layers
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
@@ -114,7 +82,6 @@ def check_layer(self, layer):
     success, message = layer.check_available()
     # every time a layer is checked it should be indexed
     # for now we remove indexing but we do it using a scheduled task unless SKIP_CELERY_TASK
-
     if success and SEARCH_ENABLED:
         if settings.REGISTRY_SKIP_CELERY:
             index_layer(layer)
@@ -201,7 +168,7 @@ def index_cached_layers(self):
 @shared_task(name="clear_index")
 def clear_index():
     if SEARCH_TYPE == 'solr':
-        LOGGER.debug('Clearing the solr core and indexes')
+        LOGGER.debug('Clearing the solr indexes')
         from hypermap.aggregator.solr import SolrHypermap
         solrobject = SolrHypermap()
         solrobject.clear_solr()
@@ -216,47 +183,21 @@ def clear_index():
 def remove_service_checks(self, service):
 
     service.check_set.all().delete()
-
-    def status_update(count, total):
-        if not self.request.called_directly:
-            self.update_state(
-                state='PROGRESS',
-                meta={'current': count, 'total': total}
-            )
-
     layer_to_process = service.layer_set.all()
-    count = 0
-    total = layer_to_process.count()
     for layer in layer_to_process:
-        # update state
-        status_update(count, total)
         layer.check_set.all().delete()
-        count = count + 1
 
 
 @shared_task(bind=True)
 def index_service(self, service):
 
     layer_to_process = service.layer_set.all()
-    total = layer_to_process.count()
-
-    def status_update(count):
-        if not self.request.called_directly:
-            self.update_state(
-                state='PROGRESS',
-                meta={'current': count, 'total': total}
-            )
-
-    count = 0
 
     for layer in layer_to_process:
-        # update state
-        status_update(count)
         if not settings.REGISTRY_SKIP_CELERY:
             index_layer(layer, use_cache=True)
         else:
             index_layer(layer)
-        count = count + 1
 
 
 @shared_task(bind=True)
@@ -269,12 +210,10 @@ def index_layer(self, layer, use_cache=False):
     if use_cache:
         LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
         layers = cache.get('layers')
-
         if layers is None:
             layers = set([layer.id])
         else:
             layers.add(layer.id)
-
         cache.set('layers', layers)
         return
 
@@ -317,21 +256,11 @@ def index_layer(self, layer, use_cache=False):
 def index_all_layers(self):
     from hypermap.aggregator.models import Layer
 
-    layer_to_processes = Layer.objects.all()
-    total = layer_to_processes.count()
-    count = 0
     for layer in Layer.objects.all():
-        # update state
-        if not self.request.called_directly:
-            self.update_state(
-                state='PROGRESS',
-                meta={'current': count, 'total': total}
-            )
         if not settings.REGISTRY_SKIP_CELERY:
             index_layer.delay(layer, use_cache=True)
         else:
             index_layer(layer)
-        count = count + 1
 
 
 @shared_task(bind=True)
@@ -358,19 +287,10 @@ def update_endpoint(self, endpoint, greedy_opt=False):
 def update_endpoints(self, endpoint_list):
     # for now we process the enpoint even if they were already processed
     endpoint_to_process = endpoint_list.endpoint_set.filter(processed=False)
-    total = endpoint_to_process.count()
-    count = 0
     if not settings.REGISTRY_SKIP_CELERY:
         for endpoint in endpoint_to_process:
             update_endpoint.delay(endpoint)
-        # update state
-        if not self.request.called_directly:
-            self.update_state(
-                state='PROGRESS',
-                meta={'current': count, 'total': total}
-            )
     else:
         for endpoint in endpoint_to_process:
             update_endpoint(endpoint)
-
     return True

@@ -59,7 +59,7 @@
             <li class="active"><a href="{% url 'index' %}">Home</a></li>
             {% if user.is_superuser %}
               <li><a href="{% url 'domains' %}">Domains</a></li>
-              <li><a href="{% url 'celery_monitor' %}">Monitor</a></li>
+              <li><a href="{% url 'tasks_runner' %}">Tasks</a></li>
               <li><a href="{% url 'admin:index' %}">Admin</a></li>
               <li><a href="{{ SEARCH_IP }}/#/hypermap" target="new">Solr</a></li>
             {% endif %}
