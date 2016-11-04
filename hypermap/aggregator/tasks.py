@@ -256,10 +256,19 @@ def index_layer(self, layer, use_cache=False):
 def index_all_layers(self):
     from hypermap.aggregator.models import Layer
 
-    for layer in Layer.objects.all():
-        if not settings.REGISTRY_SKIP_CELERY:
-            index_layer.delay(layer, use_cache=True)
-        else:
+    layer_to_process = Layer.objects.all()
+    tasks = []
+    if not settings.REGISTRY_SKIP_CELERY:
+        for layer in layer_to_process:
+            tasks.append(index_layer.si(layer, use_cache=True))
+        # non-parallel execution will be performed in chunks of 100 tasks
+        # to avoid run time errors with big chains.
+        size = 100
+        chunks = [tasks[i:i + size] for i in range(0, len(tasks), size)]
+        for chunk in chunks:
+            chain(chunk)()
+    else:
+        for layer in layer_to_process:
             index_layer(layer)
 
 
