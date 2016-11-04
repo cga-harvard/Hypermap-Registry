@@ -23,7 +23,8 @@
       {% if layer.service %}
       <li><a href="{% url 'service_detail' layer.catalog.slug layer.service.id %}">Go to service page</a></li>
       {% endif %}
-      <li><a href="map/demo/">Go to demo page</a></li>
+      <li><a href="{% url 'layer_mapproxy' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid path_info='/demo/' %}">Go to MapProxy demo page</a></li>
+      <li><a href="{% url 'layer_mapproxy_config' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid %}">Go to MapProxy configuration</a></li>
     </ul>
 </div>
   <div class="col-md-6">
@@ -82,6 +83,10 @@
         <tr>
           <td><strong>Name</strong></td>
           <td>{{ layer.name }}</td>
+        </tr>
+        <tr>
+          <td><strong>uuid</strong></td>
+          <td>{{ layer.uuid }}</td>
         </tr>
         <tr>
           <td><strong>Title</strong></td>

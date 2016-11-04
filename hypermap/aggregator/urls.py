@@ -5,6 +5,7 @@ from django.conf.urls import include, patterns, url
 # from maploom_registry.geonode.urls import urlpatterns as maploom_urls
 from hypermap.aggregator import views
 
+uuid_regex = '[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12}'
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
@@ -18,10 +19,12 @@ urlpatterns = [
         name='service_checks'),
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/$', views.layer_detail, name='layer_detail'),
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/checks/$', views.layer_checks, name='layer_checks'),
-    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/map(?P<path_info>/.*)$',
+
+    # mapproxy
+    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>%s)/map(?P<path_info>/.*)$' % uuid_regex,
         views.layer_mapproxy,
         name='layer_mapproxy'),
-    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/map/config$',
+    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12})/map/config$',
         views.layer_mapproxy,
         name='layer_mapproxy_config')
 ]

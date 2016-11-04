@@ -213,10 +213,10 @@ def tasks_runner(request):
     )
 
 
-def layer_mapproxy(request, catalog_slug, layer_id, path_info):
-    # Get Layer with matching catalog and primary key
+def layer_mapproxy(request, catalog_slug, layer_uuid, path_info):
+    # Get Layer with matching catalog and uuid
     layer = get_object_or_404(Layer,
-                              pk=layer_id,
+                              uuid=layer_uuid,
                               catalog__slug=catalog_slug)
 
     # for WorldMap layers we need to use the url of the layer
