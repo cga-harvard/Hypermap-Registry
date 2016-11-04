@@ -84,6 +84,7 @@ class SolrHypermap(object):
             {"name": "bbox", "type": "location_rpt"},
             {"name": "domain_name", "type": "string"},
             {"name": "id", "type": "tlong", "required": True},
+            {"name": "uuid", "type": "string", "required": True},
             {"name": "is_public", "type": "boolean"},
             {"name": "last_status", "type": "boolean"},
             {"name": "layer_date", "type": "tdate", "docValues": True},

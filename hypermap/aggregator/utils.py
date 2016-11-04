@@ -617,6 +617,7 @@ def layer2dict(layer):
 
     layer_dict = {
                     'id': layer.id,
+                    'uuid': str(layer.uuid),
                     'type': 'Layer',
                     'layer_id': layer.id,
                     'name': layer.name,
