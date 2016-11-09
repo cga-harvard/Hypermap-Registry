@@ -571,7 +571,7 @@ def layer2dict(layer):
     """
     Return a json representation for a layer.
     """
-    logger = logging.getLogger("hypermap")
+
     category = None
     username = None
 
