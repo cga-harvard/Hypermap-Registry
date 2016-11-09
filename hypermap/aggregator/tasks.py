@@ -132,8 +132,23 @@ def index_cached_layers(self):
             LOGGER.debug('Syncing %s/%s layers to %s: %s' % (batch_size, len(layers_cache), layers, SEARCH_TYPE))
 
             try:
+                # SOLR
                 if SEARCH_TYPE == 'solr':
-                    success, message = solrobject.layers_to_solr(layers)
+                    success, layers_errors_ids = solrobject.layers_to_solr(layers)
+                    if layers_errors_ids:
+                        for layer_error in layers_errors_ids:
+                            task_error = TaskError(
+                                task_name=self.name,
+                                args=layer_error[0],
+                                message=layer_error[1]
+                            )
+                            task_error.save()
+                    if success:
+                        # remove layers from cache here
+                        layers_cache = layers_cache.difference(set(batch_list_ids))
+                        LOGGER.debug('Removing layers with id %s from cache' % batch_list_ids)
+                        cache.set('layers', layers_cache)
+                # ES
                 elif SEARCH_TYPE == 'elasticsearch':
                     with_bulk, success = True, False
                     layers_to_index = [es_client.layer_to_es(layer, with_bulk) for layer in layers]
@@ -145,19 +160,19 @@ def index_cached_layers(self):
                     if len_indexed_layers == len(layers):
                         LOGGER.debug('%d layers indexed successfully' % (len_indexed_layers))
                         success = True
+                    if success:
+                        # remove layers from cache here
+                        layers_cache = layers_cache.difference(set(batch_list_ids))
+                        cache.set('layers', layers_cache)
+                    else:
+                        task_error = TaskError(
+                            task_name=self.name,
+                            args=batch_list_ids,
+                            message=message
+                        )
+                        task_error.save()
                 else:
                     raise Exception("Incorrect SEARCH_TYPE=%s" % SEARCH_TYPE)
-                if success:
-                    # remove layers from cache here
-                    layers_cache = layers_cache.difference(set(batch_list_ids))
-                    cache.set('layers', layers_cache)
-                else:
-                    task_error = TaskError(
-                        task_name=self.name,
-                        args=batch_list_ids,
-                        message=message
-                    )
-                    task_error.save()
             except Exception as e:
                 LOGGER.error('Layers were NOT indexed correctly')
                 LOGGER.error(e, exc_info=True)

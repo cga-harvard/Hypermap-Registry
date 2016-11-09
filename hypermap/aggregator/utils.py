@@ -577,7 +577,7 @@ def layer2dict(layer):
 
     # bbox must be valid before proceeding
     if not layer.has_valid_bbox():
-        message = 'There are not valid coordinates for layer id: %s' % layer.id
+        message = 'Layer id: %s has a not valid bbox' % layer.id
         return None, message
 
     # so far only 4326, 102100, 102113 can be synced to Solr
