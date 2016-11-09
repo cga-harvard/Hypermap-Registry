@@ -574,33 +574,40 @@ def layer2dict(layer):
     logger = logging.getLogger("hypermap")
     category = None
     username = None
-    bbox = None
+
+    # bbox must be valid before proceeding
     if not layer.has_valid_bbox():
         message = 'There are not valid coordinates for layer id: %s' % layer.id
-        logger.error(message)
-    else:
-        bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
-        for proj in layer.service.srs.values():
-            if proj['code'] in ('102113', '102100'):
-                bbox = mercator_to_llbbox(bbox)
-        minX = bbox[0]
-        minY = bbox[1]
-        maxX = bbox[2]
-        maxY = bbox[3]
-        # coords hack needed by solr
-        if (minX < -180):
-            minX = -180
-        if (maxX > 180):
-            maxX = 180
-        if (minY < -90):
-            minY = -90
-        if (maxY > 90):
-            maxY = 90
-        rectangle = box(minX, minY, maxX, maxY)
-        wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
-        halfWidth = (maxX - minX) / 2.0
-        halfHeight = (maxY - minY) / 2.0
-        area = (halfWidth * 2) * (halfHeight * 2)
+        return None, message
+
+    # so far only 4326, 102100, 102113 can be synced to Solr
+    if layer.service.srs.filter(code__in=['EPSG:4326', 'EPSG:102100', 'EPSG:102113']).count() == 0:
+        message = 'Layer id: %s does not support 4326 or 102100 or 12113' % layer.id
+        return None, message
+
+    # we can proceed safely
+    bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
+    for proj in layer.service.srs.values():
+        if proj['code'] in ('102113', '102100'):
+            bbox = mercator_to_llbbox(bbox)
+    minX = bbox[0]
+    minY = bbox[1]
+    maxX = bbox[2]
+    maxY = bbox[3]
+    # coords hack needed by solr
+    if (minX < -180):
+        minX = -180
+    if (maxX > 180):
+        maxX = 180
+    if (minY < -90):
+        minY = -90
+    if (maxY > 90):
+        maxY = 90
+    rectangle = box(minX, minY, maxX, maxY)
+    wkt = "ENVELOPE({:f},{:f},{:f},{:f})".format(minX, maxX, maxY, minY)
+    halfWidth = (maxX - minX) / 2.0
+    halfHeight = (maxY - minY) / 2.0
+    area = (halfWidth * 2) * (halfHeight * 2)
     domain = get_domain(layer.service.url)
     if hasattr(layer, 'layerwm'):
         category = layer.layerwm.category
@@ -656,7 +663,8 @@ def layer2dict(layer):
     if layer.get_tile_url():
         layer_dict['tile_url'] = layer.get_tile_url()
 
-    return layer_dict
+    message = 'Layer %s successfully converted to json' % layer.id
+    return layer_dict, message
 
 
 def detect_metadata_url_scheme(url):

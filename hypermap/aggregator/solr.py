@@ -41,26 +41,31 @@ class SolrHypermap(object):
         """
         Sync a layer in Solr.
         """
-        layer_dict = layer2dict(layer)
-        layer_json = json.dumps(layer_dict)
-        try:
-            url_solr_update = '%s/solr/hypermap/update/json/docs' % SEARCH_URL
-            headers = {"content-type": "application/json"}
-            params = {"commitWithin": 1500}
-            res = requests.post(url_solr_update, data=layer_json, params=params,  headers=headers)
-            res = res.json()
-            if 'error' in res:
-                message = res["error"].get("msg")
-                LOGGER.debug("ERROR: {0}".format(message))
-                return False, message
-            else:
-                LOGGER.info("Solr record saved for layer with id: %s" % layer.id)
+        success = True
+        message = 'Synced layer id %s to Solr' % layer.id
 
-            return True, None
-        except Exception, e:
-            LOGGER.error("Error saving solr record for layer with id: %s" % layer.id)
-            LOGGER.error(e, exc_info=True)
-            return False, sys.exc_info()[1]
+        layer_dict, message = layer2dict(layer)
+        if not layer_dict:
+            success = False
+        else:
+            layer_json = json.dumps(layer_dict)
+            try:
+                url_solr_update = '%s/solr/hypermap/update/json/docs' % SEARCH_URL
+                headers = {"content-type": "application/json"}
+                params = {"commitWithin": 1500}
+                res = requests.post(url_solr_update, data=layer_json, params=params,  headers=headers)
+                res = res.json()
+                if 'error' in res:
+                    success = False
+                    message = "Error syncing layer id %s to Solr: %s" % (layer.id, res["error"].get("msg"))
+            except Exception, e:
+                success = False
+                message = "Error syncing layer id %s to Solr: %s" % (layer.id, sys.exc_info()[1])
+        if success:
+            LOGGER.info(message)
+        else:
+            LOGGER.error(message)
+        return success, message
 
     def clear_solr(self, catalog="hypermap"):
         """Clear all indexes in the solr core"""
