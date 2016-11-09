@@ -21,8 +21,8 @@ def run_tests():
     """
     Executes the entire test suite.
     """
-    sh('python manage.py test hypermap.aggregator --settings=hypermap.settings.test --failfast')
-    sh('python manage.py test hypermap.dynasty --settings=hypermap.settings.test --failfast')
+    sh('python manage.py test hypermap.aggregator --failfast')
+    sh('python manage.py test hypermap.dynasty --failfast')
     sh('flake8 hypermap')
 
 
