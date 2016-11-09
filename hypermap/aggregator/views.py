@@ -8,6 +8,8 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+
 from djmp.views import get_mapproxy
 
 
@@ -187,6 +189,13 @@ def tasks_runner(request):
     A page that let the admin to run global tasks.
     """
 
+    # server info
+    cached_layers_number = 0
+    cached_layers = cache.get('layers')
+    if cached_layers:
+        cached_layers_number = len(cached_layers)
+
+    # task actions
     if request.method == 'POST':
         if 'check_all' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
@@ -208,8 +217,12 @@ def tasks_runner(request):
                 clear_index()
             else:
                 clear_index.delay()
+
     return render(
-        request, 'aggregator/tasks_runner.html', {}
+        request,
+        'aggregator/tasks_runner.html', {
+            'cached_layers_number': cached_layers_number,
+        }
     )
 
 

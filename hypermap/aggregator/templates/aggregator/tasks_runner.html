@@ -11,6 +11,13 @@
 
 {% if user.is_superuser %}
 
+  <h2>Server Information</h2>
+
+  <ul>
+    <li>Server date time: {% now "jS F Y H:i:s" %}</li>
+    <li>Cached layers: {{ cached_layers_number }}</li>
+  </ul>
+
   <h2>Admin Commands</h2>
 
   <form action="." method="post">
