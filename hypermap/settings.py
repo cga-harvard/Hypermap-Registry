@@ -276,7 +276,7 @@ MAPPROXY_CONFIG = os.path.join(MEDIA_ROOT, 'mapproxy_config')
 # solr+http://127.0.0.1:8983/solr/search
 # elasticsearch+http://localhost:9200/
 # elasticsearch+https://user:pass/domain:port/
-REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', None)
+REGISTRY_SEARCH_URL = os.getenv('REGISTRY_SEARCH_URL', 'elasticsearch+http://elasticsearch:9200/')
 REGISTRY_SEARCH_BATCH_SIZE = int(os.getenv('REGISTRY_SEARCH_BATCH_SIZE', 50))
 SEARCH_TYPE = REGISTRY_SEARCH_URL.split('+')[0]
 SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
