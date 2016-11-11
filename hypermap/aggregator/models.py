@@ -1173,15 +1173,18 @@ def update_layers_wmts(service):
         check.save()
 
 
-def update_layers_wm(service):
+def update_layers_wm(service, num_layers=None):
     """
     Update layers for an WorldMap.
     Sample endpoint: http://worldmap.harvard.edu/
     """
 
-    response = requests.get('http://worldmap.harvard.edu/data/search/api?start=0&limit=10')
-    data = json.loads(response.content)
-    total = data['total']
+    if num_layers:
+        total = num_layers
+    else:
+        response = requests.get('http://worldmap.harvard.edu/api/1.5/layer/?format=json')
+        data = json.loads(response.content)
+        total = data['meta']['total_count']
 
     # set srs
     # WorldMap supports only 4326, 900913, 3857
@@ -1190,19 +1193,24 @@ def update_layers_wm(service):
         service.srs.add(srs)
 
     layer_n = 0
-    for i in range(0, total, 10):
+    limit = 10
+
+    for i in range(0, total + 1, limit):
         try:
-            url = 'http://worldmap.harvard.edu/data/search/api?start=%s&limit=10' % i
+            url = (
+                    'http://worldmap.harvard.edu/api/1.5/layer/?format=json&order_by=-created_dttm&offset=%s&limit=%s'
+                    % (i, limit)
+            )
             LOGGER.debug('Fetching %s' % url)
             response = requests.get(url)
             data = json.loads(response.content)
-            for row in data['rows']:
-                name = row['name']
+            for row in data['objects']:
+                name = row['typename']
                 LOGGER.debug('Updating layer %s' % name)
                 title = row['title']
                 abstract = row['abstract']
                 bbox = row['bbox']
-                page_url = row['detail']
+                page_url = 'http://worldmap.harvard.edu/data/%s' % name
                 category = ''
                 if 'topic_category' in row:
                     category = row['topic_category']
@@ -1218,9 +1226,9 @@ def update_layers_wm(service):
                 # we use the geoserver virtual layer getcapabilities for wm endpoint
                 endpoint = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % name
                 is_public = True
-                if '_permissions' in row:
-                    if not row['_permissions']['view']:
-                        is_public = False
+                if 'is_public' in row:
+                    is_public = row['is_public']
+
                 layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
                 if layer.active:
                     links = [['Hypermap:WorldMap', endpoint]]
@@ -1239,10 +1247,11 @@ def update_layers_wm(service):
                     layer_wm.temporal_extent_end = temporal_extent_end
                     layer_wm.save()
                     # bbox
-                    x0 = format_float(bbox['minx'])
-                    y0 = format_float(bbox['miny'])
-                    x1 = format_float(bbox['maxx'])
-                    y1 = format_float(bbox['maxy'])
+                    bbox_list = bbox[1:-1].split(',')
+                    x0 = format_float(bbox_list[0])
+                    y0 = format_float(bbox_list[1])
+                    x1 = format_float(bbox_list[2])
+                    y1 = format_float(bbox_list[3])
                     # In many cases for some reason to be fixed GeoServer has x coordinates flipped in WM.
                     x0, x1 = flip_coordinates(x0, x1)
                     y0, y1 = flip_coordinates(y0, y1)
@@ -1251,10 +1260,13 @@ def update_layers_wm(service):
                     layer.bbox_x1 = x1
                     layer.bbox_y1 = y1
                     # keywords
+                    keywords = []
                     for keyword in row['keywords']:
+                        keywords.append(keyword['name'])
+                    layer.keywords.all().delete()
+                    for keyword in keywords:
                         layer.keywords.add(keyword)
-
-                    layer.wkt_geometry = bbox2wktpolygon((bbox['minx'], bbox['miny'], bbox['maxx'], bbox['maxy']))
+                    layer.wkt_geometry = bbox2wktpolygon([x0, y0, x1, y1])
                     layer.xml = create_metadata_record(
                         identifier=str(layer.uuid),
                         source=endpoint,
@@ -1265,15 +1277,14 @@ def update_layers_wm(service):
                         title=layer.title,
                         alternative=name,
                         abstract=layer.abstract,
-                        keywords=row['keywords'],
+                        keywords=keywords,
                         wkt_geometry=layer.wkt_geometry
                     )
-                    layer.anytext = gen_anytext(layer.title, layer.abstract, row['keywords'])
+                    layer.anytext = gen_anytext(layer.title, layer.abstract, keywords)
                     layer.save()
                     # dates
                     add_mined_dates(layer)
                     add_metadata_dates_to_layer([layer_wm.temporal_extent_start, layer_wm.temporal_extent_end], layer)
-
                     layer_n = layer_n + 1
                     # exits if DEBUG_SERVICES
                     LOGGER.debug("Updated layer n. %s/%s" % (layer_n, total))

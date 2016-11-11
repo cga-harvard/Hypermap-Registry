@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "limit": 10,
+    "next": "/api/1.5/layer/?order_by=-created_dttm&offset=10&limit=10&format=json",
+    "offset": 0,
+    "previous": null,
+    "total_count": 10
+  },
+  "objects": [{
+    "abstract": "China River Basins. Depicted years are from 1968 to 2007.",
+    "bbox": "[0.0, 0.0, -1.0, -1.0]",
+    "created_dttm": "2016-11-10T18:03:30.061912",
+    "date": "2016-11-10T18:03:30",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [{
+      "name": "engineers,",
+      "resource_uri": "/api/1.5/tag/8213/"
+    }, {
+      "name": "engineer",
+      "resource_uri": "/api/1.5/tag/8328/"
+    }, {
+      "name": "line",
+      "resource_uri": "/api/1.5/tag/8426/"
+    }, {
+      "name": "Phone",
+      "resource_uri": "/api/1.5/tag/9454/"
+    }],
+    "name": "River_basin_num2",
+    "owner_username": "matt",
+    "resource_uri": "/api/1.5/layer/31883/",
+    "srs": "EPSG:4326",
+    "temporal_extent_end": "1974-09-30",
+    "temporal_extent_start": "1971-02-06",
+    "title": "China River Basins",
+    "topic_category": "Rivers, Streams, Lakes",
+    "typename": "geonode:River_basin_num2",
+    "uuid": "e5512214-a799-11e6-a369-22000b8406af"
+  }, {
+    "abstract": "In the title there is one date, here there are more ones _1632 :1661: #1992 31/12/1338.",
+    "bbox": "[0.0, 0.0, -1.0, -1.0]",
+    "created_dttm": "2016-11-10T17:57:05.451801",
+    "date": "2016-11-10T17:57:05",
+    "date_type": "publication",
+    "is_public": false,
+    "keywords": [{
+      "name": "engineers,",
+      "resource_uri": "/api/1.5/tag/8213/"
+    }, {
+      "name": "engineers",
+      "resource_uri": "/api/1.5/tag/8322/"
+    }, {
+      "name": "line",
+      "resource_uri": "/api/1.5/tag/8426/"
+    }, {
+      "name": "Phone",
+      "resource_uri": "/api/1.5/tag/9454/"
+    }, {
+      "name": "Telephone",
+      "resource_uri": "/api/1.5/tag/12542/"
+    }],
+    "name": "layer_with_many_dates",
+    "owner_username": "francesco_totti",
+    "resource_uri": "/api/1.5/layer/31882/",
+    "srs": "EPSG:4326",
+    "temporal_extent_end": "2015-09-30",
+    "temporal_extent_start": "2011-01-24",
+    "title": "Layer with many dates 1999 (1882)",
+    "topic_category": "Place Locations",
+    "typename": "geonode:layer_with_many_dates",
+    "uuid": "0012734c-a799-11e6-a369-22000b8406af"
+  }, {
+    "abstract": "Socioeconomic data for Southern Jiangsu (1990, 1996, 2000).  Compiled by Kai Cao.",
+    "bbox": "[-122.698752462703, 45.5263316166654, -122.680213033989, 45.5309615426696]",
+    "created_dttm": "2016-11-10T15:44:15.040130",
+    "date": "2016-11-10T15:44:15",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [{
+      "name": "walk",
+      "resource_uri": "/api/1.5/tag/7/"
+    }, {
+      "name": "Portland",
+      "resource_uri": "/api/1.5/tag/3980/"
+    }, {
+      "name": "Wine",
+      "resource_uri": "/api/1.5/tag/11624/"
+    }],
+    "name": "layer_with_few_dates",
+    "owner_username": "Lex",
+    "resource_uri": "/api/1.5/layer/31881/",
+    "srs": "EPSG:4326",
+    "temporal_extent_end": "Date in invalid format",
+    "temporal_extent_start": "1990-01-01",
+    "title": "SouthJiangsu_1990",
+    "topic_category": "Economic Activities & Employment",
+    "typename": "geonode:layer_with_few_dates",
+    "uuid": "71563be6-a786-11e6-9bb7-22000b8406af"
+  }, {
+    "abstract": "Layer representing something from 1900 BCE to 2000 BCE (this era in China is under the Xia dynasty)",
+    "bbox": "[103.485382, 18.846443, 122.05669, 40.092838]",
+    "created_dttm": "2016-11-10T15:24:07.810619",
+    "date": "2016-11-10T15:24:07",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [{
+      "name": "China",
+      "resource_uri": "/api/1.5/tag/875/"
+    }, {
+      "name": "county",
+      "resource_uri": "/api/1.5/tag/1708/"
+    }, {
+      "name": "Song",
+      "resource_uri": "/api/1.5/tag/5931/"
+    }, {
+      "name": "administration",
+      "resource_uri": "/api/1.5/tag/12540/"
+    }],
+    "name": "layer_with_complex_dates",
+    "owner_username": "francesco_totti",
+    "resource_uri": "/api/1.5/layer/31880/",
+    "srs": "EPSG:4326",
+    "temporal_extent_end": "-1900-01-01",
+    "temporal_extent_start": "-2000-01-01",
+    "title": "kenya_malaria_zones_2",
+    "topic_category": "Health & Human Ecology",
+    "typename": "geonode:layer_with_complex_dates",
+    "uuid": "a1c59dba-a783-11e6-95a0-22000b8406af"
+  }, {
+    "abstract": "È lo Stato più popoloso del mondo, con una popolazione di oltre 1.376 milioni di persone.",
+    "bbox": "[0.0, 0.0, -1.0, -1.0]",
+    "created_dttm": "2016-11-10T10:26:42.561711",
+    "date": "2016-11-10T10:26:42",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [{
+      "name": "para",
+      "resource_uri": "/api/1.5/tag/3076/"
+    }, {
+      "name": "mujer,",
+      "resource_uri": "/api/1.5/tag/12532/"
+    }, {
+      "name": "tatuaje,",
+      "resource_uri": "/api/1.5/tag/12533/"
+    }, {
+      "name": "tatuaje",
+      "resource_uri": "/api/1.5/tag/12535/"
+    }, {
+      "name": "tatuajes,",
+      "resource_uri": "/api/1.5/tag/12537/"
+    }, {
+      "name": "hombre",
+      "resource_uri": "/api/1.5/tag/12538/"
+    }],
+    "name": "layers_with_no_utf8_encoding",
+    "owner_username": "Matt",
+    "resource_uri": "/api/1.5/layer/31878/",
+    "srs": "EPSG:4326",
+    "temporal_extent_end": null,
+    "temporal_extent_start": null,
+    "title": "Stati più popolosi del mondo",
+    "topic_category": "Oceans",
+    "typename": "geonode:layers_with_no_utf8_encoding",
+    "uuid": "152ca066-a75a-11e6-95a0-22000b8406af"
+  }, {
+    "abstract": "Item Number: 26-5 Document Title: J.W. FLAVELLE, ESQ., TORONTO, ONT; PLANTING STUDY; SCALE 20'=1' Project: 00026; Flavelle, J. W.; Toronto; Ontario; Canada; 07 Private Estate & Homesteads; 6 PLANS (1901-1902) Artist/Creator: GALLAGHER, Location: Olmsted National Historic Site, Brookline, MA Category: PLAN Purpose: PLTG (Planting) Physical Characteristics: FAIR H 30, W 41 3/4\" ink --graphite draft cloth Dates: 21OCT1901 Notes: OBLA",
+    "bbox": "[87.5627517, 18.3765, 132.1994, 49.97171]",
+    "created_dttm": "2016-11-10T09:24:47.390283",
+    "date": "2016-11-10T09:24:47.389243",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [],
+    "name": "geonode:layer_with_dates_in_abstract",
+    "owner_username": "francesco_totti",
+    "resource_uri": "/api/1.5/layer/31877/",
+    "srs": "EPSG:4610",
+    "temporal_extent_end": null,
+    "temporal_extent_start": null,
+    "title": "Phoenician_Basic",
+    "topic_category": "Society & Demographics",
+    "typename": "geonode:layer_with_dates_in_abstract",
+    "uuid": "6ec13762-a751-11e6-b996-22000b8406af"
+  }, {
+    "abstract": "This layer consists of records on locust temples (or&#58; temples dedicated to the spirit of locust) drew from the first batch of Erudition Zhongguo Fangzhi Ku (æ„›å¦‚ç”Ÿä¸­åœ‹æ–¹å¿—åº«åˆé›†) by full text search. The keywords used to drew these records are&#58;&nbsp;è—ç¥žå»Ÿ, å…«èœ¡å»Ÿ, å…«è…Šå»Ÿ, åŠ‰çŒ›å°‡è»å»Ÿ, and èŸ²çŽ‹å»Ÿ. The search resulted in 1836 records from 783 gazetteers in the set of 2,000 gazetteers.",
+    "bbox": "[87.5627517, 22.52581, 129.47766, 44.34462]",
+    "created_dttm": "2016-11-10T08:09:09.332553",
+    "date": "2016-11-10T08:09:09",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [{
+      "name": "Chinese history",
+      "resource_uri": "/api/1.5/tag/12520/"
+    }, {
+      "name": "plagues",
+      "resource_uri": "/api/1.5/tag/12530/"
+    }, {
+      "name": "religious site",
+      "resource_uri": "/api/1.5/tag/12531/"
+    }],
+    "name": "layer_with_html_tag",
+    "owner_username": "francesco_totti",
+    "resource_uri": "/api/1.5/layer/31875/",
+    "srs": "EPSG:4610",
+    "temporal_extent_end": null,
+    "temporal_extent_start": null,
+    "title": "Locust temples in Chinese Local Gazetteers",
+    "topic_category": "Elevation",
+    "typename": "geonode:layer_with_html_tag",
+    "uuid": "ddddcfb2-a746-11e6-9bb7-22000b8406af"
+  }, {
+    "abstract": "test",
+    "bbox": "[0.0, 0.0, -1.0, -1.0]",
+    "created_dttm": "2016-11-10T07:51:58.748618",
+    "date": "2016-11-10T07:51:58",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [{
+      "name": "route",
+      "resource_uri": "/api/1.5/tag/1829/"
+    }, {
+      "name": "bike",
+      "resource_uri": "/api/1.5/tag/12529/"
+    }],
+    "name": "test_u3o",
+    "owner_username": "francesco_totti",
+    "resource_uri": "/api/1.5/layer/31871/",
+    "srs": "EPSG:4326",
+    "temporal_extent_end": null,
+    "temporal_extent_start": "2016-10-11",
+    "title": "bike route",
+    "topic_category": "Transportation",
+    "typename": "geonode:test_u3o",
+    "uuid": "77973a74-a744-11e6-9bb7-22000b8406af"
+  }, {
+    "abstract": "OraciÃ³n a san benito, la magnifica, del pensamiento",
+    "bbox": "[0.0, 0.0, -1.0, -1.0]",
+    "created_dttm": "2016-11-10T05:42:20.343357",
+    "date": "2016-11-10T05:42:20",
+    "date_type": "publication",
+    "is_public": true,
+    "keywords": [{
+      "name": "para",
+      "resource_uri": "/api/1.5/tag/3076/"
+    }, {
+      "name": "dormir,",
+      "resource_uri": "/api/1.5/tag/12521/"
+    }, {
+      "name": "oracion",
+      "resource_uri": "/api/1.5/tag/12522/"
+    }, {
+      "name": "oracion,",
+      "resource_uri": "/api/1.5/tag/12524/"
+    }, {
+      "name": "cama,",
+      "resource_uri": "/api/1.5/tag/12525/"
+    }, {
+      "name": "rezar,",
+      "resource_uri": "/api/1.5/tag/12526/"
+    }, {
+      "name": "dios",
+      "resource_uri": "/api/1.5/tag/12527/"
+    }, {
+      "name": "plegaria,",
+      "resource_uri": "/api/1.5/tag/12528/"
+    }],
+    "name": "oracion10_vm2",
+    "owner_username": "francesco_totti",
+    "resource_uri": "/api/1.5/layer/31867/",
+    "srs": "EPSG:4326",
+    "temporal_extent_end": null,
+    "temporal_extent_start": null,
+    "title": "oracion y rezos",
+    "topic_category": "Society & Demographics",
+    "typename": "geonode:oracion10_vm2",
+    "uuid": "5b4cb91e-a732-11e6-9bb7-22000b8406af"
+  }, {
+    "abstract": "layers",
+    "bbox": "[-119.691218, 33.63003, -117.27411, 34.671394]",
+    "created_dttm": "2016-11-09T13:41:27.697508",
+    "date": "2016-11-09T13:41:27",
+    "date_type": "creation",
+    "is_public": true,
+    "keywords": [{
+      "name": "layers",
+      "resource_uri": "/api/1.5/tag/3745/"
+    }],
+    "name": "pm2_5_sites_0u7",
+    "owner_username": "hlee",
+    "resource_uri": "/api/1.5/layer/31863/",
+    "srs": "EPSG:4269",
+    "temporal_extent_end": null,
+    "temporal_extent_start": null,
+    "title": "PM2.5 sites",
+    "topic_category": "Health & Human Ecology",
+    "typename": "geonode:pm2_5_sites_0u7",
+    "uuid": "1fa531ce-a6ac-11e6-a228-22000b8406af"
+  }]
+}

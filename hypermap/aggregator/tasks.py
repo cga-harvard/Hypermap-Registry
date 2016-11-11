@@ -205,6 +205,9 @@ def remove_service_checks(self, service):
 
 @shared_task(bind=True)
 def index_service(self, service):
+    """
+    Index a service in search engine.
+    """
 
     layer_to_process = service.layer_set.all()
 
@@ -284,6 +287,25 @@ def index_all_layers(self):
             chain(chunk)()
     else:
         for layer in layer_to_process:
+            index_layer(layer)
+
+
+@shared_task(bind=True)
+def update_last_wm_layers(self, num_layers=10):
+    """
+    Update and index the last layers in WorldMap service.
+    """
+    from hypermap.aggregator.models import Service
+    from hypermap.aggregator.models import update_layers_wm
+
+    service = Service.objects.filter(type='Hypermap:WorldMap')[0]
+    update_layers_wm(service, num_layers)
+
+    layer_to_process = service.layer_set.all().order_by('-last_updated')[0:num_layers]
+    for layer in layer_to_process:
+        if not settings.REGISTRY_SKIP_CELERY:
+            index_layer(layer, use_cache=True)
+        else:
             index_layer(layer)
 
 
