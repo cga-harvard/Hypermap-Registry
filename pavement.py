@@ -21,6 +21,7 @@ def run_tests():
     """
     Executes the entire test suite.
     """
+    os.environ["REGISTRY_SKIP_CELERY"] = "True"
     sh('python manage.py test hypermap.aggregator --failfast')
     sh('python manage.py test hypermap.dynasty --failfast')
     sh('flake8 hypermap')
