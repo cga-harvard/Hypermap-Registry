@@ -98,6 +98,10 @@ def add_mined_dates(layer):
         layer.layerdate_set.get_or_create(date=date, type=0)
 
 
+def get_default_now_as_string():
+    return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
 class SpatialReferenceSystem(models.Model):
     """
     SpatialReferenceSystem represents a spatial reference system.
@@ -146,7 +150,7 @@ class Resource(models.Model):
 
     # CSW fields
     csw_last_updated = models.CharField(max_length=32,
-                                        default=datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                        default=get_default_now_as_string,
                                         null=True, blank=True)
     csw_type = models.CharField(max_length=32, default='dataset', null=False)
     csw_typename = models.CharField(max_length=32, default='csw:Record', null=False)
