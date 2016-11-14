@@ -99,6 +99,10 @@
 
 <h2>Layers ({{ service.layer_set.all.count|intcomma }})</h2>
 
+{% if service.get_deleted_number %}
+  <p>(there are {{ service.get_deleted_number }} deleted layers for this service)</p>
+{% endif %}
+
 {% with service.layer_set.all as layer_set %}
 {% if layer_set %}
   {% autopaginate layer_set 10 %}

@@ -310,6 +310,10 @@ class Service(Resource):
     def get_check_stats_absolute_url(self):
         return reverse("service_checks", args=[self.catalog.slug, self.id])
 
+    @property
+    def get_deleted_number(self):
+        return self.layer_set.filter(was_deleted=True).count()
+
     def update_layers(self):
         """
         Update layers for a service.
@@ -528,10 +532,14 @@ class Layer(Resource):
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)
     is_monitored = models.BooleanField(default=True)
+    was_deleted = models.BooleanField(default=True)
     catalog = models.ForeignKey(Catalog, default=1)
 
     def __unicode__(self):
         return '%s' % self.id
+
+    class Meta:
+        ordering = ['name']
 
     def get_url_endpoint(self):
         """
@@ -1195,6 +1203,16 @@ def update_layers_wm(service, num_layers=None):
     for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
         service.srs.add(srs)
+
+    # update deleted layers. For now we check the whole set of deleted layers
+    # we should optimize it if the list will grow
+    response = requests.get('http://worldmap.harvard.edu/api/1.5/actionlayerdelete/?format=json')
+    data = json.loads(response.content)
+    for deleted_layer in data['objects']:
+        if Layer.objects.filter(uuid=deleted_layer['args']).count() > 0:
+            layer = Layer.objects.get(uuid=deleted_layer['args'])
+            layer.was_deleted = True
+            layer.save()
 
     layer_n = 0
     limit = 10
