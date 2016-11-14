@@ -1210,6 +1210,7 @@ def update_layers_wm(service, num_layers=None):
             data = json.loads(response.content)
             for row in data['objects']:
                 name = row['typename']
+                uuid = row['uuid']
                 LOGGER.debug('Updating layer %s' % name)
                 title = row['title']
                 abstract = row['abstract']
@@ -1232,8 +1233,9 @@ def update_layers_wm(service, num_layers=None):
                 is_public = True
                 if 'is_public' in row:
                     is_public = row['is_public']
-
-                layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
+                layer, created = Layer.objects.get_or_create(service=service, catalog=service.catalog, name=name, uuid=uuid)
+                if created:
+                    LOGGER.debug('Added a new layer in registry: %s, %s' % (name, uuid))
                 if layer.active:
                     links = [['Hypermap:WorldMap', endpoint]]
                     # update fields
