@@ -195,6 +195,11 @@ def tasks_runner(request):
     if cached_layers:
         cached_layers_number = len(cached_layers)
 
+    cached_deleted_layers_number = 0
+    cached_deleted_layers = cache.get('deleted_layers')
+    if cached_deleted_layers:
+        cached_deleted_layers_number = len(cached_deleted_layers)
+
     # task actions
     if request.method == 'POST':
         if 'check_all' in request.POST:
@@ -224,6 +229,7 @@ def tasks_runner(request):
         request,
         'aggregator/tasks_runner.html', {
             'cached_layers_number': cached_layers_number,
+            'cached_deleted_layers_number': cached_deleted_layers_number,
         }
     )
 

@@ -87,6 +87,15 @@ class SolrHypermap(object):
         solr.delete(q='*:*')
         LOGGER.debug('Solr core cleared')
 
+    def remove_layer(self, layer_uiid, catalog="hypermap"):
+        """
+        Remove a layer from Solr.
+        """
+        solr_url = "{0}/solr/{1}".format(SEARCH_URL, catalog)
+        solr = pysolr.Solr(solr_url, timeout=60)
+        solr.delete(q='uuid:%s' % layer_uiid)
+        LOGGER.debug('Layer %s removed from Solr' % layer_uiid)
+
     def update_schema(self, catalog="hypermap"):
         """
         set the mapping in solr.

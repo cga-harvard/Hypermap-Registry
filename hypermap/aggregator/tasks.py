@@ -101,7 +101,7 @@ def check_layer(self, layer):
 @shared_task(bind=True)
 def index_cached_layers(self):
     """
-    Index all layers in the Django cache (Index all layers who have been checked).
+    Index and unindex all layers in the Django cache (Index all layers who have been checked).
     """
     from hypermap.aggregator.models import Layer
     from hypermap.aggregator.models import TaskError
@@ -115,7 +115,9 @@ def index_cached_layers(self):
         es_client = ESHypermap()
 
     layers_cache = cache.get('layers')
+    deleted_layers_cache = cache.get('deleted_layers')
 
+    # 1. added layers cache
     if layers_cache:
         layers_list = list(layers_cache)
         LOGGER.debug('There are %s layers in cache: %s' % (len(layers_list), layers_list))
@@ -177,7 +179,26 @@ def index_cached_layers(self):
                 LOGGER.error('Layers were NOT indexed correctly')
                 LOGGER.error(e, exc_info=True)
     else:
-        LOGGER.debug('No cached layers.')
+        LOGGER.debug('No cached layers to add in search engine.')
+
+    # 2. deleted layers cache
+    if deleted_layers_cache:
+        layers_list = list(deleted_layers_cache)
+        LOGGER.debug('There are %s layers in cache for deleting: %s' % (len(layers_list), layers_list))
+        # TODO implement me: batch layer index deletion
+        for layer_id in layers_list:
+            # SOLR
+            if SEARCH_TYPE == 'solr':
+                if Layer.objects.filter(pk=layer_id).exists():
+                    layer = Layer.objects.get(id=layer_id)
+                    unindex_layer(layer, use_cache=False)
+                    deleted_layers_cache = deleted_layers_cache.difference(set([layer_id]))
+                    cache.set('deleted_layers', deleted_layers_cache)
+            else:
+                # TODO implement me
+                raise NotImplementedError
+    else:
+        LOGGER.debug('No cached layers to remove in search engine.')
 
 
 @shared_task(name="clear_index")
@@ -271,6 +292,36 @@ def index_layer(self, layer, use_cache=False):
 
 
 @shared_task(bind=True)
+def unindex_layer(self, layer, use_cache=False):
+    """
+    Remove the index for a layer in the search backend.
+    If cache is set, append it to the list of removed layers, if it isn't send the transaction right away.
+    """
+
+    if use_cache:
+        LOGGER.debug('Caching layer with id %s for being removed from search engine' % layer.id)
+        deleted_layers = cache.get('deleted_layers')
+        if deleted_layers is None:
+            deleted_layers = set([layer.id])
+        else:
+            deleted_layers.add(layer.id)
+        cache.set('deleted_layers', deleted_layers)
+        return
+
+    if SEARCH_TYPE == 'solr':
+        from hypermap.aggregator.solr import SolrHypermap
+        LOGGER.debug('Removing layer %s from solr' % layer.id)
+        try:
+            solrobject = SolrHypermap()
+            solrobject.remove_layer(layer.uuid)
+        except Exception, e:
+            LOGGER.error('Layer NOT correctly removed from Solr')
+    elif SEARCH_TYPE == 'elasticsearch':
+        # TODO implement me
+        raise NotImplementedError
+
+
+@shared_task(bind=True)
 def index_all_layers(self):
     from hypermap.aggregator.models import Layer
 
@@ -293,16 +344,28 @@ def index_all_layers(self):
 @shared_task(bind=True)
 def update_last_wm_layers(self, num_layers=10):
     """
-    Update and index the last layers in WorldMap service.
+    Update and index the last added and deleted layers (num_layers) in WorldMap service.
     """
     from hypermap.aggregator.models import Service
     from hypermap.aggregator.models import update_layers_wm
 
+    LOGGER.debug('Updating the index the last %s added and %s deleted layers in WorldMap service' % (num_layers, num_layers))
     service = Service.objects.filter(type='Hypermap:WorldMap')[0]
     update_layers_wm(service, num_layers)
 
-    layer_to_process = service.layer_set.all().order_by('-last_updated')[0:num_layers]
-    for layer in layer_to_process:
+    # Remove in search engine last num_layers that were deleted
+    LOGGER.debug('Removing the index for the last %s deleted layers' % num_layers)
+    layer_to_unindex = service.layer_set.filter(was_deleted=True).order_by('-last_updated')[0:num_layers]
+    for layer in layer_to_unindex:
+        if not settings.REGISTRY_SKIP_CELERY:
+            unindex_layer(layer, use_cache=True)
+        else:
+            unindex_layer(layer)
+
+    # Add/Update in search engine last num_layers that were added
+    LOGGER.debug('Adding/Updating the index for the last %s added layers' % num_layers)
+    layer_to_index = service.layer_set.filter(was_deleted=False).order_by('-last_updated')[0:num_layers]
+    for layer in layer_to_index:
         if not settings.REGISTRY_SKIP_CELERY:
             index_layer(layer, use_cache=True)
         else:

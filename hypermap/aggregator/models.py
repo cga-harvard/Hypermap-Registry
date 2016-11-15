@@ -532,7 +532,7 @@ class Layer(Resource):
     page_url = models.URLField(max_length=255, blank=True, null=True)
     service = models.ForeignKey(Service, blank=True, null=True)
     is_monitored = models.BooleanField(default=True)
-    was_deleted = models.BooleanField(default=True)
+    was_deleted = models.BooleanField(default=False)
     catalog = models.ForeignKey(Catalog, default=1)
 
     def __unicode__(self):
@@ -1206,18 +1206,21 @@ def update_layers_wm(service, num_layers=None):
 
     # update deleted layers. For now we check the whole set of deleted layers
     # we should optimize it if the list will grow
-    response = requests.get('http://worldmap.harvard.edu/api/1.5/actionlayerdelete/?format=json')
+    url = 'http://worldmap.harvard.edu/api/1.5/actionlayerdelete/?format=json'
+    LOGGER.debug('Fetching %s for detecting deleted layers' % url)
+    response = requests.get(url)
     data = json.loads(response.content)
     for deleted_layer in data['objects']:
         if Layer.objects.filter(uuid=deleted_layer['args']).count() > 0:
             layer = Layer.objects.get(uuid=deleted_layer['args'])
             layer.was_deleted = True
             layer.save()
+            LOGGER.debug('Layer %s marked as deleted' % layer.uuid)
 
     layer_n = 0
     limit = 10
 
-    for i in range(0, total + 1, limit):
+    for i in range(0, total, limit):
         try:
             url = (
                     'http://worldmap.harvard.edu/api/1.5/layer/?format=json&order_by=-created_dttm&offset=%s&limit=%s'
