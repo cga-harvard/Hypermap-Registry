@@ -1204,19 +1204,6 @@ def update_layers_wm(service, num_layers=None):
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
         service.srs.add(srs)
 
-    # update deleted layers. For now we check the whole set of deleted layers
-    # we should optimize it if the list will grow
-    url = 'http://worldmap.harvard.edu/api/1.5/actionlayerdelete/?format=json'
-    LOGGER.debug('Fetching %s for detecting deleted layers' % url)
-    response = requests.get(url)
-    data = json.loads(response.content)
-    for deleted_layer in data['objects']:
-        if Layer.objects.filter(uuid=deleted_layer['args']).count() > 0:
-            layer = Layer.objects.get(uuid=deleted_layer['args'])
-            layer.was_deleted = True
-            layer.save()
-            LOGGER.debug('Layer %s marked as deleted' % layer.uuid)
-
     layer_n = 0
     limit = 10
 
@@ -1254,7 +1241,8 @@ def update_layers_wm(service, num_layers=None):
                 is_public = True
                 if 'is_public' in row:
                     is_public = row['is_public']
-                layer, created = Layer.objects.get_or_create(service=service, catalog=service.catalog, name=name, uuid=uuid)
+                layer, created = Layer.objects.get_or_create(
+                    service=service, catalog=service.catalog, name=name, uuid=uuid)
                 if created:
                     LOGGER.debug('Added a new layer in registry: %s, %s' % (name, uuid))
                 if layer.active:
@@ -1320,6 +1308,19 @@ def update_layers_wm(service, num_layers=None):
 
         except Exception as err:
             LOGGER.error('Error! %s' % err)
+
+    # update deleted layers. For now we check the whole set of deleted layers
+    # we should optimize it if the list will grow
+    url = 'http://worldmap.harvard.edu/api/1.5/actionlayerdelete/?format=json'
+    LOGGER.debug('Fetching %s for detecting deleted layers' % url)
+    response = requests.get(url)
+    data = json.loads(response.content)
+    for deleted_layer in data['objects']:
+        if Layer.objects.filter(uuid=deleted_layer['args']).count() > 0:
+            layer = Layer.objects.get(uuid=deleted_layer['args'])
+            layer.was_deleted = True
+            layer.save()
+            LOGGER.debug('Layer %s marked as deleted' % layer.uuid)
 
 
 def update_layers_warper(service):

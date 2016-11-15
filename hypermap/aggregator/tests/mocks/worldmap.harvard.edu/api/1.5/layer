@@ -269,7 +269,7 @@
     "srs": "EPSG:4326",
     "temporal_extent_end": null,
     "temporal_extent_start": null,
-    "title": "oracion y rezos",
+    "title": "A deleted layer",
     "topic_category": "Society & Demographics",
     "typename": "geonode:oracion10_vm2",
     "uuid": "5b4cb91e-a732-11e6-9bb7-22000b8406af"
@@ -290,7 +290,7 @@
     "srs": "EPSG:4269",
     "temporal_extent_end": null,
     "temporal_extent_start": null,
-    "title": "PM2.5 sites",
+    "title": "Another deleted layer",
     "topic_category": "Health & Human Ecology",
     "typename": "geonode:pm2_5_sites_0u7",
     "uuid": "1fa531ce-a6ac-11e6-a228-22000b8406af"

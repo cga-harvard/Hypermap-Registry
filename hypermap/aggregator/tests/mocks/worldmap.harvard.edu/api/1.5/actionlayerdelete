@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "limit": 20,
+    "next": null,
+    "offset": 0,
+    "previous": null,
+    "total_count": 2
+  },
+  "objects": [{
+    "args": "5b4cb91e-a732-11e6-9bb7-22000b8406af",
+    "resource_uri": "/api/1.5/actionlayerdelete/79/",
+    "timestamp": "2016-11-15T12:07:28.302996"
+  }, {
+    "args": "1fa531ce-a6ac-11e6-a228-22000b8406af",
+    "resource_uri": "/api/1.5/actionlayerdelete/5/",
+    "timestamp": "2016-11-11T16:58:42.101992"
+  }]
+}

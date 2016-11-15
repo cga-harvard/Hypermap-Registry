@@ -37,6 +37,9 @@ class TestWorldMap(unittest.TestCase):
         # check layer number
         self.assertEqual(service.layer_set.all().count(), 10)
 
+        # check deleted layers number
+        self.assertEqual(service.layer_set.filter(was_deleted=True).count(), 2)
+
         # check layer geonode:River_basin_num2 (public)
         layer_0 = service.layer_set.get(name='geonode:River_basin_num2')
         self.assertEqual(layer_0.title, 'China River Basins')

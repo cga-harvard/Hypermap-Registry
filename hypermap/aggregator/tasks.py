@@ -314,7 +314,7 @@ def unindex_layer(self, layer, use_cache=False):
         try:
             solrobject = SolrHypermap()
             solrobject.remove_layer(layer.uuid)
-        except Exception, e:
+        except Exception:
             LOGGER.error('Layer NOT correctly removed from Solr')
     elif SEARCH_TYPE == 'elasticsearch':
         # TODO implement me
@@ -349,7 +349,10 @@ def update_last_wm_layers(self, num_layers=10):
     from hypermap.aggregator.models import Service
     from hypermap.aggregator.models import update_layers_wm
 
-    LOGGER.debug('Updating the index the last %s added and %s deleted layers in WorldMap service' % (num_layers, num_layers))
+    LOGGER.debug(
+        'Updating the index the last %s added and %s deleted layers in WorldMap service'
+        % (num_layers, num_layers)
+                )
     service = Service.objects.filter(type='Hypermap:WorldMap')[0]
     update_layers_wm(service, num_layers)
 

@@ -33,7 +33,7 @@ class Resource:
 
 @urlmatch(netloc=NETLOC, method=GET)
 def resource_get(url, request):
-    file_path = '%s/%s%s' % (API_PATH, url.netloc, url.path)
+    file_path = ('%s/%s%s' % (API_PATH, url.netloc, url.path))[:-1]
     try:
         content = Resource(file_path).get()
     except EnvironmentError:
