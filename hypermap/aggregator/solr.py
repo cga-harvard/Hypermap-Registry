@@ -104,11 +104,27 @@ class SolrHypermap(object):
         """
         schema_url = "{0}/solr/{1}/schema".format(SEARCH_URL, catalog)
 
+        # create a special type to draw better heatmaps.
+        location_rpt_quad_5m_payload = {
+            "add-field-type": {
+                "name": "location_rpt_quad_5m",
+                "class": "solr.SpatialRecursivePrefixTreeFieldType",
+                "geo": False,
+                "worldBounds": "ENVELOPE(-180, 180, 180, -180)",
+                "prefixTree": "packedQuad",
+                "distErrPct": "0.025",
+                "maxDistErr": "0.001",
+                "distanceUnits": "degrees"
+            }
+        }
+        requests.post(schema_url, json=location_rpt_quad_5m_payload)
+
+        # now the other fields
         fields = [
             {"name": "abstract", "type": "string"},
             {"name": "area", "type": "tdouble"},
             {"name": "availability", "type": "string"},
-            {"name": "bbox", "type": "location_rpt"},
+            {"name": "bbox", "type": "location_rpt_quad_5m"},
             {"name": "domain_name", "type": "string"},
             {"name": "id", "type": "tlong", "required": True},
             {"name": "is_public", "type": "boolean"},
