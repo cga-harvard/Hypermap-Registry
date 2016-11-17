@@ -230,6 +230,7 @@ def index_service(self, service):
     Index a service in search engine.
     """
 
+    LOGGER.debug('Indexing service %s' % service.id)
     layer_to_process = service.layer_set.all()
 
     for layer in layer_to_process:
@@ -323,22 +324,12 @@ def unindex_layer(self, layer, use_cache=False):
 
 @shared_task(bind=True)
 def index_all_layers(self):
-    from hypermap.aggregator.models import Layer
-
-    layer_to_process = Layer.objects.all()
-    tasks = []
-    if not settings.REGISTRY_SKIP_CELERY:
-        for layer in layer_to_process:
-            tasks.append(index_layer.si(layer, use_cache=True))
-        # non-parallel execution will be performed in chunks of 100 tasks
-        # to avoid run time errors with big chains.
-        size = 100
-        chunks = [tasks[i:i + size] for i in range(0, len(tasks), size)]
-        for chunk in chunks:
-            chain(chunk)()
-    else:
-        for layer in layer_to_process:
-            index_layer(layer)
+    """
+    Index all of the layers, service by service.
+    """
+    from hypermap.aggregator.models import Service
+    for service in Service.objects.all():
+        index_service(service)
 
 
 @shared_task(bind=True)
