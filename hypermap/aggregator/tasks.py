@@ -325,14 +325,16 @@ def unindex_layer(self, layer, use_cache=False):
 @shared_task(bind=True)
 def index_all_layers(self):
     """
-    Index all of the layers, service by service.
+    Index all layers in search engine.
     """
-    from hypermap.aggregator.models import Service
-    for service in Service.objects.all():
-        if not settings.REGISTRY_SKIP_CELERY:
-            index_service.delay(service)
-        else:
-            index_service(service)
+    from hypermap.aggregator.models import Layer
+
+    if not settings.REGISTRY_SKIP_CELERY:
+        layers_cache = set(Layer.objects.all().values_list('id', flat=True))
+        cache.set('layers', layers_cache)
+    else:
+        for layer in Layer.objects.all():
+            index_layer(layer)
 
 
 @shared_task(bind=True)
