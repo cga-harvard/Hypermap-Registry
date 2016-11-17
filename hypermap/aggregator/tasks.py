@@ -329,7 +329,10 @@ def index_all_layers(self):
     """
     from hypermap.aggregator.models import Service
     for service in Service.objects.all():
-        index_service(service)
+        if not settings.REGISTRY_SKIP_CELERY:
+            index_service.delay(service)
+        else:
+            index_service(service)
 
 
 @shared_task(bind=True)
