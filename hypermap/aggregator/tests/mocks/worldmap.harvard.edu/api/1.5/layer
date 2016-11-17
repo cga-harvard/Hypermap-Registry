@@ -26,6 +26,7 @@
       "name": "Phone",
       "resource_uri": "/api/1.5/tag/9454/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "River_basin_num2",
     "owner_username": "matt",
     "resource_uri": "/api/1.5/layer/31883/",
@@ -59,6 +60,7 @@
       "name": "Telephone",
       "resource_uri": "/api/1.5/tag/12542/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "layer_with_many_dates",
     "owner_username": "francesco_totti",
     "resource_uri": "/api/1.5/layer/31882/",
@@ -86,6 +88,7 @@
       "name": "Wine",
       "resource_uri": "/api/1.5/tag/11624/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "layer_with_few_dates",
     "owner_username": "Lex",
     "resource_uri": "/api/1.5/layer/31881/",
@@ -116,6 +119,7 @@
       "name": "administration",
       "resource_uri": "/api/1.5/tag/12540/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "layer_with_complex_dates",
     "owner_username": "francesco_totti",
     "resource_uri": "/api/1.5/layer/31880/",
@@ -152,6 +156,7 @@
       "name": "hombre",
       "resource_uri": "/api/1.5/tag/12538/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "layers_with_no_utf8_encoding",
     "owner_username": "Matt",
     "resource_uri": "/api/1.5/layer/31878/",
@@ -170,6 +175,7 @@
     "date_type": "publication",
     "is_public": true,
     "keywords": [],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "geonode:layer_with_dates_in_abstract",
     "owner_username": "francesco_totti",
     "resource_uri": "/api/1.5/layer/31877/",
@@ -197,6 +203,7 @@
       "name": "religious site",
       "resource_uri": "/api/1.5/tag/12531/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "layer_with_html_tag",
     "owner_username": "francesco_totti",
     "resource_uri": "/api/1.5/layer/31875/",
@@ -221,6 +228,7 @@
       "name": "bike",
       "resource_uri": "/api/1.5/tag/12529/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "test_u3o",
     "owner_username": "francesco_totti",
     "resource_uri": "/api/1.5/layer/31871/",
@@ -263,6 +271,7 @@
       "name": "plegaria,",
       "resource_uri": "/api/1.5/tag/12528/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "oracion10_vm2",
     "owner_username": "francesco_totti",
     "resource_uri": "/api/1.5/layer/31867/",
@@ -284,6 +293,7 @@
       "name": "layers",
       "resource_uri": "/api/1.5/tag/3745/"
     }],
+    "llbbox": "[0.0, 0.0, -1.0, -1.0]",
     "name": "pm2_5_sites_0u7",
     "owner_username": "hlee",
     "resource_uri": "/api/1.5/layer/31863/",
