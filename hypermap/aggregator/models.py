@@ -1222,7 +1222,7 @@ def update_layers_wm(service, num_layers=None):
                 LOGGER.debug('Updating layer %s' % name)
                 title = row['title']
                 abstract = row['abstract']
-                bbox = row['bbox']
+                bbox = row['llbbox']
                 page_url = 'http://worldmap.harvard.edu/data/%s' % name
                 category = ''
                 if 'topic_category' in row:
