@@ -18,7 +18,7 @@ from owslib.wms import WebMapService
 from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
 
-from hypermap.aggregator.enums import SERVICE_TYPES
+from hypermap.aggregator.enums import SERVICE_TYPES, SUPPORTED_SRS
 from lxml.etree import XMLSyntaxError
 from shapely.geometry import box
 
@@ -580,9 +580,9 @@ def layer2dict(layer):
         message = 'Layer id: %s has a not valid bbox' % layer.id
         return None, message
 
-    # so far only 4326, 102100, 102113 can be synced to Solr
-    if layer.service.srs.filter(code__in=['EPSG:4326', 'EPSG:102100', 'EPSG:102113']).count() == 0:
-        message = 'Layer id: %s does not support 4326 or 102100 or 12113' % layer.id
+    # check if layer srs is supported
+    if layer.service.srs.filter(code__in=SUPPORTED_SRS).count() == 0:
+        message = 'Layer id: %s srs is not exposed in any of the supported srs' % layer.id
         return None, message
 
     # we can proceed safely

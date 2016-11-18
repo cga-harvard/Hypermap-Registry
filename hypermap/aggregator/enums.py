@@ -20,6 +20,16 @@ CSW_RESOURCE_TYPES = {
     'Hypermap:WARPER': 'https://github.com/timwaters/mapwarper',
 }
 
+SUPPORTED_SRS = [
+                    'EPSG:3978', '3978',
+                    'EPSG:3995', '3995',
+                    'EPSG:4326', '4326',
+                    'EPSG:5936', '5936',
+                    'EPSG:102100', '102100',
+                    'EPSG:102113', '102113',
+                    'EPSG:102736', '102736',
+                ]
+
 DATE_DETECTED = 0
 DATE_FROM_METADATA = 1
 
