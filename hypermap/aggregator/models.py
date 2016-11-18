@@ -1261,8 +1261,14 @@ def update_layers_wm(service, num_layers=None):
                     layer_wm.temporal_extent_start = temporal_extent_start
                     layer_wm.temporal_extent_end = temporal_extent_end
                     layer_wm.save()
-                    # bbox
-                    bbox_list = bbox[1:-1].split(',')
+                    # bbox [x0, y0, x1, y1]
+                    # check if it is a valid bbox (TODO improve this check)
+                    bbox = bbox.replace('-inf', 'None')
+                    bbox = bbox.replace('inf', 'None')
+                    if bbox.count(',') == 3:
+                        bbox_list = bbox[1:-1].split(',')
+                    else:
+                        bbox_list = [None, None, None, None]
                     x0 = format_float(bbox_list[0])
                     y0 = format_float(bbox_list[1])
                     x1 = format_float(bbox_list[2])
