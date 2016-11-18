@@ -236,6 +236,10 @@ def index_layer(self, layer, use_cache=False):
     cache needs memcached to be available.
     """
 
+    if layer.was_deleted:
+        LOGGER.debug('Not indexing layer with id %s in search engine as was_deleted is true' % layer.id)
+        return
+
     if use_cache:
         LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
         layers = cache.get('layers')
