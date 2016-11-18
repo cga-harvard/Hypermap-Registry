@@ -113,13 +113,12 @@
           <thead>
             <tr>
               <th></th>
-              <th>Info</th>
+              <th></th>
+              <th>Tot Checks</th>
               <th>Last Check</th>
-              {% if layer.checks_count > 0 %}
-                <th>Status</th>
-                <th>Response Times</th>
-                <th>Reliability</th>
-              {% endif %}
+              <th>Status</th>
+              <th>Response Times</th>
+              <th>Reliability</th>
             </tr>
           </thead>
           <tbody>
@@ -136,6 +135,9 @@
                       <li>Title: {{ layer.title }}</li>
                       <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
                     </ul>
+                  </td>
+                  <td>
+                    {{ layer.checks_count }}
                   </td>
                   <td>
                     {% if layer.checks_count > 0 %}

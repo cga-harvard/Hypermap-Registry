@@ -51,25 +51,14 @@ def check_service(self, service):
 
     service.check_available()
 
-    # 2. check layers
-    if settings.REGISTRY_SKIP_LAYERS_CHECK:
-        LOGGER.debug('Skipping layers check for this service (REGISTRY_SKIP_LAYERS_CHECK is True)')
-    else:
-        LOGGER.debug('Running layers check for this service (REGISTRY_SKIP_LAYERS_CHECK is False)')
-        if not settings.REGISTRY_SKIP_CELERY:
-            tasks = []
-            for layer in layer_to_process:
-                # send subtasks to make a non-parallel execution.
-                tasks.append(check_layer.si(layer))
-            # non-parallel execution will be performed in chunks of 100 tasks
-            # to avoid run time errors with big chains.
-            size = 100
-            chunks = [tasks[i:i + size] for i in range(0, len(tasks), size)]
-            for chunk in chunks:
-                chain(chunk)()
-        else:
-            for layer in layer_to_process:
-                check_layer(layer)
+    # 2. check layers if the service is monitored and the layer is monitored
+    if service.is_monitored:
+        for layer in layer_to_process:
+            if layer.is_monitored:
+                if not settings.REGISTRY_SKIP_CELERY:
+                    check_layer.delay(layer)
+                else:
+                    check_layer(layer)
 
     # 3. index layers
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):

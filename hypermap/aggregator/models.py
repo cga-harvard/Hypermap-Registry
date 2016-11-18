@@ -1656,13 +1656,13 @@ def layer_post_save(instance, *args, **kwargs):
     """
     Used to do a layer full check when saving it.
     """
-    if instance.is_monitored:  # index and monitor
+    if instance.is_monitored and instance.service.is_monitored:  # index and monitor
         if not settings.REGISTRY_SKIP_CELERY:
             check_layer.delay(instance)
         else:
             check_layer(instance)
     else:  # just index
-        check_layer(instance)
+        index_layer(instance)
 
 
 signals.post_save.connect(endpoint_post_save, sender=Endpoint)

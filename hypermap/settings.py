@@ -258,9 +258,6 @@ REGISTRY_SKIP_CELERY = strtobool(os.getenv('REGISTRY_SKIP_CELERY', 'False'))
 # For csw-transactions is not necessary to harvest layers for created services.
 REGISTRY_HARVEST_SERVICES = strtobool(os.getenv('REGISTRY_HARVEST_SERVICES', 'True'))
 
-# Sometime when just syncing services it is desirable to skip layers check
-REGISTRY_SKIP_LAYERS_CHECK = bool(strtobool(os.getenv('REGISTRY_SKIP_LAYERS_CHECK', 'False')))
-
 # WorldMap Service credentials (override this in local_settings or _ubuntu in production)
 REGISTRY_WORLDMAP_USERNAME = os.getenv('REGISTRY_WORLDMAP_USERNAME', 'hypermap')
 REGISTRY_WORLDMAP_PASSWORD = os.getenv('REGISTRY_WORLDMAP_PASSWORD', 'secret')
