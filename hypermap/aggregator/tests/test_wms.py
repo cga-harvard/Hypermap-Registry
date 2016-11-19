@@ -93,5 +93,34 @@ class TestWMS1_3_0(unittest.TestCase):
 
         self.assertRaises(Exception, create_duplicated_service)
 
+
+class TestWMSInvalid(unittest.TestCase):
+
+    @with_httmock(mocks.wms.resource_get)
+    def test_create_wms_service(self):
+        catalog, created = Catalog.objects.get_or_create(
+            name="hypermap", slug="hypermap",
+            url="search_api"
+        )
+
+        # create the service
+        service = Service(
+            type='OGC:WMS',
+            url='http://wms.example.com/ows-invalid?',
+            catalog=catalog
+        )
+        service.save()
+
+        # check service is invalid
+        self.assertEqual(service.is_valid, False)
+
+        # check layers number
+        self.assertEqual(service.layer_set.all().count(), 3)
+
+        # check all layers are invalid
+        for layer in service.layer_set.all():
+            self.assertEqual(layer.is_valid, False)
+
+
 if __name__ == '__main__':
     unittest.main()

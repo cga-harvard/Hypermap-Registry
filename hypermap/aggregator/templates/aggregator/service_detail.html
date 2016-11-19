@@ -46,6 +46,10 @@
           <td>{{ service.get_type_display }}</td>
         </tr>
         <tr>
+          <td><strong>Is valid?</strong></td>
+          <td>{{ service.is_valid }}</td>
+        </tr>
+        <tr>
           <td><strong>Name</strong></td>
           <td>{{ service.title }}</td>
         </tr>
@@ -114,6 +118,7 @@
             <tr>
               <th></th>
               <th></th>
+              <th>Is Valid?</th>
               <th>Tot Checks</th>
               <th>Last Check</th>
               <th>Status</th>
@@ -135,6 +140,13 @@
                       <li>Title: {{ layer.title }}</li>
                       <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
                     </ul>
+                  </td>
+                  <td>
+                      {% if layer.is_valid %}
+                        <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                      {% else %}
+                        <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                      {% endif %}
                   </td>
                   <td>
                     {{ layer.checks_count }}

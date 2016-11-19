@@ -219,6 +219,10 @@ def index_service(self, service):
     Index a service in search engine.
     """
 
+    if not service.is_valid:
+        LOGGER.debug('Not indexing service with id %s in search engine as it is not valid' % service.id)
+        return
+
     LOGGER.debug('Indexing service %s' % service.id)
     layer_to_process = service.layer_set.all()
 
@@ -235,6 +239,10 @@ def index_layer(self, layer, use_cache=False):
     If cache is set, append it to the list, if it isn't send the transaction right away.
     cache needs memcached to be available.
     """
+
+    if not layer.is_valid:
+        LOGGER.debug('Not indexing layer with id %s in search engine as it is not valid' % layer.id)
+        return
 
     if layer.was_deleted:
         LOGGER.debug('Not indexing layer with id %s in search engine as was_deleted is true' % layer.id)

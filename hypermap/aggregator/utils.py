@@ -580,11 +580,6 @@ def layer2dict(layer):
         message = 'Layer id: %s has a not valid bbox' % layer.id
         return None, message
 
-    # check if layer srs is supported
-    if layer.service.srs.filter(code__in=SUPPORTED_SRS).count() == 0:
-        message = 'Layer id: %s srs is not exposed in any of the supported srs' % layer.id
-        return None, message
-
     # we can proceed safely
     bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
     for proj in layer.service.srs.values():

@@ -8,7 +8,7 @@ from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
 
 class ServiceAdmin(admin.ModelAdmin):
     model = Service
-    list_display = ('id', 'type', 'title', 'active', 'url', )
+    list_display = ('id', 'type', 'is_valid', 'title', 'active', 'url', )
     list_display_links = ('id', )
     search_fields = ['title', 'url', ]
     list_filter = ('type', )
@@ -30,7 +30,7 @@ class LayerDateAdmin(admin.ModelAdmin):
 
 class LayerAdmin(admin.ModelAdmin):
     model = Layer
-    list_display = ('name', 'title', 'service', )
+    list_display = ('name', 'is_valid',  'title', 'service', )
     search_fields = ['name', 'title', ]
     list_filter = ('is_public', )
 

@@ -23,6 +23,15 @@ def create_wms_service():
     service.save()
 
 
+@with_httmock(hypermap.aggregator.tests.mocks.wms.resource_get)
+def create_wms_invalid_service():
+    service = Service(
+        type='OGC:WMS',
+        url='http://wms.example.com/ows-invalid?',
+    )
+    service.save()
+
+
 @with_httmock(hypermap.aggregator.tests.mocks.warper.resource_get)
 def create_warper_service():
     service = Service(
@@ -53,6 +62,7 @@ class SolrTest(TestCase):
         solr_url = settings.SEARCH_URL
         self.solr = pysolr.Solr(solr_url, timeout=60)
         create_wms_service()
+        create_wms_invalid_service()
         create_warper_service()
         create_wm_service()
         # index all
@@ -64,10 +74,10 @@ class SolrTest(TestCase):
         pass
 
     def test_solr_sync(self):
-        nlayers = Layer.objects.all().count()
+        nlayers_valid = Layer.objects.filter(is_valid=True).count()
         # layers indexed in solr must be same number in django db
         results = self.solr.search(q='*:*')
-        self.assertEqual(results.hits, nlayers)
+        self.assertEqual(results.hits, nlayers_valid)
         # layers with invalid bbox don't have the bbox attribute in solr
         nlayers_valid_coordinates = sum(layer.has_valid_bbox() for layer in Layer.objects.all())
         results = self.solr.search(q='bbox:*')

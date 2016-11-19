@@ -50,6 +50,7 @@
               Layers
               <a href="?order_by=-layers_count"><i class="fa fa-fw fa-sort-desc"></i></a>
             </th>
+            <th>Is Valid?</th>
             <th>
               <a href="?order_by=last_updated"><i class="fa fa-fw fa-sort-asc"></i></a>
               Last Check
@@ -77,6 +78,13 @@
 {#                  <a href="{{ service.catalog.get_absolute_url }}"><span class="label label-default">{{ service.catalog.name }}</span></a>#}
               </td>
               <td>{{ service.layer_set.all.count|intcomma }}</td>
+              <td>
+                {% if service.is_valid %}
+                  <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                {% else %}
+                  <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                {% endif %}
+              </td>
               <td>
                   {{ service.last_updated }}
               </td>

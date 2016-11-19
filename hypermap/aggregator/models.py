@@ -32,7 +32,7 @@ from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
 from arcrest import MapService as ArcMapService, ImageService as ArcImageService
 
-from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES
+from enums import CSW_RESOURCE_TYPES, SERVICE_TYPES, DATE_TYPES, SUPPORTED_SRS
 from tasks import update_endpoint, update_endpoints, check_service, check_layer, index_layer
 from utils import get_esri_extent, get_esri_service_name, get_wms_version_negotiate, format_float, flip_coordinates
 
@@ -142,6 +142,7 @@ class Resource(models.Model):
     url = models.URLField(max_length=255)
     is_public = models.BooleanField(default=True)
     type = models.CharField(max_length=32, choices=SERVICE_TYPES, default='OGC:WMS')
+    is_valid = models.BooleanField(default=True)
 
     check_set = generic.GenericRelation(Check, object_id_field='object_id')
 
@@ -318,7 +319,9 @@ class Service(Resource):
         """
         Update layers for a service.
         """
+
         signals.post_save.disconnect(layer_post_save, sender=Layer)
+
         LOGGER.debug('Updating layers for service id %s' % self.id)
         if self.type == 'OGC:WMS':
             update_layers_wms(self)
@@ -332,6 +335,7 @@ class Service(Resource):
             update_layers_wm(self)
         elif self.type == 'Hypermap:WARPER':
             update_layers_warper(self)
+
         signals.post_save.connect(layer_post_save, sender=Layer)
 
     def index_layers(self, with_cache=True):
@@ -466,6 +470,19 @@ class Service(Resource):
         )
         check.save()
         LOGGER.debug('Service checked in %s seconds, status is %s' % (response_time, success))
+
+    def update_validity(self):
+        """"
+        Update validity of a service.
+        """
+        signals.post_save.disconnect(service_post_save, sender=Service)
+        # check if layer srs is supported
+        if self.srs.filter(code__in=SUPPORTED_SRS).count() == 0:
+            self.is_valid=False
+        else:
+            self.is_valid=True
+        self.save()
+        signals.post_save.connect(service_post_save, sender=Service)
 
 
 class Catalog(models.Model):
@@ -1039,6 +1056,8 @@ def update_layers_wms(service):
             srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
             service.srs.add(srs)
 
+        service.update_validity()
+
         # now update layers
         layer_n = 0
         total = len(layer_names)
@@ -1118,6 +1137,8 @@ def update_layers_wmts(service):
         # WMTS is always in 4326
         srs, created = SpatialReferenceSystem.objects.get_or_create(code='EPSG:4326')
         service.srs.add(srs)
+
+        service.update_validity()
 
         layer_names = list(wmts.contents)
         layer_n = 0
@@ -1203,6 +1224,8 @@ def update_layers_wm(service, num_layers=None):
     for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
         service.srs.add(srs)
+
+    service.update_validity()
 
     layer_n = 0
     limit = 10
@@ -1348,6 +1371,8 @@ def update_layers_warper(service):
             srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
             service.srs.add(srs)
 
+        service.update_validity()
+
         for i in range(1, total_pages + 1):
             params = {'field': 'title', 'query': '', 'show_warped': '1', 'format': 'json', 'page': i}
             request = requests.get(service.url, headers=headers, params=params)
@@ -1441,6 +1466,9 @@ def update_layers_esri_mapserver(service, greedy_opt=False):
         srs_code = esri_service.spatialReference.wkid
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
         service.srs.add(srs)
+
+        service.update_validity()
+
         # check if it has a WMS interface
         if 'supportedExtensions' in esri_service._json_struct and greedy_opt:
             if 'WMSServer' in esri_service._json_struct['supportedExtensions']:
@@ -1547,6 +1575,9 @@ def update_layers_esri_imageserver(service):
         srs_code = obj['spatialReference']['wkid']
         srs, created = SpatialReferenceSystem.objects.get_or_create(code=srs_code)
         service.srs.add(srs)
+
+        service.update_validity()
+
         layer, created = Layer.objects.get_or_create(name=obj['name'], service=service, catalog=service.catalog)
         if layer.active:
             layer.type = 'ESRI:ArcGIS:ImageServer'
@@ -1632,6 +1663,7 @@ def service_pre_save(instance, *args, **kwargs):
     """
     Used to do a service full check when saving it.
     """
+
     # check if service is unique
     # we cannot use unique_together as it relies on a combination of fields
     # from different models (service, resource)
@@ -1651,11 +1683,22 @@ def service_post_save(instance, *args, **kwargs):
     """
     Used to do a service full check when saving it.
     """
+
     # check service
     if instance.is_monitored and settings.REGISTRY_SKIP_CELERY:
         check_service(instance)
     elif instance.is_monitored:
         check_service.delay(instance)
+
+
+def layer_pre_save(instance, *args, **kwargs):
+    """
+    Used to check layer validity.
+    """
+    if instance.service.is_valid:
+        instance.is_valid = True
+    else:
+        instance.is_valid = False
 
 
 def layer_post_save(instance, *args, **kwargs):
@@ -1675,4 +1718,5 @@ signals.post_save.connect(endpoint_post_save, sender=Endpoint)
 signals.post_save.connect(endpointlist_post_save, sender=EndpointList)
 signals.pre_save.connect(service_pre_save, sender=Service)
 signals.post_save.connect(service_post_save, sender=Service)
+signals.pre_save.connect(layer_pre_save, sender=Layer)
 signals.post_save.connect(layer_post_save, sender=Layer)
