@@ -241,13 +241,16 @@ def index_layer(self, layer, use_cache=False):
     """
 
     if not layer.is_valid:
-        LOGGER.debug('Not indexing layer with id %s in search engine as it is not valid' % layer.id)
+        LOGGER.debug('Not indexing or removing layer with id %s in search engine as it is not valid' % layer.id)
+        unindex_layer(layer, use_cache)
         return
 
     if layer.was_deleted:
-        LOGGER.debug('Not indexing layer with id %s in search engine as was_deleted is true' % layer.id)
+        LOGGER.debug('Not indexing or removing layer with id %s in search engine as was_deleted is true' % layer.id)
+        unindex_layer(layer, use_cache)
         return
 
+    # 1. if we use cache
     if use_cache:
         LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
         layers = cache.get('layers')
@@ -258,6 +261,7 @@ def index_layer(self, layer, use_cache=False):
         cache.set('layers', layers)
         return
 
+    # 2. if we don't use cache
     # TODO: Make this function more DRY
     # by abstracting the common bits.
     if SEARCH_TYPE == 'solr':

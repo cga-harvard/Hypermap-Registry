@@ -479,8 +479,6 @@ class Service(Resource):
         # check if layer srs is supported
         if self.srs.filter(code__in=SUPPORTED_SRS).count() == 0:
             self.is_valid=False
-        else:
-            self.is_valid=True
         self.save()
         signals.post_save.connect(service_post_save, sender=Service)
 
@@ -1695,9 +1693,8 @@ def layer_pre_save(instance, *args, **kwargs):
     """
     Used to check layer validity.
     """
-    if instance.service.is_valid:
-        instance.is_valid = True
-    else:
+    # a layer is invalid if its service its invalid as well
+    if not instance.service.is_valid:
         instance.is_valid = False
 
 
