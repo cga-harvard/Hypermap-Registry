@@ -112,10 +112,8 @@ def index(request, catalog_slug=None):
     return HttpResponse(template.render(context))
 
 
-def service_detail(request, catalog_slug, service_id):
-    service = get_object_or_404(Service,
-                                pk=service_id,
-                                catalog__slug=catalog_slug)
+def service_detail(request, catalog_slug, service_uuid):
+    service = get_object_or_404(Service, uuid=service_uuid)
 
     if request.method == 'POST':
         if 'check' in request.POST:
@@ -140,19 +138,15 @@ def service_detail(request, catalog_slug, service_id):
                                                               'catalog_slug': catalog_slug})
 
 
-def service_checks(request, catalog_slug, service_id):
-    service = get_object_or_404(Service,
-                                pk=service_id,
-                                catalog__slug=catalog_slug)
+def service_checks(request, catalog_slug, service_uuid):
+    service = get_object_or_404(Service, uuid=service_uuid)
     resource = serialize_checks(service.check_set)
 
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
-def layer_detail(request, catalog_slug, layer_id):
-    layer = get_object_or_404(Layer,
-                              pk=layer_id,
-                              catalog__slug=catalog_slug)
+def layer_detail(request, catalog_slug, layer_uuid):
+    layer = get_object_or_404(Layer, uuid=layer_uuid)
 
     if request.method == 'POST':
         if 'check' in request.POST:
@@ -174,10 +168,8 @@ def layer_detail(request, catalog_slug, layer_id):
                                                             'catalog_slug': catalog_slug})
 
 
-def layer_checks(request, catalog_slug, layer_id):
-    layer = get_object_or_404(Layer,
-                              pk=layer_id,
-                              catalog__slug=catalog_slug)
+def layer_checks(request, catalog_slug, layer_uuid):
+    layer = get_object_or_404(Layer, uuid=layer_uuid)
     resource = serialize_checks(layer.check_set)
 
     return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})

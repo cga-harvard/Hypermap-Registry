@@ -305,11 +305,11 @@ class Service(Resource):
 
     @property
     def get_absolute_url(self):
-        return reverse("service_detail", args=[self.catalog.slug, self.id])
+        return reverse("service_detail", args=[self.catalog.slug, self.uuid])
 
     @property
     def get_check_stats_absolute_url(self):
-        return reverse("service_checks", args=[self.catalog.slug, self.id])
+        return reverse("service_checks", args=[self.catalog.slug, self.uuid])
 
     @property
     def get_deleted_number(self):
@@ -865,11 +865,11 @@ class Layer(Resource):
 
     @property
     def get_absolute_url(self):
-        return reverse("layer_detail", args=[self.catalog.slug, self.id])
+        return reverse("layer_detail", args=[self.catalog.slug, self.uuid])
 
     @property
     def get_check_stats_absolute_url(self):
-        return reverse("layer_checks", args=[self.catalog.slug, self.id])
+        return reverse("layer_checks", args=[self.catalog.slug, self.uuid])
 
 
 class LayerDate(models.Model):

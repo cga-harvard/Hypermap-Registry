@@ -13,12 +13,22 @@ urlpatterns = [
     url(r'^tasks_runner/$', views.tasks_runner, name='tasks_runner'),
 
     url(r'^(?P<catalog_slug>[-\w]+)/$', views.index, name='index'),
-    url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_id>\d+)/$', views.service_detail, name='service_detail'),
-    url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_id>\d+)/checks/$',
+
+    # services
+    url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_uuid>%s)/$' % uuid_regex,
+        views.service_detail,
+        name='service_detail'),
+    url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_uuid>%s)/checks/$' % uuid_regex,
         views.service_checks,
         name='service_checks'),
-    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/$', views.layer_detail, name='layer_detail'),
-    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/checks/$', views.layer_checks, name='layer_checks'),
+
+    # layers
+    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>%s)/$' % uuid_regex,
+        views.layer_detail,
+        name='layer_detail'),
+    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>%s)/checks/$' % uuid_regex,
+        views.layer_checks,
+        name='layer_checks'),
 
     # mapproxy
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>%s)/map(?P<path_info>/.*)$' % uuid_regex,
