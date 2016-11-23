@@ -476,10 +476,33 @@ class Service(Resource):
         Update validity of a service.
         """
         signals.post_save.disconnect(service_post_save, sender=Service)
-        # check if layer srs is supported
+
+        # some service now must be considered invalid:
+        # 0. any service not exposed in SUPPORTED_SRS
+        # 1. any WMTS service
+        # 2. all of the NOAA layers
+
+        is_valid = True
+
+        # 0. any service not exposed in SUPPORTED_SRS
         if self.srs.filter(code__in=SUPPORTED_SRS).count() == 0:
-            self.is_valid=False
+            LOGGER.debug('Service with id %s is marked invalid because in not exposed in SUPPORTED_SRS' % self.id)
+            is_valid = False
+
+        # 1. any WMTS service
+        if self.type == 'OGC:WMTS':
+            LOGGER.debug('Service with id %s is marked invalid because it is of type OGC:WMTS' % self.id)
+            is_valid = False
+
+        # 2. all of the NOAA layers
+        if 'noaa' in self.url.lower():
+            LOGGER.debug('Service with id %s is marked invalid because it is from NOAA' % self.id)
+            is_valid = False
+
+        # now we save the service
+        self.is_valid = is_valid
         self.save()
+
         signals.post_save.connect(service_post_save, sender=Service)
 
 
@@ -1693,9 +1716,24 @@ def layer_pre_save(instance, *args, **kwargs):
     """
     Used to check layer validity.
     """
-    # a layer is invalid if its service its invalid as well
+
+    is_valid = True
+
+    # some layer now must be considered invalid:
+    # 0. a layer is invalid if its service its invalid as well
+    # 1. a layer is invalid with an extent within (-2, -2, +2, +2)
+
+    # 0. a layer is invalid if its service its invalid as well
     if not instance.service.is_valid:
-        instance.is_valid = False
+        LOGGER.debug('Layer with id %s is marked invalid because its service is invalid' % instance.id)
+        is_valid = False
+
+    # 1. a layer is invalid with an extent within (-2, -2, +2, +2)
+    if instance.bbox_x0 > -2 and instance.bbox_x1 < 2 and instance.bbox_y0 > -2 and instance.bbox_y1 < 2:
+        LOGGER.debug('Layer with id %s is marked invalid because its extent is within (-2, -2, +2, +2)' % instance.id)
+        is_valid = False
+
+    instance.is_valid = is_valid
 
 
 def layer_post_save(instance, *args, **kwargs):
