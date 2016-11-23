@@ -211,6 +211,7 @@ def tasks_runner(request):
                 index_cached_layers.delay()
         if 'drop_cached' in request.POST:
             cache.set('layers', None)
+            cache.set('deleted_layers', None)
         if 'clear_index' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
                 clear_index()
