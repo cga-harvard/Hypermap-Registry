@@ -482,6 +482,10 @@ class Service(Resource):
         # 1. any WMTS service
         # 2. all of the NOAA layers
 
+        # WM is always valid
+        if self.type == 'Hypermap:WorldMap':
+            return
+
         is_valid = True
 
         # 0. any service not exposed in SUPPORTED_SRS
@@ -1716,6 +1720,10 @@ def layer_pre_save(instance, *args, **kwargs):
     """
     Used to check layer validity.
     """
+
+    # we do not need to check validity for WM layers
+    if instance.service.type == 'Hypermap:WorldMap':
+        return
 
     is_valid = True
 
