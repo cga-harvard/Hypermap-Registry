@@ -2,10 +2,10 @@
 Django settings for hypermap project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.6/topics/settings/
+https://docs.djangoproject.com/en/1.10/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.6/ref/settings/
+https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 
@@ -31,7 +31,7 @@ SITE_URL = os.getenv('SITE_URL', 'http://%s:%s' % (BASE_URL, BASE_PORT))
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', [BASE_URL, ])
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY',
@@ -92,7 +92,7 @@ DATABASES = {}
 DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.6/topics/i18n/
+# https://docs.djangoproject.com/en/1.10/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -106,7 +106,7 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.6/howto/static-files/
+# https://docs.djangoproject.com/en/1.10/howto/static-files/
 STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(PROJECT_DIR, 'static_root'))
 STATIC_URL = os.getenv('STATIC_URL', '/static/')
 
