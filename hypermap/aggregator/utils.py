@@ -634,6 +634,7 @@ def layer2dict(layer):
                     'recent_reliability': layer.recent_reliability,
                     'last_status': layer.last_status,
                     'is_public': layer.is_public,
+                    'is_valid': layer.is_valid,
                     'availability': 'Online',
                     'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
                     'abstract': abstract,
