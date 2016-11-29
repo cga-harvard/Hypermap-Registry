@@ -582,9 +582,6 @@ def layer2dict(layer):
 
     # we can proceed safely
     bbox = [float(layer.bbox_x0), float(layer.bbox_y0), float(layer.bbox_x1), float(layer.bbox_y1)]
-    for proj in layer.service.srs.values():
-        if proj['code'] in ('102113', '102100'):
-            bbox = mercator_to_llbbox(bbox)
     minX = bbox[0]
     minY = bbox[1]
     maxX = bbox[2]
