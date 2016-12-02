@@ -38,7 +38,7 @@ SECRET_KEY = os.getenv('SECRET_KEY',
                        'mc0+7x(mor+4-acs$m-w6qj(i&^*6uiyb+6v^)i4w(fo*8qgu5')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = strtobool(os.getenv('DEBUG', 'True'))
+DEBUG = strtobool(os.getenv('DEBUG', 'False'))
 TEMPLATE_DEBUG = strtobool(os.getenv('TEMPLATE_DEBUG', 'False'))
 
 # Application definition
