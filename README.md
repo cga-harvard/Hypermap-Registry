@@ -45,6 +45,13 @@ docker-compose run --service-ports django
 
 Then add some breakpoint - import ipdb;ipdb.set_trace() - and happy debugging!
 
+To run the shell or other django commands::
+
+    docker exec -it hypermap_django_run_8 bash
+    python manage.py shell
+    python manage.py solr_scheme
+
+
 ## Start using Hypermap
 
 Login to the home page, http://localhost:8000. It will be empty. You need to add some
