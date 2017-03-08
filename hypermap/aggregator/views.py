@@ -118,9 +118,9 @@ def service_detail(request, catalog_slug, service_uuid):
     if request.method == 'POST':
         if 'check' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
-                check_service(service)
+                check_service(service.uuid)
             else:
-                check_service.delay(service)
+                check_service.delay(service.uuid)
         if 'remove' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
                 remove_service_checks(service)

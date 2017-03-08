@@ -36,11 +36,13 @@ def check_all_services(self):
     from hypermap.aggregator.models import Service
     service_to_processes = Service.objects.filter(active=True)
     for service in service_to_processes:
-        check_service.delay(service)
+        check_service.delay(service.id)
 
 
 @shared_task(bind=True)
-def check_service(self, service):
+def check_service(self, service_uuid):
+    from hypermap.aggregator.models import Service
+    service = Service.objects.get(uuid=service_uuid)
     # 1. update layers and check service
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
         service.update_layers()

@@ -1711,9 +1711,9 @@ def service_post_save(instance, *args, **kwargs):
 
     # check service
     if instance.is_monitored and settings.REGISTRY_SKIP_CELERY:
-        check_service(instance)
+        check_service(instance.uuid)
     elif instance.is_monitored:
-        check_service.delay(instance)
+        check_service.delay(instance.uuid)
 
 
 def layer_pre_save(instance, *args, **kwargs):
