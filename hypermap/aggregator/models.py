@@ -7,7 +7,7 @@ import requests
 import logging
 import uuid
 
-import urlparse
+from urlparse import urlparse
 from dateutil.parser import parse
 
 from django.conf import settings
@@ -299,7 +299,7 @@ class Service(Resource):
 
     @property
     def get_domain(self):
-        parsed_uri = urlparse.urlparse(self.url)
+        parsed_uri = urlparse(self.url)
         domain = '{uri.netloc}'.format(uri=parsed_uri)
         return domain
 
@@ -707,9 +707,6 @@ class Layer(Resource):
                                 format=image_format
                             )
         elif self.type == 'Hypermap:WorldMap':
-            # hack for now, let's replace 8000 with 8080
-            # TODO find a better way to handle this
-            self.url = self.url.replace('8000', '8080')
             ows = WebMapService(self.url,
                                 username=settings.REGISTRY_WORLDMAP_USERNAME,
                                 password=settings.REGISTRY_WORLDMAP_PASSWORD)
@@ -1240,11 +1237,10 @@ def update_layers_wm(service, num_layers=None):
     Sample endpoint: http://worldmap.harvard.edu/
     """
 
-    wm_api_url = urlparse.urljoin(service.url, 'api/2.6/layer/?format=json')
     if num_layers:
         total = num_layers
     else:
-        response = requests.get(wm_api_url)
+        response = requests.get('http://worldmap.harvard.edu/api/1.5/layer/?format=json')
         data = json.loads(response.content)
         total = data['meta']['total_count']
 
@@ -1262,7 +1258,8 @@ def update_layers_wm(service, num_layers=None):
     for i in range(0, total, limit):
         try:
             url = (
-                    '%s&order_by=-date&offset=%s&limit=%s' % (wm_api_url, i, limit)
+                    'http://worldmap.harvard.edu/api/1.5/layer/?format=json&order_by=-created_dttm&offset=%s&limit=%s'
+                    % (i, limit)
             )
             LOGGER.debug('Fetching %s' % url)
             response = requests.get(url)
@@ -1273,8 +1270,8 @@ def update_layers_wm(service, num_layers=None):
                 LOGGER.debug('Updating layer %s' % name)
                 title = row['title']
                 abstract = row['abstract']
-                bbox = row['bbox']
-                page_url =  urlparse.urljoin(service.url, 'data/%s' % name)
+                bbox = row['llbbox']
+                page_url = 'http://worldmap.harvard.edu/data/%s' % name
                 category = ''
                 if 'topic_category' in row:
                     category = row['topic_category']
@@ -1288,8 +1285,7 @@ def update_layers_wm(service, num_layers=None):
                 if 'temporal_extent_end' in row:
                     temporal_extent_end = row['temporal_extent_end']
                 # we use the geoserver virtual layer getcapabilities for wm endpoint
-                endpoint = urlparse.urljoin(service.url, 'geoserver/geonode/%s/wms?' % name)
-                endpoint = endpoint.replace('8000', '8080')
+                endpoint = 'http://worldmap.harvard.edu/geoserver/geonode/%s/wms?' % name
                 is_public = True
                 if 'is_public' in row:
                     is_public = row['is_public']
@@ -1315,16 +1311,16 @@ def update_layers_wm(service, num_layers=None):
                     layer_wm.save()
                     # bbox [x0, y0, x1, y1]
                     # check if it is a valid bbox (TODO improve this check)
-                    #bbox = bbox.replace('-inf', 'None')
-                    #bbox = bbox.replace('inf', 'None')
-                    #if bbox.count(',') == 3:
-                    #    bbox_list = bbox[1:-1].split(',')
-                    #else:
-                    #    bbox_list = [None, None, None, None]
-                    x0 = format_float(bbox[0])
-                    y0 = format_float(bbox[1])
-                    x1 = format_float(bbox[2])
-                    y1 = format_float(bbox[3])
+                    bbox = bbox.replace('-inf', 'None')
+                    bbox = bbox.replace('inf', 'None')
+                    if bbox.count(',') == 3:
+                        bbox_list = bbox[1:-1].split(',')
+                    else:
+                        bbox_list = [None, None, None, None]
+                    x0 = format_float(bbox_list[0])
+                    y0 = format_float(bbox_list[1])
+                    x1 = format_float(bbox_list[2])
+                    y1 = format_float(bbox_list[3])
                     # In many cases for some reason to be fixed GeoServer has x coordinates flipped in WM.
                     x0, x1 = flip_coordinates(x0, x1)
                     y0, y1 = flip_coordinates(y0, y1)
@@ -1370,19 +1366,16 @@ def update_layers_wm(service, num_layers=None):
     # update deleted layers. For now we check the whole set of deleted layers
     # we should optimize it if the list will grow
     # TODO implement the actions application
-    url = urlparse.urljoin(service.url, 'api/2.6/actionlayerdelete/?format=json')
+    url = 'http://worldmap.harvard.edu/api/1.5/actionlayerdelete/?format=json'
     LOGGER.debug('Fetching %s for detecting deleted layers' % url)
-    try:
-        response = requests.get(url)
-        data = json.loads(response.content)
-        for deleted_layer in data['objects']:
-            if Layer.objects.filter(uuid=deleted_layer['args']).count() > 0:
-                layer = Layer.objects.get(uuid=deleted_layer['args'])
-                layer.was_deleted = True
-                layer.save()
-                LOGGER.debug('Layer %s marked as deleted' % layer.uuid)
-    except Exception as err:
-        LOGGER.error('Error! %s' % err)
+    response = requests.get(url)
+    data = json.loads(response.content)
+    for deleted_layer in data['objects']:
+        if Layer.objects.filter(uuid=deleted_layer['args']).count() > 0:
+            layer = Layer.objects.get(uuid=deleted_layer['args'])
+            layer.was_deleted = True
+            layer.save()
+            LOGGER.debug('Layer %s marked as deleted' % layer.uuid)
 
 
 def update_layers_warper(service):
@@ -1674,9 +1667,9 @@ def endpointlist_post_save(instance, *args, **kwargs):
                 endpoint.catalog = instance.catalog
                 endpoint.save()
     if not settings.REGISTRY_SKIP_CELERY:
-        update_endpoints.delay(instance)
+        update_endpoints.delay(instance.id)
     else:
-        update_endpoints(instance)
+        update_endpoints(instance.id)
 
 
 def endpoint_post_save(instance, *args, **kwargs):
@@ -1687,9 +1680,9 @@ def endpoint_post_save(instance, *args, **kwargs):
         endpoint.save()
         signals.post_save.connect(endpoint_post_save, sender=Endpoint)
     if not settings.REGISTRY_SKIP_CELERY:
-        update_endpoint.delay(instance)
+        update_endpoint.delay(instance.id)
     else:
-        update_endpoint(instance)
+        update_endpoint(instance.id)
 
 
 def service_pre_save(instance, *args, **kwargs):
@@ -1722,9 +1715,9 @@ def service_post_save(instance, *args, **kwargs):
 
     # check service
     if instance.is_monitored and settings.REGISTRY_SKIP_CELERY:
-        check_service(instance)
+        check_service(instance.id)
     elif instance.is_monitored:
-        check_service.delay(instance)
+        check_service.delay(instance.id)
 
 
 def layer_pre_save(instance, *args, **kwargs):
@@ -1745,7 +1738,9 @@ def layer_pre_save(instance, *args, **kwargs):
         # 1. a layer is invalid with an extent within (-2, -2, +2, +2)
         if instance.bbox_x0 > -2 and instance.bbox_x1 < 2 and instance.bbox_y0 > -2 and instance.bbox_y1 < 2:
             is_valid = False
-            LOGGER.debug('Layer with id %s is marked invalid because its extent is within (-2, -2, +2, +2)' % instance.id)
+            LOGGER.debug(
+                'Layer with id %s is marked invalid because its extent is within (-2, -2, +2, +2)' % instance.id
+            )
 
     instance.is_valid = is_valid
 

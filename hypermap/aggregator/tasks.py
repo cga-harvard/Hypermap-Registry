@@ -1,11 +1,10 @@
 from __future__ import absolute_import
 
 import logging
-from celery import chain
+from celery import shared_task, states
+from celery.exceptions import Ignore
 from django.conf import settings
 from django.core.cache import cache
-
-from celery import shared_task
 
 
 LOGGER = logging.getLogger(__name__)
@@ -36,11 +35,13 @@ def check_all_services(self):
     from hypermap.aggregator.models import Service
     service_to_processes = Service.objects.filter(active=True)
     for service in service_to_processes:
-        check_service.delay(service)
+        check_service.delay(service.id)
 
 
 @shared_task(bind=True)
-def check_service(self, service):
+def check_service(self, service_id):
+    from hypermap.aggregator.models import Service
+    service = Service.objects.get(pk=service_id)
     # 1. update layers and check service
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
         service.update_layers()
@@ -56,9 +57,9 @@ def check_service(self, service):
         for layer in layer_to_process:
             if layer.is_monitored:
                 if not settings.REGISTRY_SKIP_CELERY:
-                    check_layer.delay(layer)
+                    check_layer.delay(layer.id)
                 else:
-                    check_layer(layer)
+                    check_layer(layer.id)
 
     # 3. index layers
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
@@ -66,16 +67,18 @@ def check_service(self, service):
 
 
 @shared_task(bind=True, soft_time_limit=10)
-def check_layer(self, layer):
+def check_layer(self, layer_id):
+    from hypermap.aggregator.models import Layer
+    layer = Layer.objects.get(pk=layer_id)
     LOGGER.debug('Checking layer %s' % layer.name)
     success, message = layer.check_available()
     # every time a layer is checked it should be indexed
     # for now we remove indexing but we do it using a scheduled task unless SKIP_CELERY_TASK
     if success and SEARCH_ENABLED:
         if settings.REGISTRY_SKIP_CELERY:
-            index_layer(layer)
+            index_layer(layer.id)
         else:
-            index_layer(layer, use_cache=True)
+            index_layer(layer.id, use_cache=True)
 
     if not success:
         from hypermap.aggregator.models import TaskError
@@ -180,7 +183,7 @@ def index_cached_layers(self):
             if SEARCH_TYPE == 'solr':
                 if Layer.objects.filter(pk=layer_id).exists():
                     layer = Layer.objects.get(id=layer_id)
-                    unindex_layer(layer, use_cache=False)
+                    unindex_layer(layer.id, use_cache=False)
                     deleted_layers_cache = deleted_layers_cache.difference(set([layer_id]))
                     cache.set('deleted_layers', deleted_layers_cache)
             else:
@@ -205,7 +208,12 @@ def clear_index():
 
 
 @shared_task(bind=True)
-def remove_service_checks(self, service):
+def remove_service_checks(self, service_id):
+    """
+    Remove all checks from a service.
+    """
+    from hypermap.aggregator.models import Service
+    service = Service.objects.get(id=service_id)
 
     service.check_set.all().delete()
     layer_to_process = service.layer_set.all()
@@ -214,10 +222,13 @@ def remove_service_checks(self, service):
 
 
 @shared_task(bind=True)
-def index_service(self, service):
+def index_service(self, service_id):
     """
     Index a service in search engine.
     """
+
+    from hypermap.aggregator.models import Service
+    service = Service.objects.get(id=service_id)
 
     if not service.is_valid:
         LOGGER.debug('Not indexing service with id %s in search engine as it is not valid' % service.id)
@@ -228,26 +239,29 @@ def index_service(self, service):
 
     for layer in layer_to_process:
         if not settings.REGISTRY_SKIP_CELERY:
-            index_layer(layer, use_cache=True)
+            index_layer(layer.id, use_cache=True)
         else:
-            index_layer(layer)
+            index_layer(layer.id)
 
 
 @shared_task(bind=True)
-def index_layer(self, layer, use_cache=False):
+def index_layer(self, layer_id, use_cache=False):
     """Index a layer in the search backend.
     If cache is set, append it to the list, if it isn't send the transaction right away.
     cache needs memcached to be available.
     """
 
+    from hypermap.aggregator.models import Layer
+    layer = Layer.objects.get(id=layer_id)
+
     if not layer.is_valid:
         LOGGER.debug('Not indexing or removing layer with id %s in search engine as it is not valid' % layer.id)
-        unindex_layer(layer, use_cache)
+        unindex_layer(layer.id, use_cache)
         return
 
     if layer.was_deleted:
         LOGGER.debug('Not indexing or removing layer with id %s in search engine as was_deleted is true' % layer.id)
-        unindex_layer(layer, use_cache)
+        unindex_layer(layer.id, use_cache)
         return
 
     # 1. if we use cache
@@ -267,42 +281,36 @@ def index_layer(self, layer, use_cache=False):
     if SEARCH_TYPE == 'solr':
         from hypermap.aggregator.solr import SolrHypermap
         LOGGER.debug('Syncing layer %s to solr' % layer.name)
-        try:
-            solrobject = SolrHypermap()
-            success, message = solrobject.layer_to_solr(layer)
-            if not success:
-                from hypermap.aggregator.models import TaskError
-                task_error = TaskError(
-                    task_name=self.name,
-                    args=layer.id,
-                    message=message
+        solrobject = SolrHypermap()
+        success, message = solrobject.layer_to_solr(layer)
+        if not success:
+            self.update_state(
+                state=states.FAILURE,
+                meta=message
                 )
-                task_error.save()
-        except Exception, e:
-            LOGGER.error('Layers NOT indexed correctly')
-            LOGGER.error(e, exc_info=True)
-            self.retry(layer)
+            raise Ignore()
     elif SEARCH_TYPE == 'elasticsearch':
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         LOGGER.debug('Syncing layer %s to es' % layer.name)
         esobject = ESHypermap()
         success, message = esobject.layer_to_es(layer)
         if not success:
-            from hypermap.aggregator.models import TaskError
-            task_error = TaskError(
-                task_name=self.name,
-                args=layer.id,
-                message=message
-            )
-            task_error.save()
+            self.update_state(
+                state=states.FAILURE,
+                meta=message
+                )
+            raise Ignore()
 
 
 @shared_task(bind=True)
-def unindex_layer(self, layer, use_cache=False):
+def unindex_layer(self, layer_id, use_cache=False):
     """
     Remove the index for a layer in the search backend.
     If cache is set, append it to the list of removed layers, if it isn't send the transaction right away.
     """
+
+    from hypermap.aggregator.models import Layer
+    layer = Layer.objects.get(id=layer_id)
 
     if use_cache:
         LOGGER.debug('Caching layer with id %s for being removed from search engine' % layer.id)
@@ -341,7 +349,7 @@ def index_all_layers(self):
         cache.set('deleted_layers', deleted_layers_cache)
     else:
         for layer in Layer.objects.all():
-            index_layer(layer)
+            index_layer(layer.id)
 
 
 @shared_task(bind=True)
@@ -364,24 +372,26 @@ def update_last_wm_layers(self, num_layers=10):
     layer_to_unindex = service.layer_set.filter(was_deleted=True).order_by('-last_updated')[0:num_layers]
     for layer in layer_to_unindex:
         if not settings.REGISTRY_SKIP_CELERY:
-            unindex_layer(layer, use_cache=True)
+            unindex_layer(layer.id, use_cache=True)
         else:
-            unindex_layer(layer)
+            unindex_layer(layer.id)
 
     # Add/Update in search engine last num_layers that were added
     LOGGER.debug('Adding/Updating the index for the last %s added layers' % num_layers)
     layer_to_index = service.layer_set.filter(was_deleted=False).order_by('-last_updated')[0:num_layers]
     for layer in layer_to_index:
         if not settings.REGISTRY_SKIP_CELERY:
-            index_layer(layer, use_cache=True)
+            index_layer(layer.id, use_cache=True)
         else:
-            index_layer(layer)
+            index_layer(layer.id)
 
 
 @shared_task(bind=True)
-def update_endpoint(self, endpoint, greedy_opt=False):
+def update_endpoint(self, endpoint_id, greedy_opt=False):
     from hypermap.aggregator.utils import create_services_from_endpoint
     from hypermap.aggregator.models import Endpoint
+
+    endpoint = Endpoint.objects.get(id=endpoint_id)
 
     LOGGER.debug('Processing endpoint with id %s: %s' % (endpoint.id, endpoint.url))
 
@@ -399,13 +409,15 @@ def update_endpoint(self, endpoint, greedy_opt=False):
 
 
 @shared_task(bind=True)
-def update_endpoints(self, endpoint_list):
+def update_endpoints(self, endpoint_list_id):
+    from hypermap.aggregator.models import EndpointList
+    endpoint_list_to_process = EndpointList.objects.get(id=endpoint_list_id)
     # for now we process the enpoint even if they were already processed
-    endpoint_to_process = endpoint_list.endpoint_set.filter(processed=False)
+    endpoint_to_process = endpoint_list_to_process.endpoint_set.filter(processed=False)
     if not settings.REGISTRY_SKIP_CELERY:
         for endpoint in endpoint_to_process:
-            update_endpoint.delay(endpoint)
+            update_endpoint.delay(endpoint.id)
     else:
         for endpoint in endpoint_to_process:
-            update_endpoint(endpoint)
+            update_endpoint(endpoint.id)
     return True

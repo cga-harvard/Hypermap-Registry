@@ -50,7 +50,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'djcelery',
+    'django_celery_results',
+    'django_celery_beat',
     'pagination',
     'taggit',
     'django_extensions',
@@ -124,7 +125,7 @@ CELERY_DEFAULT_EXCHANGE = os.getenv('CELERY_DEFAULT_EXCHANGE', 'hypermap')
 
 # Celery and RabbitMQ stuff
 CELERYBEAT_SCHEDULER = os.getenv('CELERYBEAT_SCHEDULER', 'djcelery.schedulers.DatabaseScheduler')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'cache')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'django-db')
 CELERY_CACHE_BACKEND = os.getenv('CELERY_CACHE_BACKEND', 'memory')
 CELERYD_PREFETCH_MULTIPLIER = int(os.getenv('CELERYD_PREFETCH_MULTIPLIER', '25'))
 

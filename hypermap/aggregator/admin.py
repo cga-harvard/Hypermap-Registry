@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from djcelery.models import TaskMeta
+from django_celery_results.models import TaskResult
 
 from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
                     Endpoint, LayerDate, LayerWM, TaskError, Catalog)
@@ -50,7 +50,7 @@ class CheckAdmin(admin.ModelAdmin):
 
 class EndpointListAdmin(admin.ModelAdmin):
     model = EndpointList
-    list_display = ('id', 'upload', 'endpoints_admin_url', 'catalog')
+    list_display = ('id', 'upload', 'endpoints_admin_url', 'catalog', 'greedy')
 
 
 class EndpointAdmin(admin.ModelAdmin):
@@ -85,8 +85,41 @@ admin.site.register(TaskError, TaskErrorAdmin)
 admin.site.register(Catalog, CatalogAdmin)
 
 
-# we like to see celery results using the admin
-class TaskMetaAdmin(admin.ModelAdmin):
-    list_display = ('task_id', 'date_done', 'status', )
+class CustomTaskResultAdmin(admin.ModelAdmin):
+    """
+    HHypermap customized Admin-interface for results of tasks.
+    """
 
-admin.site.register(TaskMeta, TaskMetaAdmin)
+    model = TaskResult
+    list_display = (
+        'task_id', 'date_done', 'task_name', 'status', 'task_arguments')
+    readonly_fields = (
+        'date_done', 'result', 'hidden', 'meta', 'task_arguments', 'task_name')
+    fieldsets = (
+        (None, {
+            'fields': (
+                'task_id',
+                'task_name',
+                'status',
+                'content_type',
+                'task_arguments',
+                'content_encoding',
+            ),
+            'classes': ('extrapretty', 'wide')
+        }),
+        ('Result', {
+            'fields': (
+                'result',
+                'date_done',
+                'traceback',
+                'hidden',
+                'meta',
+            ),
+            'classes': ('extrapretty', 'wide')
+        }),
+    )
+    list_filter = ('task_name', 'status', )
+    date_hierarchy = 'date_done'
+
+admin.site.unregister(TaskResult)
+admin.site.register(TaskResult, CustomTaskResultAdmin)
