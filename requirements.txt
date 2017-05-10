@@ -1,3 +1,5 @@
+--extra-index-url https://testpypi.python.org/pypi
+
 amqp==2.1.4
 amqplib==1.0.2
 anyjson==0.3.3
