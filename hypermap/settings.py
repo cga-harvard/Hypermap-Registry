@@ -127,21 +127,6 @@ CELERY_DEFAULT_EXCHANGE = os.getenv('CELERY_DEFAULT_EXCHANGE', 'hypermap')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'django-db')
 CELERY_CACHE_BACKEND = os.getenv('CELERY_CACHE_BACKEND', 'memory')
 CELERYD_PREFETCH_MULTIPLIER = int(os.getenv('CELERYD_PREFETCH_MULTIPLIER', '25'))
-
-REGISTRY_CHECK_PERIOD = int(os.getenv('REGISTRY_CHECK_PERIOD', '120'))
-REGISTRY_INDEX_CACHED_LAYERS_PERIOD = int(os.getenv('REGISTRY_INDEX_CACHED_LAYERS_PERIOD', '1'))
-
-CELERYBEAT_SCHEDULE = {
-    'Check All Services': {
-        'task': 'hypermap.aggregator.tasks.check_all_services',
-        'schedule': timedelta(minutes=REGISTRY_CHECK_PERIOD)
-    },
-    'Index Cached Layers': {
-        'task': 'hypermap.aggregator.tasks.index_cached_layers',
-        'schedule': timedelta(minutes=REGISTRY_INDEX_CACHED_LAYERS_PERIOD)
-    }
-}
-
 CELERY_TIMEZONE = os.getenv('CELERY_TIMEZONE', 'UTC')
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@localhost:5672//')
 
