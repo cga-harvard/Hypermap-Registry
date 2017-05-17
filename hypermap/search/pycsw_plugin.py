@@ -145,7 +145,7 @@ class HHypermapRepository(object):
 
     def query_ids(self, ids):
         ''' Query by list of identifiers '''
-        return self._get_repo_filter(Layer.objects).filter(id__in=ids).all()
+        return self._get_repo_filter(Layer.objects).filter(uuid__in=ids).all()
 
     def query_domain(self, domain, typenames, domainquerytype='list', count=False):
         ''' Query by property domain values '''
@@ -261,7 +261,7 @@ class HHypermapRepository(object):
 
                 res.save()
 
-                LOGGER.debug('Indexing layer with id %s on search engine' % res.id)
+                LOGGER.debug('Indexing layer with id %s on search engine' % res.uuid)
                 index_layer(res, use_cache=True)
 
             else:
