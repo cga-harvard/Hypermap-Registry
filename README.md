@@ -63,5 +63,6 @@ Go to Endpoint List and add an endpoint list, for example the one included in /d
 
 After saving, Hypermap should be start harvesting the endpoint.
 
-Harvesting will be performed by the Django server if SKIP_CELERY_TASK
-= True, otherwise by Celery. Please note that harvesting operations can be time consuming, so it is better to setup a Celery process if possible.
+Harvesting will be performed by the Django server if `SKIP_CELERY_TASK = True`,
+otherwise by Celery. Please note that harvesting operations can be time consuming,
+so it is better to setup a Celery process if possible.
