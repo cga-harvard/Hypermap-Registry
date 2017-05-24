@@ -60,7 +60,7 @@
             <li>Service Hypermap Page: <a href="{{ layer.service.get_absolute_url }}">{{ layer.service.title }}</a></li>
             {% endif %}
             <li>Layer Page: <a href="{{ layer.page_url }}">{{ request.scheme }}://{{ request.get_host }}{{ layer.page_url|truncatechars:80 }}</a></li>
-            <li>Layer Hypermap EndPoint: <a href="{{ request.scheme }}://{{ request.get_host }}{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
+            <li>Layer Hypermap EndPoint: <a href="{{ request.scheme }}://{{ request.get_host }}/{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
             {% if user.is_superuser %}
               <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
               <li>Layer EndPoint: <a href="{{ layer.url }}">{{ layer.url|truncatechars:80 }}</a></li>

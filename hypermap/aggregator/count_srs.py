@@ -11,7 +11,7 @@ def report_services(services):
 
     for service in services:
         total_layers = total_layers + service.layer_set.all().count()
-        service_srs_list = service.srs.values_list('code',flat=True)
+        service_srs_list = service.srs.values_list('code', flat=True)
         for srs in service_srs_list:
             if srs in SUPPORTED_SRS:
                 total_supported_services = total_supported_services + 1
@@ -22,7 +22,9 @@ def report_services(services):
 
 
 services = Service.objects.filter(type__in=['ESRI:ArcGIS:MapServer', 'ESRI:ArcGIS:ImageServer', ])
-print 'ESRI: total_supported_layers: %s, total_layers %s, total_supported_services %s, total_services %s' % report_services(services)
+print 'ESRI: total_supported_layers: %s, total_layers %s, total_supported_services %s, total_services %s' % \
+    report_services(services)
 
 services = Service.objects.filter(type__in=['OGC:WMS', 'Hypermap:WorldMap', 'Hypermap:WARPER', ])
-print 'OGC: total_supported_layers: %s, total_layers %s, total_supported_services %s, total_services %s' % report_services(services)
+print 'OGC: total_supported_layers: %s, total_layers %s, total_supported_services %s, total_services %s' % \
+    report_services(services)

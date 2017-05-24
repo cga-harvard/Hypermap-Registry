@@ -82,7 +82,8 @@ test-csw-transactions:
 
 test: down start test-unit test-csw test-csw-transactions test-solr test-elastic
 
-shell: $(DOCKER_COMPOSE) run django python manage.py shell_plus
+shell:
+	$(DOCKER_COMPOSE) run django python manage.py shell_plus
 
 # TODO: make it reset db ONLY with explicit indications. now: down/up db cleanup. future: down/up continue working on.
 start: sync up

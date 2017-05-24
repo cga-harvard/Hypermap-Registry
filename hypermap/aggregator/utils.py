@@ -18,7 +18,7 @@ from owslib.wms import WebMapService
 from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
 
-from hypermap.aggregator.enums import SERVICE_TYPES, SUPPORTED_SRS
+from hypermap.aggregator.enums import SERVICE_TYPES
 from lxml.etree import XMLSyntaxError
 from shapely.geometry import box
 
@@ -627,13 +627,16 @@ def layer2dict(layer):
                     'layer_category': category,
                     'layer_username': username,
                     'url': layer.url,
+                    'keywords': [kw.name for kw in layer.keywords.all()],
                     'reliability': layer.reliability,
                     'recent_reliability': layer.recent_reliability,
                     'last_status': layer.last_status,
                     'is_public': layer.is_public,
                     'is_valid': layer.is_valid,
                     'availability': 'Online',
-                    'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
+                    "location": {
+                        "layer_info": layer.get_absolute_url
+                    },
                     'abstract': abstract,
                     'domain_name': layer.service.get_domain
                     }
