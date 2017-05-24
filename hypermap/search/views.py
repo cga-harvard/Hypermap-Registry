@@ -6,7 +6,7 @@ import os
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import loader, RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -18,25 +18,11 @@ from hypermap.aggregator.models import Catalog
 
 
 @csrf_exempt
-@logged_in_or_basicauth()
 def csw_global_dispatch(request, url=None, catalog_id=None):
     """pycsw wrapper"""
 
-    msg = None
-
-    # test for authentication and authorization
-    if any(word in request.body for word in ['Harvest ', 'Transaction ']):
-        if not _is_authenticated():
-            msg = 'Not authenticated'
-        if not _is_authorized():
-            msg = 'Not authorized'
-
-        if msg is not None:
-            template = loader.get_template('search/csw-2.0.2-exception.xml')
-            context = RequestContext(request, {
-                'exception_text': msg
-            })
-            return HttpResponseForbidden(template.render(context), content_type='application/xml')
+    if request.user.is_authenticated():  # turn on CSW-T
+        settings.REGISTRY_PYCSW['manager']['transactions'] = 'true'
 
     env = request.META.copy()
 
@@ -76,7 +62,6 @@ def csw_global_dispatch(request, url=None, catalog_id=None):
 
 
 @csrf_exempt
-@logged_in_or_basicauth()
 def csw_global_dispatch_by_catalog(request, catalog_slug):
     """pycsw wrapper for catalogs"""
 
@@ -102,15 +87,3 @@ def opensearch_dispatch(request):
 
     return render_to_response('search/opensearch_description.xml', ctx,
                               content_type='application/opensearchdescription+xml')
-
-
-def _is_authenticated():
-    """stub to test for authenticated user TODO: implementation"""
-
-    return True
-
-
-def _is_authorized():
-    """stub to test for authorized user TODO: implementation"""
-
-    return True
