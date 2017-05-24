@@ -198,7 +198,7 @@ REGISTRY_PYCSW = {
     },
     'manager': {
         # authentication/authorization is handled by Django
-        'transactions': 'true',
+        'transactions': 'false',
         'allowed_ips': '*',
         # 'csw_harvest_pagesize': '10',
     },
