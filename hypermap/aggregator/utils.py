@@ -634,7 +634,9 @@ def layer2dict(layer):
                     'is_public': layer.is_public,
                     'is_valid': layer.is_valid,
                     'availability': 'Online',
-                    'location': '{"layerInfoPage": "' + layer.get_absolute_url + '"}',
+                    "location": {
+                        "layer_info": layer.get_absolute_url
+                    },
                     'abstract': abstract,
                     'domain_name': layer.service.get_domain
                     }

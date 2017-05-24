@@ -158,7 +158,9 @@ class ESHypermap(object):
                     "last_status": layer.last_status,
                     "is_public": layer.is_public,
                     "availability": "Online",
-                    "location": '{"layer_info": "' + layer.get_absolute_url + '"}',
+                    "location": {
+                        "layer_info": layer.get_absolute_url
+                    },
                     "abstract": abstract,
                     "domain_name": layer.service.get_domain,
                     # "SrsProjectionCode": layer.srs.values_list('code', flat=True),
