@@ -627,6 +627,7 @@ def layer2dict(layer):
                     'layer_category': category,
                     'layer_username': username,
                     'url': layer.url,
+                    'keywords': [kw.name for kw in layer.keywords.all()],
                     'reliability': layer.reliability,
                     'recent_reliability': layer.recent_reliability,
                     'last_status': layer.last_status,
