@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 import os.path
 import sys
-from datetime import timedelta
 from distutils.util import strtobool
 import dj_database_url
 import django_cache_url
@@ -50,7 +49,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'djcelery',
+    'django_celery_results',
+    'django_celery_beat',
     'pagination',
     'taggit',
     'django_extensions',
@@ -123,25 +123,9 @@ CELERY_ALWAYS_EAGER = strtobool(os.getenv('CELERY_ALWAYS_EAGER', 'False'))
 CELERY_DEFAULT_EXCHANGE = os.getenv('CELERY_DEFAULT_EXCHANGE', 'hypermap')
 
 # Celery and RabbitMQ stuff
-CELERYBEAT_SCHEDULER = os.getenv('CELERYBEAT_SCHEDULER', 'djcelery.schedulers.DatabaseScheduler')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'cache')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'django-db')
 CELERY_CACHE_BACKEND = os.getenv('CELERY_CACHE_BACKEND', 'memory')
 CELERYD_PREFETCH_MULTIPLIER = int(os.getenv('CELERYD_PREFETCH_MULTIPLIER', '25'))
-
-REGISTRY_CHECK_PERIOD = int(os.getenv('REGISTRY_CHECK_PERIOD', '120'))
-REGISTRY_INDEX_CACHED_LAYERS_PERIOD = int(os.getenv('REGISTRY_INDEX_CACHED_LAYERS_PERIOD', '1'))
-
-CELERYBEAT_SCHEDULE = {
-    'Check All Services': {
-        'task': 'hypermap.aggregator.tasks.check_all_services',
-        'schedule': timedelta(minutes=REGISTRY_CHECK_PERIOD)
-    },
-    'Index Cached Layers': {
-        'task': 'hypermap.aggregator.tasks.index_cached_layers',
-        'schedule': timedelta(minutes=REGISTRY_INDEX_CACHED_LAYERS_PERIOD)
-    }
-}
-
 CELERY_TIMEZONE = os.getenv('CELERY_TIMEZONE', 'UTC')
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@localhost:5672//')
 

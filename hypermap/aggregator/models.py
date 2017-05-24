@@ -1365,6 +1365,7 @@ def update_layers_wm(service, num_layers=None):
 
     # update deleted layers. For now we check the whole set of deleted layers
     # we should optimize it if the list will grow
+    # TODO implement the actions application
     url = 'http://worldmap.harvard.edu/api/1.5/actionlayerdelete/?format=json'
     LOGGER.debug('Fetching %s for detecting deleted layers' % url)
     response = requests.get(url)
@@ -1666,9 +1667,9 @@ def endpointlist_post_save(instance, *args, **kwargs):
                 endpoint.catalog = instance.catalog
                 endpoint.save()
     if not settings.REGISTRY_SKIP_CELERY:
-        update_endpoints.delay(instance)
+        update_endpoints.delay(instance.id)
     else:
-        update_endpoints(instance)
+        update_endpoints(instance.id)
 
 
 def endpoint_post_save(instance, *args, **kwargs):
@@ -1679,9 +1680,9 @@ def endpoint_post_save(instance, *args, **kwargs):
         endpoint.save()
         signals.post_save.connect(endpoint_post_save, sender=Endpoint)
     if not settings.REGISTRY_SKIP_CELERY:
-        update_endpoint.delay(instance)
+        update_endpoint.delay(instance.id)
     else:
-        update_endpoint(instance)
+        update_endpoint(instance.id)
 
 
 def service_pre_save(instance, *args, **kwargs):
@@ -1703,6 +1704,9 @@ def service_pre_save(instance, *args, **kwargs):
             instance.url, instance.catalog
         ))
 
+    # sanitize service endpoint
+    print 'here'
+
 
 def service_post_save(instance, *args, **kwargs):
     """
@@ -1711,9 +1715,9 @@ def service_post_save(instance, *args, **kwargs):
 
     # check service
     if instance.is_monitored and settings.REGISTRY_SKIP_CELERY:
-        check_service(instance.uuid)
+        check_service(instance.id)
     elif instance.is_monitored:
-        check_service.delay(instance.uuid)
+        check_service.delay(instance.id)
 
 
 def layer_pre_save(instance, *args, **kwargs):
@@ -1734,7 +1738,9 @@ def layer_pre_save(instance, *args, **kwargs):
         # 1. a layer is invalid with an extent within (-2, -2, +2, +2)
         if instance.bbox_x0 > -2 and instance.bbox_x1 < 2 and instance.bbox_y0 > -2 and instance.bbox_y1 < 2:
             is_valid = False
-            LOGGER.debug('Layer with id %s is marked invalid because its extent is within (-2, -2, +2, +2)' % instance.id)  # noqa
+            LOGGER.debug(
+                'Layer with id %s is marked invalid because its extent is within (-2, -2, +2, +2)' % instance.id
+            )
 
     instance.is_valid = is_valid
 
@@ -1745,11 +1751,11 @@ def layer_post_save(instance, *args, **kwargs):
     """
     if instance.is_monitored and instance.service.is_monitored:  # index and monitor
         if not settings.REGISTRY_SKIP_CELERY:
-            check_layer.delay(instance)
+            check_layer.delay(instance.id)
         else:
-            check_layer(instance)
+            check_layer(instance.id)
     else:  # just index
-        index_layer(instance)
+        index_layer(instance.id)
 
 
 signals.post_save.connect(endpoint_post_save, sender=Endpoint)

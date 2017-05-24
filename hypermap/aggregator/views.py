@@ -118,19 +118,19 @@ def service_detail(request, catalog_slug, service_uuid):
     if request.method == 'POST':
         if 'check' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
-                check_service(service.uuid)
+                check_service(service.id)
             else:
-                check_service.delay(service.uuid)
+                check_service.delay(service.id)
         if 'remove' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
-                remove_service_checks(service)
+                remove_service_checks(service.id)
             else:
-                remove_service_checks.delay(service)
+                remove_service_checks.delay(service.id)
         if 'index' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
-                index_service(service)
+                index_service(service.id)
             else:
-                index_service.delay(service)
+                index_service.delay(service.id)
 
     return render(request, 'aggregator/service_detail.html', {'service': service,
                                                               'SEARCH_TYPE': SEARCH_TYPE,
@@ -151,16 +151,16 @@ def layer_detail(request, catalog_slug, layer_uuid):
     if request.method == 'POST':
         if 'check' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
-                check_layer(layer)
+                check_layer(layer.id)
             else:
-                check_layer.delay(layer)
+                check_layer.delay(layer.id)
         if 'remove' in request.POST:
             layer.check_set.all().delete()
         if 'index' in request.POST:
             if settings.REGISTRY_SKIP_CELERY:
-                index_layer(layer)
+                index_layer(layer.id)
             else:
-                index_layer.delay(layer)
+                index_layer.delay(layer.id)
 
     return render(request, 'aggregator/layer_detail.html', {'layer': layer,
                                                             'SEARCH_TYPE': SEARCH_TYPE,
