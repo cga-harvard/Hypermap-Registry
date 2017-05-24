@@ -1734,7 +1734,7 @@ def layer_pre_save(instance, *args, **kwargs):
         # 1. a layer is invalid with an extent within (-2, -2, +2, +2)
         if instance.bbox_x0 > -2 and instance.bbox_x1 < 2 and instance.bbox_y0 > -2 and instance.bbox_y1 < 2:
             is_valid = False
-            LOGGER.debug('Layer with id %s is marked invalid because its extent is within (-2, -2, +2, +2)' % instance.id)
+            LOGGER.debug('Layer with id %s is marked invalid because its extent is within (-2, -2, +2, +2)' % instance.id)  # noqa
 
     instance.is_valid = is_valid
 

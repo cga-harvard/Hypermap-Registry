@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import logging
-from celery import chain
 from django.conf import settings
 from django.core.cache import cache
 

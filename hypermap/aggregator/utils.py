@@ -18,7 +18,7 @@ from owslib.wms import WebMapService
 from owslib.tms import TileMapService
 from owslib.wmts import WebMapTileService
 
-from hypermap.aggregator.enums import SERVICE_TYPES, SUPPORTED_SRS
+from hypermap.aggregator.enums import SERVICE_TYPES
 from lxml.etree import XMLSyntaxError
 from shapely.geometry import box
 
