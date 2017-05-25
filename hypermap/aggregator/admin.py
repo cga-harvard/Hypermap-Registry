@@ -3,7 +3,7 @@ from django.contrib import admin
 from django_celery_results.models import TaskResult
 
 from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
-                    Endpoint, LayerDate, LayerWM, TaskError, Catalog)
+                    Endpoint, LayerDate, LayerWM, TaskError, Catalog, IssueType, Issue)
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -73,6 +73,20 @@ class TaskErrorAdmin(admin.ModelAdmin):
     date_hierarchy = 'error_datetime'
 
 
+class IssueTypeAdmin(admin.ModelAdmin):
+    model = IssueType
+    list_display = ('description',)
+    search_fields = ('description',)
+
+
+class IssueAdmin(admin.ModelAdmin):
+    model = Issue
+    list_display = ('id', 'content_type', 'content_object','issue_type', 'description')
+    list_display_links = ('id', )
+    search_fields = ['=object_id', 'description', ]
+    list_filter = ('content_type', 'issue_type',)
+
+
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
@@ -83,6 +97,8 @@ admin.site.register(EndpointList, EndpointListAdmin)
 admin.site.register(Endpoint, EndpointAdmin)
 admin.site.register(TaskError, TaskErrorAdmin)
 admin.site.register(Catalog, CatalogAdmin)
+admin.site.register(IssueType, IssueTypeAdmin)
+admin.site.register(Issue, IssueAdmin)
 
 
 class CustomTaskResultAdmin(admin.ModelAdmin):
