@@ -970,6 +970,28 @@ class TaskError(models.Model):
     message = models.TextField(blank=True, null=True)
 
 
+class IssueType(models.Model):
+    """
+    Issuetype represents type of issues that services/layers have.
+    """
+    description = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return '%s' % self.description
+
+
+class Issue(models.Model):
+    """
+    Issue represents list of issues that services/layers have.
+    """
+    issue_type = models.ForeignKey(IssueType)
+    limit_choices = models.Q(app_label='aggregator',model='service')|models.Q(app_label='aggregator',model='layer')
+    content_type = models.ForeignKey(ContentType,limit_choices_to=limit_choices)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    description = models.TextField(blank=True, null=True)
+
+
 def bbox2wktpolygon(bbox):
     """
     Return OGC WKT Polygon of a simple bbox list
