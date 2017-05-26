@@ -17,7 +17,7 @@ django-cache-url==1.2.0
 django-celery-beat==1.0.1
 
 #django-celery-results==1.0.1
--e git+https://github.com/cga-harvard/django-celery-results#egg=django-celery-results
+-e git+https://github.com/cga-harvard/django-celery-results#egg=django_celery_results
 
 django-debug-toolbar==1.4
 django-extensions==1.6.7
@@ -49,7 +49,6 @@ pexpect==4.2.1
 pickleshare==0.7.4
 pika==0.10.0
 Pillow==3.1.0rc1
-pkg-resources==0.0.0
 prompt-toolkit==1.0.14
 psutil==4.3.0
 psycopg2==2.6.1
