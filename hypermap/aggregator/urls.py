@@ -18,12 +18,18 @@ urlpatterns = [
     url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_uuid>%s)/$' % uuid_regex,
         views.service_detail,
         name='service_detail'),
+    url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_id>\d+)/$',
+        views.service_detail,
+        name='service_detail'),
     url(r'^(?P<catalog_slug>[-\w]+)/service/(?P<service_uuid>%s)/checks/$' % uuid_regex,
         views.service_checks,
         name='service_checks'),
 
     # layers
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>%s)/$' % uuid_regex,
+        views.layer_detail,
+        name='layer_detail'),
+    url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_id>\d+)/$',
         views.layer_detail,
         name='layer_detail'),
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>%s)/checks/$' % uuid_regex,

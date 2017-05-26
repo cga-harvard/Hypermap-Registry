@@ -112,8 +112,11 @@ def index(request, catalog_slug=None):
     return HttpResponse(template.render(context))
 
 
-def service_detail(request, catalog_slug, service_uuid):
-    service = get_object_or_404(Service, uuid=service_uuid)
+def service_detail(request, catalog_slug, service_uuid=None, service_id=None):
+    if service_uuid is not None:
+        service = get_object_or_404(Service, uuid=service_uuid)
+    else:
+        service = get_object_or_404(Service, pk=service_id)
 
     if request.method == 'POST':
         if 'check' in request.POST:
@@ -145,8 +148,11 @@ def service_checks(request, catalog_slug, service_uuid):
     return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
 
 
-def layer_detail(request, catalog_slug, layer_uuid):
-    layer = get_object_or_404(Layer, uuid=layer_uuid)
+def layer_detail(request, catalog_slug, layer_uuid=None, layer_id=None):
+    if layer_uuid is not None:
+        layer = get_object_or_404(Layer, uuid=layer_uuid)
+    else:
+        layer = get_object_or_404(Layer, pk=layer_id)
 
     if request.method == 'POST':
         if 'check' in request.POST:
