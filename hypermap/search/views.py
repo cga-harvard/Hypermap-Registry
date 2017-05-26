@@ -8,9 +8,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
-from django.template import loader, RequestContext
 from django.views.decorators.csrf import csrf_exempt
-from django_basic_auth import logged_in_or_basicauth
 
 from pycsw import server
 

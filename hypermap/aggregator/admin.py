@@ -81,7 +81,7 @@ class IssueTypeAdmin(admin.ModelAdmin):
 
 class IssueAdmin(admin.ModelAdmin):
     model = Issue
-    list_display = ('id', 'content_type', 'content_object','issue_type', 'description')
+    list_display = ('id', 'content_type', 'content_object', 'issue_type', 'description')
     list_display_links = ('id', )
     search_fields = ['=object_id', 'description', ]
     list_filter = ('content_type', 'issue_type',)
