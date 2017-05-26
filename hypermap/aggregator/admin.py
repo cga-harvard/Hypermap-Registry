@@ -81,11 +81,16 @@ class IssueTypeAdmin(admin.ModelAdmin):
 
 class IssueAdmin(admin.ModelAdmin):
     model = Issue
-    list_display = ('id', 'content_type', 'content_object', 'issue_type', 'description')
-    list_display_links = ('id', )
+    list_display = ('id', 'content_type', 'content_object_link', 'issue_type', 'description')
+    list_display_links = ('id',)
     search_fields = ['=object_id', 'description', ]
     list_filter = ('content_type', 'issue_type',)
 
+    def content_object_link(self, obj):
+        return u'<a href="../%s/%s">%s</a>' % (obj.content_type, obj.content_object, obj.content_object)
+
+    content_object_link.allow_tags = True
+    content_object_link.short_description = 'content object'
 
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
