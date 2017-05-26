@@ -985,8 +985,8 @@ class Issue(models.Model):
     Issue represents list of issues that services/layers have.
     """
     issue_type = models.ForeignKey(IssueType)
-    limit_choices = models.Q(app_label='aggregator',model='service')|models.Q(app_label='aggregator',model='layer')
-    content_type = models.ForeignKey(ContentType,limit_choices_to=limit_choices)
+    limit_choices = models.Q(app_label='aggregator', model='service') | models.Q(app_label='aggregator', model='layer')
+    content_type = models.ForeignKey(ContentType, limit_choices_to=limit_choices)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     description = models.TextField(blank=True, null=True)
