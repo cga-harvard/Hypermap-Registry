@@ -960,16 +960,6 @@ class Endpoint(models.Model):
         unique_together = ("url", "catalog")
 
 
-class TaskError(models.Model):
-    """
-    TaskError represents a task error, until we find a better way to handle this with Celery.
-    """
-    task_name = models.CharField(max_length=255)
-    args = models.CharField(max_length=255)
-    error_datetime = models.DateTimeField(auto_now=True)
-    message = models.TextField(blank=True, null=True)
-
-
 class IssueType(models.Model):
     """
     Issuetype represents type of issues that services/layers have.
