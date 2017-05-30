@@ -17,7 +17,7 @@ django-cache-url==1.2.0
 django-celery-beat==1.0.1
 
 #django-celery-results==1.0.1
--e git+https://github.com/cga-harvard/django-celery-results#egg=django_celery_results
+-e git://github.com/cga-harvard/django-celery-results@master#egg=django_celery_results
 
 django-debug-toolbar==1.4
 django-extensions==1.6.7
