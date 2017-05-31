@@ -261,23 +261,27 @@ def index_layer(self, layer_id, use_cache=False):
         LOGGER.debug('Syncing layer %s to solr' % layer.name)
         solrobject = SolrHypermap()
         success, message = solrobject.layer_to_solr(layer)
-        if not success:
-            self.update_state(
-                state=states.FAILURE,
-                meta=message
-                )
-            raise Ignore()
+        # update the error message if using celery
+        if not settings.REGISTRY_SKIP_CELERY:
+            if not success:
+                self.update_state(
+                    state=states.FAILURE,
+                    meta=message
+                    )
+                raise Ignore()
     elif SEARCH_TYPE == 'elasticsearch':
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         LOGGER.debug('Syncing layer %s to es' % layer.name)
         esobject = ESHypermap()
         success, message = esobject.layer_to_es(layer)
-        if not success:
-            self.update_state(
-                state=states.FAILURE,
-                meta=message
-                )
-            raise Ignore()
+        # update the error message if using celery
+        if not settings.REGISTRY_SKIP_CELERY:
+            if not success:
+                self.update_state(
+                    state=states.FAILURE,
+                    meta=message
+                    )
+                raise Ignore()
 
 
 @shared_task(bind=True)
