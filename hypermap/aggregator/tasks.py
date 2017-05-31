@@ -83,15 +83,6 @@ def check_layer(self, layer_id):
         else:
             index_layer(layer.id, use_cache=True)
 
-    if not success:
-        from hypermap.aggregator.models import TaskError
-        task_error = TaskError(
-            task_name=self.name,
-            args=layer.id,
-            message=message
-        )
-        task_error.save()
-
 
 @shared_task(bind=True)
 def index_cached_layers(self):
@@ -99,7 +90,6 @@ def index_cached_layers(self):
     Index and unindex all layers in the Django cache (Index all layers who have been checked).
     """
     from hypermap.aggregator.models import Layer
-    from hypermap.aggregator.models import TaskError
 
     if SEARCH_TYPE == 'solr':
         from hypermap.aggregator.solr import SolrHypermap
@@ -132,14 +122,6 @@ def index_cached_layers(self):
                 # SOLR
                 if SEARCH_TYPE == 'solr':
                     success, layers_errors_ids = solrobject.layers_to_solr(layers)
-                    if layers_errors_ids:
-                        for layer_error in layers_errors_ids:
-                            task_error = TaskError(
-                                task_name=self.name,
-                                args=layer_error[0],
-                                message=layer_error[1]
-                            )
-                            task_error.save()
                     if success:
                         # remove layers from cache here
                         layers_cache = layers_cache.difference(set(batch_list_ids))
@@ -161,13 +143,6 @@ def index_cached_layers(self):
                         # remove layers from cache here
                         layers_cache = layers_cache.difference(set(batch_list_ids))
                         cache.set('layers', layers_cache)
-                    else:
-                        task_error = TaskError(
-                            task_name=self.name,
-                            args=batch_list_ids,
-                            message=message
-                        )
-                        task_error.save()
                 else:
                     raise Exception("Incorrect SEARCH_TYPE=%s" % SEARCH_TYPE)
             except Exception as e:
