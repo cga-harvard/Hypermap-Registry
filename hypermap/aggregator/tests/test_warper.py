@@ -68,5 +68,6 @@ class TestWarper(unittest.TestCase):
 
         self.assertRaises(Exception, create_duplicated_service)
 
+
 if __name__ == '__main__':
     unittest.main()

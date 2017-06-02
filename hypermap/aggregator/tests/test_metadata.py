@@ -90,8 +90,8 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(layer.csw_typename, 'csw:Record', 'Expected CSW typename equality')
         self.assertEqual(layer.csw_schema, 'http://www.opengis.net/cat/csw/2.0.2', 'Expected CSW schema equality')
 
-        anytext = gen_anytext(layer.title, layer.abstract)
         # TODO fix this, anytext = '' while layer.anytext is None
+        # anytext = gen_anytext(layer.title, layer.abstract)
         # self.assertEqual(anytext, layer.anytext, 'Expected anytext equality')
 
     def test_layer_fields(self):
@@ -114,6 +114,7 @@ class TestMetadata(unittest.TestCase):
 
         anytext = gen_anytext(layer.title, layer.abstract, list(layer.keywords.names()).sort())
         self.assertEqual(anytext, layer.anytext, 'Expected anytext equality: %s != %s' % (anytext, layer.anytext))
+
 
 if __name__ == '__main__':
     unittest.main()

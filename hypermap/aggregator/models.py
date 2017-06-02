@@ -11,7 +11,6 @@ from urlparse import urlparse
 from dateutil.parser import parse
 
 from django.conf import settings
-from django.core.cache import cache
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -343,7 +342,6 @@ class Service(Resource):
 
         signals.post_save.connect(layer_post_save, sender=Layer)
 
-
     def check_available(self):
         """
         Check for availability of a service and provide run metrics.
@@ -467,7 +465,7 @@ class Service(Resource):
         # WM is always valid
         if self.type == 'Hypermap:WorldMap':
             return
-        
+
         signals.post_save.disconnect(service_post_save, sender=Service)
 
         try:
