@@ -85,6 +85,7 @@ class IssueAdmin(admin.ModelAdmin):
     content_object_link.allow_tags = True
     content_object_link.short_description = 'content object'
 
+
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
@@ -133,6 +134,7 @@ class CustomTaskResultAdmin(admin.ModelAdmin):
     )
     list_filter = ('task_name', 'status', )
     date_hierarchy = 'date_done'
+
 
 admin.site.unregister(TaskResult)
 admin.site.register(TaskResult, CustomTaskResultAdmin)

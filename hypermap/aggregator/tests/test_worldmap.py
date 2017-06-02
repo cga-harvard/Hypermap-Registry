@@ -30,6 +30,7 @@ class TestWorldMap(unittest.TestCase):
             catalog=catalog
         )
         service.save()
+        service.refresh_from_db()
 
         # check title is correct
         self.assertTrue(service.title, 'Harvard WorldMap')
