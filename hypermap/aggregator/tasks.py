@@ -66,7 +66,10 @@ def check_service(self, service_id):
 
     # 3. index layers
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
-        service.index_layers()
+        if not settings.REGISTRY_SKIP_CELERY:
+            index_service.delay(service.id)
+        else:
+            index_service(service.id)
 
 
 @shared_task(bind=True, soft_time_limit=10)
@@ -314,7 +317,7 @@ def unindex_layer(self, layer_id, use_cache=False):
             LOGGER.error('Layer NOT correctly removed from Solr')
     elif SEARCH_TYPE == 'elasticsearch':
         # TODO implement me
-        raise NotImplementedError
+        pass
 
 
 @shared_task(bind=True)

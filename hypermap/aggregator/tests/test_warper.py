@@ -15,7 +15,16 @@ from hypermap.aggregator.models import Service, Catalog
 class TestWarper(unittest.TestCase):
 
     @with_httmock(mocks.warper.resource_get)
-    def test_create_wms_service(self):
+    def test_create_warper_service(self):
+
+        # apparently signals are disconnected when running this test
+        # TODO figure out which test is disconnecting them without reconnecting
+        from django.db.models import signals
+        from hypermap.aggregator.models import Layer
+        from hypermap.aggregator.models import layer_post_save, service_post_save
+        signals.post_save.connect(layer_post_save, sender=Layer)
+        signals.post_save.connect(service_post_save, sender=Service)
+
         catalog, created = Catalog.objects.get_or_create(
             name="hypermap", slug="hypermap",
             url="search_api"

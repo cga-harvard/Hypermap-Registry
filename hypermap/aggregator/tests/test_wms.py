@@ -110,6 +110,7 @@ class TestWMSInvalid(unittest.TestCase):
             catalog=catalog
         )
         service.save()
+        service.refresh_from_db()
 
         # check service is invalid
         self.assertEqual(service.is_valid, False)
