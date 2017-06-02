@@ -62,6 +62,9 @@
               <li><a href="{% url 'tasks_runner' %}">Tasks</a></li>
               <li><a href="{% url 'admin:index' %}">Admin</a></li>
               <li><a href="{{ SEARCH_IP }}/#/hypermap" target="new">Solr</a></li>
+              <li><a href="{% url 'admin:logout' %}">Logout</a></li>
+            {% else %}
+              <li><a href="{% url 'admin:login' %}">Login</a></li>
             {% endif %}
           </ul>
           <ul class="nav navbar-nav navbar-right">
