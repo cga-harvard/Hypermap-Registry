@@ -265,3 +265,6 @@ SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 # Read cache information from CACHE_URL
 CACHES = {'default': django_cache_url.config()}
 CACHES['default']['TIMEOUT'] = None
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'

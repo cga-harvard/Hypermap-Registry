@@ -1,0 +1,43 @@
+{% extends "aggregator/base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>Welcome to HHypermap</h1>
+</div>
+
+{% if form.errors %}
+<div class="row">
+  <div class="col-md-6" style="color: #ba2121">
+    <p >Your username and password didn't match. Please try again.</p>
+  </div>
+</div>
+{% endif %}
+
+
+<form method="post" action="{% url 'login' %}">
+{% csrf_token %}
+  <div class="row">
+     <div class="col-md-12">
+      <table style="border-collapse:separate; border-spacing:0px 10px;">
+        <tr>
+          <td>{{ form.username.label_tag }}</td>
+          <td>{{ form.username }}</td>
+      </tr>
+        <tr/>
+      <tr>
+        <td>{{ form.password.label_tag }}</td>
+        <td>{{ form.password }}</td>
+      </tr>
+      </table>
+    </div>
+  </div>
+    <input type="submit" value="Login" />
+    <input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+<p><a href="{% url 'password_change' %}">Change password?</a></p>
+{% endblock %}
