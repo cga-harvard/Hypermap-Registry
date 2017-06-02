@@ -19,8 +19,10 @@ urlpatterns = patterns(
 
     url(r'^login/$', auth_views.login, {'template_name': 'aggregator/login.html'}),
     url(r'^logout/$', auth_views.logout, {'template_name': 'aggregator/logout.html'}),
-    url(r'^password_change/$', auth_views.password_change, {'template_name': 'aggregator/password_change.html'}),
-    url(r'^password_change/done/$', auth_views.password_change_done, {'template_name': 'aggregator/password_change_done.html'}),
+    url(r'^password_change/$', auth_views.password_change,
+        {'template_name': 'aggregator/password_change.html'}),
+    url(r'^password_change/done/$', auth_views.password_change_done,
+        {'template_name': 'aggregator/password_change_done.html'}),
     url(r'^', include('django.contrib.auth.urls')),
 )
 
