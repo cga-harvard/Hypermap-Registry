@@ -54,7 +54,6 @@ class TestCSWTransactions(unittest.TestCase):
         print ">>> with env:"
         print "REGISTRY_SKIP_CELERY: %s" % settings.REGISTRY_SKIP_CELERY
         print "REGISTRY_LIMIT_LAYERS: %s" % settings.REGISTRY_LIMIT_LAYERS
-        print "REGISTRY_CHECK_PERIOD: %s" % settings.REGISTRY_CHECK_PERIOD
         print "REGISTRY_SEARCH_URL: %s" % settings.REGISTRY_SEARCH_URL
         print "REGISTRY_HARVEST_SERVICES: %s" % settings.REGISTRY_HARVEST_SERVICES
         print ""
