@@ -268,7 +268,7 @@ class HHypermapRepository(object):
                 res.save()
 
                 LOGGER.debug('Indexing layer with id %s on search engine' % res.uuid)
-                index_layer(res, use_cache=True)
+                index_layer(res.id, use_cache=True)
 
             else:
                 if resourcetype == 'http://www.opengis.net/cat/csw/2.0.2':
