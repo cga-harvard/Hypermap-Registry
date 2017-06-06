@@ -22,8 +22,9 @@ function focus_page() {
     // autofocus on page inits
 
     var focus_fields = [
+        'input#id_old_password',
         'input#id_username',
-        'input#id_old_password'
+        'input[name=q]'
     ];
 
     for (var i = 0; i < focus_fields.length; i++) {

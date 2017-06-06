@@ -15,13 +15,13 @@
 
 <div class="row">
   <div class="col-md-6">
+    <ul>
     {% if user.is_superuser %}
-    <ul>
-      <button type="button" class="btn btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
-    </ul>
+      <button type="button" class="btn-sm btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
     {% endif %}
-    <ul>
-      <li><a href="{{ service.get_check_stats_absolute_url }}">See full check stats</a></li>
+      <a href="{{ service.get_check_stats_absolute_url }}">
+        <button type="button" class="btn-sm btn-primary btn-circle btn nohover">See full check stats</button>
+      </a>
     </ul>
   </div>
   <div class="col-md-6">

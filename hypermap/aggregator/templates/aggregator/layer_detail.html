@@ -14,17 +14,21 @@
 
 <div class="row">
   <div class="col-md-6">
+    <ul>
     {% if user.is_superuser %}
-    <ul>
-      <button type="button" class="btn btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
-    </ul>
+      <button type="button" class="btn-sm btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
     {% endif %}
-    <ul>
-      {% if layer.service %}
-      <li><a href="{{ layer.service.get_absolute_url }}">Go to service page</a></li>
-      {% endif %}
-      <li><a href="{% url 'layer_mapproxy' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid path_info='/demo/' %}">Go to MapProxy demo page</a></li>
-      <li><a href="{% url 'layer_mapproxy_config' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid %}">Go to MapProxy configuration</a></li>
+    {% if layer.service %}
+      <a href="{{ layer.service.get_absolute_url }}">
+        <button type="button" class="btn-sm btn-primary btn-circle btn nohover">Service Page</button>
+      </a>
+    {% endif %}
+    <a href="{% url 'layer_mapproxy' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid path_info='/demo/' %}">
+      <button type="button" class="btn-sm btn-info btn-circle btn nohover">MapProxy demo page</button>
+    </a>
+    <a href="{% url 'layer_mapproxy_config' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid %}">
+      <button type="button" class="btn-sm btn-info btn-circle btn nohover">MapProxy configuration</button>
+    </a>
     </ul>
 </div>
   <div class="col-md-6">
