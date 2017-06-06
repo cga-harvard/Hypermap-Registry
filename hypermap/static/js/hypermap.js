@@ -18,6 +18,21 @@ function gen_transaction_insert_request(csw_xml) {
     return xml;
 }
 
+function focus_page() {
+    // autofocus on page inits
+
+    var focus_fields = [
+        'input#id_username',
+        'input#id_old_password'
+    ];
+
+    for (var i = 0; i < focus_fields.length; i++) {
+        if ($(focus_fields[i]).length) {
+            $(focus_fields[i]).focus();
+        }
+    }
+}
+
 $('#publish-resource').click(function(event) {
 
     var data = null;
@@ -50,8 +65,5 @@ $('#publish-resource').click(function(event) {
 
 // page init
 $(function() {
-    // autofocus for login type pages
-    if ($('input#id_username').length) {
-        $('input#id_username').focus();
-    }
+    focus_page();
 });
