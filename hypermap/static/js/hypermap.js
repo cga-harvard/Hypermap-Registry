@@ -47,3 +47,11 @@ $('#publish-resource').click(function(event) {
         }
     });
 });
+
+// page init
+$(function() {
+    // autofocus for login type pages
+    if ($('input#id_username').length) {
+        $('input#id_username').focus();
+    }
+});
