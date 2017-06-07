@@ -61,7 +61,7 @@
 
 <h2>Checks</h2>
 
-{% with layer.check_set.all as check_set %}
+{% with layer.ordered_check_set as check_set %}
 {% if check_set %}
   {% autopaginate check_set 10 %}
   {% paginate %}

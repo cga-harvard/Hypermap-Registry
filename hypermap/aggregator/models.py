@@ -203,6 +203,13 @@ class Resource(models.Model):
         return self.check_set.order_by('checked_datetime')[0].checked_datetime
 
     @property
+    def ordered_check_set(self):
+        if self.check_set.all().count() > 0:
+            return self.check_set.order_by('-checked_datetime')
+        else:
+            return None
+
+    @property
     def last_check(self):
         if self.check_set.all().count() > 0:
             return self.check_set.order_by('-checked_datetime')[0].checked_datetime

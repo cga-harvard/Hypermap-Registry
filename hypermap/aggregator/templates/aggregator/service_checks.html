@@ -69,7 +69,7 @@
 
 <h2>Checks</h2>
 
-{% with service.check_set.all as check_set %}
+{% with service.ordered_check_set as check_set %}
 {% if check_set %}
   {% autopaginate check_set 10 %}
   {% paginate %}
