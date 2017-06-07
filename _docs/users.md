@@ -1,13 +1,24 @@
 # Create layers from endpoint
 
-In hhypermap registry it is possible to harvest map services in different ways. You can create services using a single endpoint or creating a list of endpoints. and endpoint could be defined as a server's url address of services required for harvesting. You can find a good resource for endpoints in http://hh.worldmap.harvard.edu/)
+In HHypermap Registry it is possible to harvest map services (OGC and ESRI REST) in different ways. You can create services using a single endpoint or creating a list of endpoints. An endpoint could be defined as a server's url address of services required for harvesting.
+
+Here is a list of some sampe endpoint for each kind of servies:
+
+* An OGC WMS endpoint: http://demo.geonode.org/geoserver/ows
+* A MapWarper endpoint: http://maps.nypl.org/warper/maps
+* An OGC WMTS endpoint: http://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/WMTSCapabilities.xml
+* An ESRI MapServer endpoint: https://gis.ngdc.noaa.gov/arcgis/rest/services/SampleWorldCities/MapServer/?f=json
+* An ESRI ImageServer endpoint: https://gis.ngdc.noaa.gov/arcgis/rest/services/bag_bathymetry/ImageServer/?f=json
+* A WorldMap endpoint: http://worldmap.harvard.edu
+
+All of these sample endpoints can be harvested and health checked by HHypermap Registry.
+
+Assuming that you have HHypermap Registry installed and running in your development/production server (including fixtures), enter in your browser the url: http://your_url/registry. In case you are running Registry in a development server, the url corresponds to http://localhost:8000/registry. The request response will be the following page.
 
 ![image](https://cloud.githubusercontent.com/assets/3285923/17596743/693d5392-5fb8-11e6-9a1d-5873295f1563.png)
 *Application index page*
 
 ## Accessing the administration panel.
-
-Assuming that you have hhypermap registry installed and running in your development/production server (including fixtures), enter in your browser the url: http://your_url/registry. For my case, because I am running in a development server, the url corresponds to http://localhost:8000/registry. The request response will be the page seen above.
 
 In order to access to the administration panel, in your browser enter http://localhost:8000/admin. Access through your credentials (**user:** admin, **password:** admin). The server will respond with the administrative panel page (See figure below)
 
@@ -16,7 +27,7 @@ In order to access to the administration panel, in your browser enter http://loc
 
 ## Harvest services from a single endpoint
 
-HHypermap registry is designed to create a service that contains information layers given a single endpoint url. To perform this, in the administrative panel, aggregator section, select Endpoints options. There you can check which endpoints have been added before and some other options. To add other endpoints, press the button *Add endpoint*. The server will respond with the pages that is shown below.
+HHypermap Registry is designed to create a service that contains information layers given a single endpoint url. To perform this, in the administrative panel, aggregator section, select Endpoints options. There you can check which endpoints have been added before and some other options. To add other endpoints, press the button *Add endpoint*. The following page will be shown
 
 ![image](https://cloud.githubusercontent.com/assets/3285923/17601195/8bf6fe24-5fcc-11e6-8b19-6ec08bcaa1dd.png)
 *Add new endpoint page response*
@@ -24,10 +35,10 @@ HHypermap registry is designed to create a service that contains information lay
 ![image](https://cloud.githubusercontent.com/assets/3285923/17606021/f0484be2-5fe2-11e6-930b-e29f4d959a8e.png)
 *Adding a new endpoint to the database*
 
-The required fields to add an endpoint are *url* and *catalog*. After a new endpoint is aggregated into the database, the celery workers start the harvesting process. Hhypermap Registry fetches layers from a service, generates thumbnails and index each layer metadata to the search backend.
+The required fields to add an endpoint are *url* and *catalog*. After the new endpoint is added in the database, the Celery workers start the harvesting process. Hhypermap Registry fetches layers from a service, generates thumbnails and index each layer metadata to the search backend.
 ![image](https://cloud.githubusercontent.com/assets/3285923/17606202/dbd00690-5fe3-11e6-866d-b97c17a2eb4a.png)
 
-Now you can check in the hhypermap registry page the created service and layers.
+Now it is possible to check in the HHypermap Registry page the created service and layers.
 
 ![image](https://cloud.githubusercontent.com/assets/3285923/17606743/c42c4b2c-5fe6-11e6-89f3-b7a921dba0bc.png)
 
@@ -36,20 +47,23 @@ Now you can check in the hhypermap registry page the created service and layers.
 Hhypermap registry has the ability to start the harvesting process of services, giving a list of endpoints within a text file. This text file must have on each line a service endpoint. For example:
 
 ```
-http://worldmap.harvard.edu/ 
+http://worldmap.harvard.edu/
 http://warp.worldmap.harvard.edu/maps
 http://geonode.state.gov/
 http://kgs.uky.edu/
 http://servicesig102.lehavre.fr/arcgi...
 ```
 
-Now, go to the administrative panel, Endpoint list section, add endpoint list. There, you upload the file, select catalog and press save. After this, the application starts harvesting layers for each service independently and adds them into the search backend.
+Now, go to the administrative panel, Endpoint list section, add endpoint list. There, it is possible to choose the file to use, select the catalog and press save. After this, the application starts harvesting layers for each service independently and adds them into the search backend.
 
 **Note:** Arcgis services have the option to fetch information layers from multiple endpoints within a folder. HHypermap registry comes with the option to create layers from a folder, giving only one of the endpoints that belong to the respective folder. This is possible checking the **greedy** option.
 
 ## Visualization
 
-The exchange user needs to put the http://localhost/_maploom/ url in the browser. In order to visualize the harvested layers by hypermap/Registry, is necessary to press the equal sign button related to Registry in the upper left corner of the image below.
+Note: the map viewer, maploom, based on Angular is not anymore supported in HHypermap Registry since version 0.3.12.
+We are willing to have a new map viewer based on React at some point.
+
+It is possible to access to the map viewer using the http://localhost/_maploom/ url. In order to visualize the layers harvested by HHypermap Registry, is necessary to press the equal sign button next to Registry in the upper left corner of the image below.
 
 ![image](https://cloud.githubusercontent.com/assets/3285923/18094804/4f5365fc-6e9a-11e6-82fc-e0d052ca8d38.png)
 *Hypermap/registry visualization of layers main page*
@@ -64,7 +78,7 @@ With this tool the Exchange user is able to select preview and add layers into t
 
 HHypermap Registry visualization tool comes with different types of filtering:
 
-### Filter by catalog: 
+### Filter by catalog:
 ![xktxihhlyn](https://cloud.githubusercontent.com/assets/7197750/17909781/511fbac0-6986-11e6-9c7f-3ce715003342.gif)
 
 ### Filter by text:
@@ -167,7 +181,7 @@ Please read the docs at http://docs.pycsw.org/en/2.0.0/ for more information.
 
 
 #### How to use
- 
+
 The following instructions will show how to use the different requests types:
 
 #### 1. Insert
@@ -189,7 +203,7 @@ curl -X "GET" \
 ```
 
 #### 3. Filter layers
-Query records with `mode=opensearch` and `q=` parameter, in this example one layer is named "Airport" 
+Query records with `mode=opensearch` and `q=` parameter, in this example one layer is named "Airport"
 
 ```
 curl -X "GET" \
@@ -198,6 +212,6 @@ curl -X "GET" \
 
 #### 4. Ensure layers are also indexed in Search backend:
 ```
-curl -X "GET" \ 
+curl -X "GET" \
     "http://localhost/_elastic/hypermap/_search"
 ```
