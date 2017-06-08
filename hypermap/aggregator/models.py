@@ -126,6 +126,9 @@ class Check(models.Model):
     def __unicode__(self):
         return 'Check %s' % self.id
 
+    class Meta:
+        ordering = ['-checked_datetime']
+
 
 class Resource(models.Model):
     """
