@@ -38,6 +38,9 @@ $('#publish-resource').click(function(event) {
 
     var data = null;
 
+    var $publish_button = $(this);
+    $publish_button.button('loading');
+
     var publishtype = $('#csw-publishtype').val();
     var resourcetype = $('#csw-resourcetype').val();
     var source = $('#csw-source').val();
@@ -59,6 +62,26 @@ $('#publish-resource').click(function(event) {
         data: data,
         dataType: 'text',
         success: function(xml) {
+            var result_text = null;
+
+            $("#csw-publish-result").removeClass('alert-success');
+            $("#csw-publish-result").removeClass('alert-danger');
+
+            $xml = $($.parseXML(xml));
+            var exception = $xml.find('ows\\:ExceptionText').text();
+            if (exception) {
+                $("#csw-publish-result").addClass('alert-danger');
+                result_text = 'CSW-T Error: ' + exception;
+            } else {
+                $("#csw-publish-result").addClass('alert-success');
+                var inserted = $xml.find('csw\\:totalInserted').text();
+                var updated = $xml.find('csw\\:totalUpdated').text();
+                var deleted = $xml.find('csw\\:totalDeleted').text();
+                result_text = 'inserted: ' + inserted + " " + 'updated: ' + updated + " " + 'deleted: ' + deleted;
+            }
+            $("#csw-publish-result").removeClass('hidden');
+            $("#csw-publish-result-text").html(result_text);
+            $publish_button.button('reset');
             console.log(xml);
         }
     });
