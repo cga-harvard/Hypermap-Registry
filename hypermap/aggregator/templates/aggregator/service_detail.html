@@ -1,6 +1,5 @@
 {% extends "aggregator/base.html" %}
 
-{% load pagination_tags %}
 {% load humanize %}
 
 {% block content %}
@@ -107,95 +106,105 @@
   <p>(there are {{ service.get_deleted_number }} deleted layers for this service)</p>
 {% endif %}
 
-{% with service.layer_set.all as layer_set %}
-{% if layer_set %}
-  {% autopaginate layer_set 10 %}
-  {% paginate %}
-    <div class="row">
-      <div class="col-md-12">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th></th>
-              <th></th>
-              <th>Is Valid?</th>
-              <th>Tot Checks</th>
-              <th>Last Check</th>
-              <th>Status</th>
-              <th>Response Times</th>
-              <th>Reliability</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for layer in layer_set %}
-                <tr>
-                  <td>
-                    {% if layer.thumbnail %}
-                    <a href="{{ layer.get_absolute_url }}"><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" /></a>
+{% if layers %}
+
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th></th>
+            <th></th>
+            <th>Is Valid?</th>
+            <th>Tot Checks</th>
+            <th>Last Check</th>
+            <th>Status</th>
+            <th>Response Times</th>
+            <th>Reliability</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for layer in layers %}
+              <tr>
+                <td>
+                  {% if layer.thumbnail %}
+                  <a href="{{ layer.get_absolute_url }}"><img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" /></a>
+                  {% endif %}
+                </td>
+                <td>
+                  <ul>
+                    <li>Name: <a href="{{ layer.get_absolute_url }}">{{ layer.name }}</a></li>
+                    <li>Title: {{ layer.title }}</li>
+                    <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
+                  </ul>
+                </td>
+                <td>
+                    {% if layer.is_valid %}
+                      <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                    {% else %}
+                      <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
                     {% endif %}
-                  </td>
+                </td>
+                <td>
+                  {{ layer.checks_count }}
+                </td>
+                <td>
+                  {% if layer.checks_count > 0 %}
+                  <ul>
+                    <li>{{ layer.last_check }}</li>
+                    <li>{{ layer.last_response_time|floatformat:2 }}s</li>
+                  </ul>
+                  {% else %}
+                    No checks for this layer
+                  {% endif %}
+                </td>
+                {% if layer.checks_count > 0 %}
                   <td>
-                    <ul>
-                      <li>Name: <a href="{{ layer.get_absolute_url }}">{{ layer.name }}</a></li>
-                      <li>Title: {{ layer.title }}</li>
-                      <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
-                    </ul>
-                  </td>
-                  <td>
-                      {% if layer.is_valid %}
+                      <a href="{{ layer.get_absolute_url }}">
+                      {% if layer.last_status %}
                         <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
                       {% else %}
                         <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
                       {% endif %}
+                      </a>
+
                   </td>
                   <td>
-                    {{ layer.checks_count }}
-                  </td>
-                  <td>
-                    {% if layer.checks_count > 0 %}
                     <ul>
-                      <li>{{ layer.last_check }}</li>
-                      <li>{{ layer.last_response_time|floatformat:2 }}s</li>
+                      <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
+                      <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
+                      <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
                     </ul>
+                  </td>
+                  <td>
+                    {% if layer.reliability > 97 %}
+                      <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
                     {% else %}
-                      No checks for this layer
+                      <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
                     {% endif %}
                   </td>
-                  {% if layer.checks_count > 0 %}
-                    <td>
-                        <a href="{{ layer.get_absolute_url }}">
-                        {% if layer.last_status %}
-                          <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
-                        {% else %}
-                          <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
-                        {% endif %}
-                        </a>
-
-                    </td>
-                    <td>
-                      <ul>
-                        <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
-                        <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
-                        <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
-                      </ul>
-                    </td>
-                    <td>
-                      {% if layer.reliability > 97 %}
-                        <button type="button" class="btn btn-success btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
-                      {% else %}
-                        <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
-                      {% endif %}
-                    </td>
-                  {% endif %}
-                </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+                {% endif %}
+              </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
+
+  <ul class="pagination">
+    <li><a href="?page=1">&laquo;&laquo;</a></li>
+    {% for i in layers.paginator.page_range %}
+      {% if layers.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    <li><a href="?page={{ layers.paginator.num_pages }}">&raquo;&raquo;</a></li>
+  </ul>
+
 {% else %}
     <p>No layers are available.</p>
 {% endif %}
-{% endwith %}
 
 {% endblock %}

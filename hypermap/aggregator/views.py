@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from djmp.views import get_mapproxy
 
@@ -21,6 +22,24 @@ from enums import SERVICE_TYPES
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+class BootstrapPaginator(Paginator):
+    def __init__(self, *args, **kwargs):
+        """
+        :param wing_pages: How many pages will be shown before and after current page.
+        """
+        self.wing_pages = kwargs.pop('wing_pages', 3)
+        super(BootstrapPaginator, self).__init__(*args, **kwargs)
+
+    def _get_page(self, *args, **kwargs):
+        self.page = super(BootstrapPaginator, self)._get_page(*args, **kwargs)
+        return self.page
+
+    @property
+    def page_range(self):
+        return range(max(self.page.number - self.wing_pages, 1),
+                     min(self.page.number + self.wing_pages + 1, self.num_pages + 1))
 
 
 def serialize_checks(check_set):
@@ -97,6 +116,17 @@ def index(request, catalog_slug=None):
         type_item.append(Service.objects.filter(type__exact=service_type_code).count())
         types_list.append(type_item)
 
+    page = request.GET.get('page', 1)
+    services = services.only('id',)
+    paginator = BootstrapPaginator(services, 10)
+
+    try:
+        services = paginator.page(page)
+    except PageNotAnInteger:
+        services = paginator.page(1)
+    except EmptyPage:
+        services = paginator.page(paginator.num_pages)
+
     # stats
     layers_count = Layer.objects.all().count()
     services_count = Service.objects.all().count()
@@ -113,6 +143,7 @@ def index(request, catalog_slug=None):
 
 
 def service_detail(request, catalog_slug, service_uuid=None, service_id=None):
+
     if service_uuid is not None:
         service = get_object_or_404(Service, uuid=service_uuid)
     else:
@@ -135,7 +166,19 @@ def service_detail(request, catalog_slug, service_uuid=None, service_id=None):
             else:
                 index_service.delay(service.id)
 
+    page = request.GET.get('page', 1)
+    layers = service.layer_set.all().only('id',)
+    paginator = BootstrapPaginator(layers, 10)
+
+    try:
+        layers = paginator.page(page)
+    except PageNotAnInteger:
+        layers = paginator.page(1)
+    except EmptyPage:
+        layers = paginator.page(paginator.num_pages)
+
     return render(request, 'aggregator/service_detail.html', {'service': service,
+                                                              'layers': layers,
                                                               'SEARCH_TYPE': SEARCH_TYPE,
                                                               'SEARCH_URL': SEARCH_URL.rstrip('/'),
                                                               'catalog_slug': catalog_slug})
@@ -145,7 +188,20 @@ def service_checks(request, catalog_slug, service_uuid):
     service = get_object_or_404(Service, uuid=service_uuid)
     resource = serialize_checks(service.check_set)
 
-    return render(request, 'aggregator/service_checks.html', {'service': service, 'resource': resource})
+    page = request.GET.get('page', 1)
+    checks = service.check_set.all()
+    paginator = BootstrapPaginator(checks, 10)
+
+    try:
+        checks = paginator.page(page)
+    except PageNotAnInteger:
+        checks = paginator.page(1)
+    except EmptyPage:
+        checks = paginator.page(paginator.num_pages)
+
+    return render(request, 'aggregator/service_checks.html', {'service': service,
+                                                              'checks': checks,
+                                                              'resource': resource})
 
 
 def layer_detail(request, catalog_slug, layer_uuid=None, layer_id=None):
@@ -178,7 +234,20 @@ def layer_checks(request, catalog_slug, layer_uuid):
     layer = get_object_or_404(Layer, uuid=layer_uuid)
     resource = serialize_checks(layer.check_set)
 
-    return render(request, 'aggregator/layer_checks.html', {'layer': layer, 'resource': resource})
+    page = request.GET.get('page', 1)
+    checks = layer.check_set.all()
+    paginator = BootstrapPaginator(checks, 10)
+
+    try:
+        checks = paginator.page(page)
+    except PageNotAnInteger:
+        checks = paginator.page(1)
+    except EmptyPage:
+        checks = paginator.page(paginator.num_pages)
+
+    return render(request, 'aggregator/layer_checks.html', {'layer': layer,
+                                                            'checks': checks,
+                                                            'resource': resource})
 
 
 @login_required
