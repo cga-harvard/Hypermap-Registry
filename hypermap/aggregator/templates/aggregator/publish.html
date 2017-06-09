@@ -13,20 +13,23 @@
           <input type="hidden" id="csw-xml" name="csw-xml" value="{{ csw_xml }}"/>
           <div class="form-group">
             <label for="csw-url">CSW Endpoint:</label>
-            <input type="text" class="form-control" id="csw-url">
+            <input type="text" class="form-control" id="csw-url" autofocus>
           </div>
           <div class="form-group">
-            <label for="username">Username:</label>
+            <label for="username">Username (optional):</label>
             <input type="username" class="form-control" id="username">
           </div>
           <div class="form-group">
-            <label for="password">Password:</label>
+            <label for="password">Password (optional):</label>
             <input type="password" class="form-control" id="password">
           </div>
         </form>
+        <div id="csw-publish-result" class="alert hidden" role="alert">
+          <strong id="csw-publish-result-text"></strong>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="submit" id="publish-resource" class="btn btn-default">Publish</button>
+        <button type="submit" id="publish-resource" class="btn btn-default" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Processing">Publish</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
