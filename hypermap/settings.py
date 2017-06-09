@@ -265,3 +265,15 @@ SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 # Read cache information from CACHE_URL
 CACHES = {'default': django_cache_url.config()}
 CACHES['default']['TIMEOUT'] = None
+
+if DEBUG:
+    MIDDLEWARE_CLASSES += (
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    )
+    INSTALLED_APPS += (
+        'debug_toolbar',
+    )
+    INTERNAL_IPS = os.getenv('INTERNAL_IPS', "['127.0.0.1', ]")
+    DEBUG_TOOLBAR_CONFIG = {
+        'INTERCEPT_REDIRECTS': False,
+    }
