@@ -51,7 +51,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django_celery_results',
     'django_celery_beat',
-    'pagination',
+    'dj_pagination',
     'taggit',
     'django_extensions',
     'djmp',
@@ -69,7 +69,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'pagination.middleware.PaginationMiddleware',
+    'dj_pagination.middleware.PaginationMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
