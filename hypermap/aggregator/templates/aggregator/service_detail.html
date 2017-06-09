@@ -28,9 +28,9 @@
     Administrative actions:
     <form action="{{ service.get_absolute_url }}" method="post">
       {% csrf_token %}
-      <input type="submit" name="check" value="Check now">
-      <input type="submit" name="remove" value="Remove checks">
-      <input type="submit" name="index" value="Index">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="check" value="Check now">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="remove" value="Remove checks">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="index" value="Index">
     </form>
     {% endif %}
   </div>
