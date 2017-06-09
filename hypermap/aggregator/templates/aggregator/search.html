@@ -1,6 +1,5 @@
 {% extends "aggregator/base.html" %}
 
-{% load pagination_tags %}
 {% load humanize %}
 
 {% block content %}
@@ -67,7 +66,6 @@
           </tr>
         </thead>
         <tbody>
-          {% autopaginate services 10 %}
           {% for service in services %}
             <tr>
               <td>
@@ -113,11 +111,23 @@
               </td>
             </tr>
           {% endfor %}
-          {% paginate %}
         </tbody>
       </table>
     </div>
   </div>
+
+  <ul class="pagination">
+    <li><a href="?page=1">&laquo;&laquo;</a></li>
+    {% for i in services.paginator.page_range %}
+      {% if services.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    <li><a href="?page={{ services.paginator.num_pages }}">&raquo;&raquo;</a></li>
+  </ul>
+
   {% else %}
       <p>No services are available.</p>
   {% endif %}
