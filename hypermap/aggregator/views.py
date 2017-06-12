@@ -89,7 +89,7 @@ def index(request, catalog_slug=None):
     filter_by = request.GET.get('filter_by', None)
     query = request.GET.get('q', None)
 
-    services = Service.objects.all()
+    services = Service.objects.prefetch_related('check_set').all()
     if catalog_slug:
         services = Service.objects.filter(catalog__slug=catalog_slug)
 
@@ -117,7 +117,6 @@ def index(request, catalog_slug=None):
         types_list.append(type_item)
 
     page = request.GET.get('page', 1)
-    services = services.only('id',)
     paginator = BootstrapPaginator(services, 10)
 
     try:
@@ -167,7 +166,7 @@ def service_detail(request, catalog_slug, service_uuid=None, service_id=None):
                 index_service.delay(service.id)
 
     page = request.GET.get('page', 1)
-    layers = service.layer_set.all().only('id',)
+    layers = service.layer_set.select_related('catalog').prefetch_related('check_set').all()
     paginator = BootstrapPaginator(layers, 10)
 
     try:

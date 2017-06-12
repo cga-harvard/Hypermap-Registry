@@ -61,7 +61,7 @@
               <a href="?order_by=-total_checks"><i class="fa fa-fw fa-sort-desc"></i></a>
             </th>
             <th>Status</th>
-            <th>Response Times</th>
+            <th>Average Resp. Time</th>
             <th>Reliability</th>
           </tr>
         </thead>
@@ -94,13 +94,7 @@
                   <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
                 {% endif %}
               </td>
-              <td>
-                <ul>
-                  <li>Min: {{ service.min_response_time|floatformat:2 }}s</li>
-                  <li>Average: {{ service.average_response_time|floatformat:2 }}s</li>
-                  <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
-                </ul>
-              </td>
+              <td>{{ service.min_response_time|floatformat:2 }}s</td>
               <td>
                 {% if service.reliability > 97 %}
                   <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>

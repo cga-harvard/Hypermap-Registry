@@ -93,6 +93,20 @@
             {% endif %}
           </td>
         </tr>
+        <tr>
+          <td><strong>Response Times</strong></td>
+          <td>
+            {% if service.checks_count > 0 %}
+            <ul>
+              <li>Min: {{ service.min_response_time|floatformat:2 }}s</li>
+              <li>Average: {{ service.average_response_time|floatformat:2 }}s</li>
+              <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
+            </ul>
+            {% else %}
+              No checks performed so far
+            {% endif %}
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -116,10 +130,10 @@
             <th></th>
             <th></th>
             <th>Is Valid?</th>
-            <th>Tot Checks</th>
             <th>Last Check</th>
+            <th>Tot Checks</th>
             <th>Status</th>
-            <th>Response Times</th>
+            <th>Av. Resp. Time</th>
             <th>Reliability</th>
           </tr>
         </thead>
@@ -135,7 +149,7 @@
                   <ul>
                     <li>Name: <a href="{{ layer.get_absolute_url }}">{{ layer.name }}</a></li>
                     <li>Title: {{ layer.title }}</li>
-                    <li>Abstract: {{ layer.abstract|truncatewords:20 }}</li>
+                    <li>Abstract: {{ layer.abstract|truncatewords:10 }}</li>
                   </ul>
                 </td>
                 <td>
@@ -146,17 +160,14 @@
                     {% endif %}
                 </td>
                 <td>
-                  {{ layer.checks_count }}
-                </td>
-                <td>
                   {% if layer.checks_count > 0 %}
-                  <ul>
-                    <li>{{ layer.last_check }}</li>
-                    <li>{{ layer.last_response_time|floatformat:2 }}s</li>
-                  </ul>
+                    {{ layer.last_check }}
                   {% else %}
                     No checks for this layer
                   {% endif %}
+                </td>
+                <td>
+                  {{ layer.checks_count }}
                 </td>
                 {% if layer.checks_count > 0 %}
                   <td>
@@ -170,11 +181,7 @@
 
                   </td>
                   <td>
-                    <ul>
-                      <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
-                      <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
-                      <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
-                    </ul>
+                    {{ layer.average_response_time|floatformat:2 }}s
                   </td>
                   <td>
                     {% if layer.reliability > 97 %}

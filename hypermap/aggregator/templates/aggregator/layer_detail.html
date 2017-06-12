@@ -183,6 +183,20 @@
           </td>
         </tr>
         <tr>
+          <td><strong>Response Times</strong></td>
+          <td>
+            {% if layer.checks_count > 0 %}
+            <ul>
+              <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
+              <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
+              <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
+            </ul>
+            {% else %}
+              No checks performed so far
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
           <td><strong>Was deleted?</strong></td>
           <td>{{ layer.was_deleted }}</td>
         </tr>
