@@ -117,7 +117,7 @@ def index(request, catalog_slug=None):
         types_list.append(type_item)
 
     page = request.GET.get('page', 1)
-    paginator = BootstrapPaginator(services, 10)
+    paginator = BootstrapPaginator(services, settings.PAGINATION_DEFAULT_PAGINATION)
 
     try:
         services = paginator.page(page)
@@ -167,7 +167,7 @@ def service_detail(request, catalog_slug, service_uuid=None, service_id=None):
 
     page = request.GET.get('page', 1)
     layers = service.layer_set.select_related('catalog').prefetch_related('check_set').all()
-    paginator = BootstrapPaginator(layers, 10)
+    paginator = BootstrapPaginator(layers, settings.PAGINATION_DEFAULT_PAGINATION)
 
     try:
         layers = paginator.page(page)
@@ -189,7 +189,7 @@ def service_checks(request, catalog_slug, service_uuid):
 
     page = request.GET.get('page', 1)
     checks = service.check_set.all()
-    paginator = BootstrapPaginator(checks, 10)
+    paginator = BootstrapPaginator(checks, settings.PAGINATION_DEFAULT_PAGINATION)
 
     try:
         checks = paginator.page(page)
@@ -235,7 +235,7 @@ def layer_checks(request, catalog_slug, layer_uuid):
 
     page = request.GET.get('page', 1)
     checks = layer.check_set.all()
-    paginator = BootstrapPaginator(checks, 10)
+    paginator = BootstrapPaginator(checks, settings.PAGINATION_DEFAULT_PAGINATION)
 
     try:
         checks = paginator.page(page)

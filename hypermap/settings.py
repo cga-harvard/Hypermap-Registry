@@ -38,6 +38,7 @@ SECRET_KEY = os.getenv('SECRET_KEY',
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = strtobool(os.getenv('DEBUG', 'False'))
+DEBUG = True
 TEMPLATE_DEBUG = strtobool(os.getenv('TEMPLATE_DEBUG', 'False'))
 
 # Application definition
@@ -263,3 +264,6 @@ SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 # Read cache information from CACHE_URL
 CACHES = {'default': django_cache_url.config()}
 CACHES['default']['TIMEOUT'] = None
+
+# other hhypermap settings
+PAGINATION_DEFAULT_PAGINATION = int(os.getenv('PAGINATION_DEFAULT_PAGINATION', 10))

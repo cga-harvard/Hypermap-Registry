@@ -21,8 +21,8 @@
           <td>
             {% if layer.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ layer.first_check }}</li>
-              <li>Last Check: {{ layer.last_check }}</li>
+              <li>First Check: {{ layer.first_check.checked_datetime }}</li>
+              <li>Last Check: {{ layer.last_check.checked_datetime }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
             </ul>
             {% else %}

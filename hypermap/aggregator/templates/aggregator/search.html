@@ -83,26 +83,34 @@
                   <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
                 {% endif %}
               </td>
-              <td>
-                  {{ service.last_updated }}
-              </td>
-              <td>{{ service.checks_count|intcomma }}</td>
-              <td>
-                {% if service.last_status %}
-                  <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
-                {% else %}
-                  <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
-                {% endif %}
-              </td>
-              <td>{{ service.min_response_time|floatformat:2 }}s</td>
-              <td>
-                {% if service.reliability > 97 %}
-                  <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
-                {% else %}
-                  <a type="button" class="btn btn-danger btn-block nohover"
-                  href="{{ service.get_checks_admin_reliability_warning_url }}">{{ service.reliability|floatformat:2 }}%</a>
-                {% endif %}
-              </td>
+              {% if service.checks_count > 0 %}
+                <td>
+                    {{ service.last_updated }}
+                </td>
+                <td>{{ service.checks_count|intcomma }}</td>
+                <td>
+                  {% if service.last_status %}
+                    <button type="button" class="btn btn-success btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                  {% else %}
+                    <button type="button" class="btn btn-danger btn-circle btn nohover"><i class="fa fa-check"></i></button>
+                  {% endif %}
+                </td>
+                <td>{{ service.min_response_time|floatformat:2 }}s</td>
+                <td>
+                  {% if service.reliability > 97 %}
+                    <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
+                  {% else %}
+                    <a type="button" class="btn btn-danger btn-block nohover"
+                    href="{{ service.get_checks_admin_reliability_warning_url }}">{{ service.reliability|floatformat:2 }}%</a>
+                  {% endif %}
+                </td>
+              {% else %}
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+              {% endif %}
             </tr>
           {% endfor %}
         </tbody>
