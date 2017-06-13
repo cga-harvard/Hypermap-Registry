@@ -203,7 +203,9 @@
   </div>
 
   <ul class="pagination">
-    <li><a href="?page=1">&laquo;&laquo;</a></li>
+    {% if layers.paginator.num_pages > 2 %}
+      <li><a href="?page=1">(1/{{ layers.paginator.num_pages }}) &laquo;&laquo;&laquo;</a></li>
+    {% endif %}
     {% for i in layers.paginator.page_range %}
       {% if layers.number == i %}
         <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
@@ -211,7 +213,9 @@
         <li><a href="?page={{ i }}">{{ i }}</a></li>
       {% endif %}
     {% endfor %}
-    <li><a href="?page={{ layers.paginator.num_pages }}">&raquo;&raquo;</a></li>
+    {% if layers.paginator.num_pages > 2 %}
+      <li><a href="?page={{ layers.paginator.num_pages }}">&raquo;&raquo;&raquo; ({{ layers.paginator.num_pages }}/{{ layers.paginator.num_pages }})</a></li>
+    {% endif %}
   </ul>
 
 {% else %}

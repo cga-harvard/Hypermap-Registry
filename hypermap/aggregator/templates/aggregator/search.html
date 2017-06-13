@@ -119,7 +119,7 @@
   </div>
 
   <ul class="pagination">
-    <li><a href="?page=1">&laquo;&laquo;</a></li>
+    <li><a href="?page=1">(1/{{ services.paginator.num_pages }}) &laquo;&laquo;&laquo;</a></li>
     {% for i in services.paginator.page_range %}
       {% if services.number == i %}
         <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
@@ -127,7 +127,7 @@
         <li><a href="?page={{ i }}">{{ i }}</a></li>
       {% endif %}
     {% endfor %}
-    <li><a href="?page={{ services.paginator.num_pages }}">&raquo;&raquo;</a></li>
+    <li><a href="?page={{ services.paginator.num_pages }}">&raquo;&raquo;&raquo; ({{ services.paginator.num_pages }}/{{ services.paginator.num_pages }})</a></li>
   </ul>
 
   {% else %}
