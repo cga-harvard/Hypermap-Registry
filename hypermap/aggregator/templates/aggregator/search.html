@@ -85,7 +85,7 @@
               </td>
               {% if service.checks_count > 0 %}
                 <td>
-                    {{ service.last_updated }}
+                    {{ service.last_check.checked_datetime }}
                 </td>
                 <td>{{ service.checks_count|intcomma }}</td>
                 <td>
