@@ -19,6 +19,7 @@ from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django_extensions.db.fields import AutoSlugField
+from django.utils.functional import cached_property
 
 from taggit.managers import TaggableManager
 from lxml import etree
@@ -201,64 +202,52 @@ class Resource(models.Model):
     def csw_resourcetype(self):
         return CSW_RESOURCE_TYPES[self.type]
 
-    @property
+    @cached_property
     def first_check(self):
-        return self.check_set.order_by('checked_datetime')[0].checked_datetime
+        return self.check_set.order_by('checked_datetime').first()
 
-    @property
+    @cached_property
     def last_check(self):
-        if self.check_set.all().count() > 0:
-            return self.check_set.order_by('-checked_datetime')[0].checked_datetime
-        else:
-            return None
+        return self.check_set.order_by('-checked_datetime').first()
 
-    @property
+    @cached_property
     def average_response_time(self):
         # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Avg('response_time')).values()[0]
 
-    @property
+    @cached_property
     def min_response_time(self):
         # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Min('response_time')).values()[0]
 
-    @property
+    @cached_property
     def max_response_time(self):
         # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Max('response_time')).values()[0]
 
-    @property
-    def last_response_time(self):
-        if self.checks_count > 0:
-            return self.check_set.order_by('-checked_datetime')[0].response_time
-        else:
-            return None
-
-    @property
+    @cached_property
     def last_status(self):
-        if self.checks_count > 0:
-            return self.check_set.order_by('-checked_datetime')[0].success
+        if self.last_check:
+            return self.last_check.success
         else:
             return None
 
-    @property
+    @cached_property
     def checks_count(self):
         return self.check_set.all().count()
 
-    @property
+    @cached_property
     def reliability(self):
-        total_checks = self.check_set.count()
-        if total_checks:
+        if self.checks_count:
             success_checks = self.check_set.filter(success=True).count()
-            return (success_checks/float(total_checks)) * 100
+            return (success_checks/float(self.checks_count)) * 100
         else:
             return None
 
-    @property
+    @cached_property
     def recent_reliability(self):
-        total_checks = self.check_set.count()
         recent_checks_number = 2
-        if total_checks >= recent_checks_number:
+        if self.checks_count >= recent_checks_number:
             recent_checks = self.check_set.all().order_by('-checked_datetime')[0:recent_checks_number]
             success_checks = sum(check.success for check in recent_checks)
             return (success_checks/float(recent_checks_number)) * 100

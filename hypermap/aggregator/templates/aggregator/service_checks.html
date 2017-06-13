@@ -29,8 +29,8 @@
           <td>
             {% if service.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ service.first_check }}</li>
-              <li>Last Check: {{ service.last_check }}</li>
+              <li>First Check: {{ service.first_check.checked_datetime }}</li>
+              <li>Last Check: {{ service.last_check.checked_datetime }}</li>
               <li>Total Checks: {{ service.checks_count }}</li>
               <li>Reliability: {{ service.reliability }}</li>
             </ul>

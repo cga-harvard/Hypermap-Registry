@@ -83,8 +83,8 @@
           <td>
             {% if service.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ service.first_check }}</li>
-              <li>Last Check: {{ service.last_check }}</li>
+              <li>First Check: {{ service.first_check.checked_datetime }}</li>
+              <li>Last Check: {{ service.last_check.checked_datetime }}</li>
               <li>Total Checks: {{ service.checks_count }}</li>
               <li>Reliability: {{ service.reliability }}</li>
             </ul>
@@ -161,7 +161,7 @@
                 </td>
                 <td>
                   {% if layer.checks_count > 0 %}
-                    {{ layer.last_check }}
+                    {{ layer.last_check.checked_datetime }}
                   {% else %}
                     No checks for this layer
                   {% endif %}
@@ -190,6 +190,10 @@
                       <button type="button" class="btn btn-danger btn-block nohover">{{ layer.reliability|floatformat:2 }}%</button>
                     {% endif %}
                   </td>
+                {% else %}
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
                 {% endif %}
               </tr>
           {% endfor %}
