@@ -1,6 +1,7 @@
 import json
 import datetime
 import time
+import pytz
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -81,7 +82,7 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2000, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2000, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
@@ -96,7 +97,7 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2001, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2001, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
@@ -111,7 +112,7 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2002, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2002, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
@@ -126,7 +127,7 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2003, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2003, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
