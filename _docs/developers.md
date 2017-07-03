@@ -4,7 +4,7 @@
 
 ### Manual Installation
 
-Using ubuntu 14.04
+Using ubuntu 14.04 
 
 ```sh
 sudo apt-get update
@@ -45,13 +45,14 @@ source env/bin/activate
 git clone https://github.com/cga-harvard/HHypermap.git
 cd HHypermap
 git checkout registry
-pip install -e .
+pip install -r requirements.
 ```
-Create environment variables. 
-
+Create environment variables:
+1. Open /env/bin/activate in a text editor
+2. Copy and paste the scripts below to the end of "activate"
 ```sh
 #!/bin/bash
-export DATABASE_URL=hypermap://hypermap:postgres@postgres:5432/hypermap
+export DATABASE_URL=postgres://hypermap:postgres@postgres:5432/hypermap
 export BROKER_URL=amqp://guest:guest@rabbitmq:5672/
 export CACHE_URL=memcached://memcached:11211/
 export BASE_URL=django
@@ -65,9 +66,10 @@ export REGISTRY_INDEX_CACHED_LAYERS_PERIOD=1
 export REGISTRY_HARVEST_SERVICES=True
 export C_FORCE_ROOT=1
 export CELERY_DEFAULT_EXCHANGE=hypermap
-
-
 ```
+3. ```
+. env/bin/activate
+``` 
 
 Execute migrations.
 
