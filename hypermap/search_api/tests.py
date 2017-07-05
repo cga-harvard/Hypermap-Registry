@@ -1,6 +1,7 @@
 import json
 import datetime
 import time
+import pytz
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -11,6 +12,7 @@ from hypermap.aggregator.models import Catalog, layer_post_save, service_post_sa
 from hypermap.search_api import utils
 from hypermap.aggregator.elasticsearch_client import ESHypermap
 from hypermap.aggregator.solr import SolrHypermap
+from hypermap.aggregator.tasks import index_service
 
 
 SEARCH_TYPE = settings.REGISTRY_SEARCH_URL.split('+')[0]
@@ -80,7 +82,7 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2000, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2000, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
@@ -95,7 +97,7 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2001, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2001, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
@@ -110,7 +112,7 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2002, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2002, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
@@ -125,14 +127,14 @@ class SearchApiTestCase(TestCase):
         )
         layer.title = layer.name
         layer.save()
-        layer.created = datetime.datetime(2003, 3, 1, 0, 0, 0)
+        layer.created = datetime.datetime(2003, 3, 1, 0, 0, 0, tzinfo=pytz.utc)
         layer.save()
         service.layer_set.add(layer)
 
         # solr have commitWithin 1500.
         # before to proceed with the tests wait for 2 secs.
         # otherwise it will return zero docs in the next test.
-        service.index_layers(with_cache=False)
+        index_service(service.id)
         time.sleep(2)
 
         self.api_url = "{0}{1}".format(

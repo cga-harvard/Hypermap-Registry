@@ -11,7 +11,6 @@ from urlparse import urlparse
 from dateutil.parser import parse
 
 from django.conf import settings
-from django.core.cache import cache
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -20,6 +19,7 @@ from django.db.models import signals
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django_extensions.db.fields import AutoSlugField
+from django.utils.functional import cached_property
 
 from taggit.managers import TaggableManager
 from lxml import etree
@@ -127,6 +127,9 @@ class Check(models.Model):
     def __unicode__(self):
         return 'Check %s' % self.id
 
+    class Meta:
+        ordering = ['-checked_datetime']
+
 
 class Resource(models.Model):
     """
@@ -199,64 +202,52 @@ class Resource(models.Model):
     def csw_resourcetype(self):
         return CSW_RESOURCE_TYPES[self.type]
 
-    @property
+    @cached_property
     def first_check(self):
-        return self.check_set.order_by('checked_datetime')[0].checked_datetime
+        return self.check_set.order_by('checked_datetime').first()
 
-    @property
+    @cached_property
     def last_check(self):
-        if self.check_set.all().count() > 0:
-            return self.check_set.order_by('-checked_datetime')[0].checked_datetime
-        else:
-            return None
+        return self.check_set.order_by('-checked_datetime').first()
 
-    @property
+    @cached_property
     def average_response_time(self):
         # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Avg('response_time')).values()[0]
 
-    @property
+    @cached_property
     def min_response_time(self):
         # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Min('response_time')).values()[0]
 
-    @property
+    @cached_property
     def max_response_time(self):
         # TODO: exclude failed checks with response time = 0.0
         return self.check_set.aggregate(Max('response_time')).values()[0]
 
-    @property
-    def last_response_time(self):
-        if self.checks_count > 0:
-            return self.check_set.order_by('-checked_datetime')[0].response_time
-        else:
-            return None
-
-    @property
+    @cached_property
     def last_status(self):
-        if self.checks_count > 0:
-            return self.check_set.order_by('-checked_datetime')[0].success
+        if self.last_check:
+            return self.last_check.success
         else:
             return None
 
-    @property
+    @cached_property
     def checks_count(self):
         return self.check_set.all().count()
 
-    @property
+    @cached_property
     def reliability(self):
-        total_checks = self.check_set.count()
-        if total_checks:
+        if self.checks_count:
             success_checks = self.check_set.filter(success=True).count()
-            return (success_checks/float(total_checks)) * 100
+            return (success_checks/float(self.checks_count)) * 100
         else:
             return None
 
-    @property
+    @cached_property
     def recent_reliability(self):
-        total_checks = self.check_set.count()
         recent_checks_number = 2
-        if total_checks >= recent_checks_number:
+        if self.checks_count >= recent_checks_number:
             recent_checks = self.check_set.all().order_by('-checked_datetime')[0:recent_checks_number]
             success_checks = sum(check.success for check in recent_checks)
             return (success_checks/float(recent_checks_number)) * 100
@@ -322,39 +313,26 @@ class Service(Resource):
 
         signals.post_save.disconnect(layer_post_save, sender=Layer)
 
-        LOGGER.debug('Updating layers for service id %s' % self.id)
-        if self.type == 'OGC:WMS':
-            update_layers_wms(self)
-        elif self.type == 'OGC:WMTS':
-            update_layers_wmts(self)
-        elif self.type == 'ESRI:ArcGIS:MapServer':
-            update_layers_esri_mapserver(self)
-        elif self.type == 'ESRI:ArcGIS:ImageServer':
-            update_layers_esri_imageserver(self)
-        elif self.type == 'Hypermap:WorldMap':
-            update_layers_wm(self)
-        elif self.type == 'Hypermap:WARPER':
-            update_layers_warper(self)
+        try:
+
+            LOGGER.debug('Updating layers for service id %s' % self.id)
+            if self.type == 'OGC:WMS':
+                update_layers_wms(self)
+            elif self.type == 'OGC:WMTS':
+                update_layers_wmts(self)
+            elif self.type == 'ESRI:ArcGIS:MapServer':
+                update_layers_esri_mapserver(self)
+            elif self.type == 'ESRI:ArcGIS:ImageServer':
+                update_layers_esri_imageserver(self)
+            elif self.type == 'Hypermap:WorldMap':
+                update_layers_wm(self)
+            elif self.type == 'Hypermap:WARPER':
+                update_layers_warper(self)
+
+        except:
+            LOGGER.error('Error updating layers for service %s' % self.uuid)
 
         signals.post_save.connect(layer_post_save, sender=Layer)
-
-    def index_layers(self, with_cache=True):
-        """
-        Index all layers for this service.
-        """
-        if settings.REGISTRY_SEARCH_URL is not None:
-            for layer in self.layer_set.all():
-                if with_cache:
-                    # TODO: DRY by adding inside tasks.index_layer(layer) method.
-                    LOGGER.debug('Caching layer with id %s for syncing with search engine' % layer.id)
-                    layers = cache.get('layers')
-                    if layers is None:
-                        layers = set([layer.id])
-                    else:
-                        layers.add(layer.id)
-                    cache.set('layers', layers)
-                else:
-                    index_layer(layer)
 
     def check_available(self):
         """
@@ -475,37 +453,43 @@ class Service(Resource):
         """"
         Update validity of a service.
         """
-        signals.post_save.disconnect(service_post_save, sender=Service)
-
-        # some service now must be considered invalid:
-        # 0. any service not exposed in SUPPORTED_SRS
-        # 1. any WMTS service
-        # 2. all of the NOAA layers
 
         # WM is always valid
         if self.type == 'Hypermap:WorldMap':
             return
 
-        is_valid = True
+        signals.post_save.disconnect(service_post_save, sender=Service)
 
-        # 0. any service not exposed in SUPPORTED_SRS
-        if self.srs.filter(code__in=SUPPORTED_SRS).count() == 0:
-            LOGGER.debug('Service with id %s is marked invalid because in not exposed in SUPPORTED_SRS' % self.id)
-            is_valid = False
+        try:
 
-        # 1. any WMTS service
-        if self.type == 'OGC:WMTS':
-            LOGGER.debug('Service with id %s is marked invalid because it is of type OGC:WMTS' % self.id)
-            is_valid = False
+            # some service now must be considered invalid:
+            # 0. any service not exposed in SUPPORTED_SRS
+            # 1. any WMTS service
+            # 2. all of the NOAA layers
 
-        # 2. all of the NOAA layers
-        if 'noaa' in self.url.lower():
-            LOGGER.debug('Service with id %s is marked invalid because it is from NOAA' % self.id)
-            is_valid = False
+            is_valid = True
 
-        # now we save the service
-        self.is_valid = is_valid
-        self.save()
+            # 0. any service not exposed in SUPPORTED_SRS
+            if self.srs.filter(code__in=SUPPORTED_SRS).count() == 0:
+                LOGGER.debug('Service with id %s is marked invalid because in not exposed in SUPPORTED_SRS' % self.id)
+                is_valid = False
+
+            # 1. any WMTS service
+            if self.type == 'OGC:WMTS':
+                LOGGER.debug('Service with id %s is marked invalid because it is of type OGC:WMTS' % self.id)
+                is_valid = False
+
+            # 2. all of the NOAA layers
+            if 'noaa' in self.url.lower():
+                LOGGER.debug('Service with id %s is marked invalid because it is from NOAA' % self.id)
+                is_valid = False
+
+            # now we save the service
+            self.is_valid = is_valid
+            self.save()
+
+        except:
+            LOGGER.error('Error updating validity of the service!')
 
         signals.post_save.connect(service_post_save, sender=Service)
 
@@ -818,11 +802,11 @@ class Layer(Resource):
         start_time = datetime.datetime.utcnow()
         message = ''
         LOGGER.debug('Checking layer id %s' % self.id)
-        try:
-            signals.post_save.disconnect(layer_post_save, sender=Layer)
-            self.update_thumbnail()
-            signals.post_save.connect(layer_post_save, sender=Layer)
 
+        signals.post_save.disconnect(layer_post_save, sender=Layer)
+
+        try:
+            self.update_thumbnail()
         except ValueError, err:
             # caused by update_thumbnail()
             # self.href is empty in arcserver.ExportMap
@@ -831,6 +815,8 @@ class Layer(Resource):
         except Exception, err:
             message = str(err)
             success = False
+
+        signals.post_save.connect(layer_post_save, sender=Layer)
 
         end_time = datetime.datetime.utcnow()
 
@@ -1715,9 +1701,6 @@ def service_pre_save(instance, *args, **kwargs):
         raise Exception("There is already such a service. url={0} catalog={1}".format(
             instance.url, instance.catalog
         ))
-
-    # sanitize service endpoint
-    print 'here'
 
 
 def service_post_save(instance, *args, **kwargs):

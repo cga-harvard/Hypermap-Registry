@@ -38,6 +38,7 @@ SECRET_KEY = os.getenv('SECRET_KEY',
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = strtobool(os.getenv('DEBUG', 'False'))
+DEBUG = True
 TEMPLATE_DEBUG = strtobool(os.getenv('TEMPLATE_DEBUG', 'False'))
 
 # Application definition
@@ -51,7 +52,6 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django_celery_results',
     'django_celery_beat',
-    'pagination',
     'taggit',
     'django_extensions',
     'djmp',
@@ -69,7 +69,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'pagination.middleware.PaginationMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -96,7 +95,7 @@ DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
 
 USE_I18N = True
 
@@ -265,3 +264,6 @@ SEARCH_URL = REGISTRY_SEARCH_URL.split('+')[1]
 # Read cache information from CACHE_URL
 CACHES = {'default': django_cache_url.config()}
 CACHES['default']['TIMEOUT'] = None
+
+# other hhypermap settings
+PAGINATION_DEFAULT_PAGINATION = int(os.getenv('PAGINATION_DEFAULT_PAGINATION', 10))

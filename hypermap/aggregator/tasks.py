@@ -66,7 +66,10 @@ def check_service(self, service_id):
 
     # 3. index layers
     if getattr(settings, 'REGISTRY_HARVEST_SERVICES', True):
-        service.index_layers()
+        if not settings.REGISTRY_SKIP_CELERY:
+            index_service.delay(service.id)
+        else:
+            index_service(service.id)
 
 
 @shared_task(bind=True, soft_time_limit=10)
@@ -261,23 +264,27 @@ def index_layer(self, layer_id, use_cache=False):
         LOGGER.debug('Syncing layer %s to solr' % layer.name)
         solrobject = SolrHypermap()
         success, message = solrobject.layer_to_solr(layer)
-        if not success:
-            self.update_state(
-                state=states.FAILURE,
-                meta=message
-                )
-            raise Ignore()
+        # update the error message if using celery
+        if not settings.REGISTRY_SKIP_CELERY:
+            if not success:
+                self.update_state(
+                    state=states.FAILURE,
+                    meta=message
+                    )
+                raise Ignore()
     elif SEARCH_TYPE == 'elasticsearch':
         from hypermap.aggregator.elasticsearch_client import ESHypermap
         LOGGER.debug('Syncing layer %s to es' % layer.name)
         esobject = ESHypermap()
         success, message = esobject.layer_to_es(layer)
-        if not success:
-            self.update_state(
-                state=states.FAILURE,
-                meta=message
-                )
-            raise Ignore()
+        # update the error message if using celery
+        if not settings.REGISTRY_SKIP_CELERY:
+            if not success:
+                self.update_state(
+                    state=states.FAILURE,
+                    meta=message
+                    )
+                raise Ignore()
 
 
 @shared_task(bind=True)
@@ -310,7 +317,7 @@ def unindex_layer(self, layer_id, use_cache=False):
             LOGGER.error('Layer NOT correctly removed from Solr')
     elif SEARCH_TYPE == 'elasticsearch':
         # TODO implement me
-        raise NotImplementedError
+        pass
 
 
 @shared_task(bind=True)

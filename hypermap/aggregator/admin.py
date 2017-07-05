@@ -2,6 +2,8 @@ from django.contrib import admin
 
 from django_celery_results.models import TaskResult
 
+from django.core.urlresolvers import reverse
+
 from models import (Service, Layer, Check, SpatialReferenceSystem, EndpointList,
                     Endpoint, LayerDate, LayerWM, Catalog, IssueType, Issue)
 
@@ -12,6 +14,9 @@ class ServiceAdmin(admin.ModelAdmin):
     list_display_links = ('id', )
     search_fields = ['title', 'url', ]
     list_filter = ('type', )
+
+    def view_on_site(self, obj):
+        return reverse("service_detail", args=[obj.catalog.slug, obj.uuid])
 
 
 class SpatialReferenceSystemAdmin(admin.ModelAdmin):
@@ -33,6 +38,9 @@ class LayerAdmin(admin.ModelAdmin):
     list_display = ('name', 'is_valid',  'title', 'service', )
     search_fields = ['name', 'title', ]
     list_filter = ('is_public', )
+
+    def view_on_site(self, obj):
+        return reverse("layer_detail", args=[obj.catalog.slug, obj.uuid])
 
 
 class LayerWMAdmin(admin.ModelAdmin):
@@ -85,6 +93,7 @@ class IssueAdmin(admin.ModelAdmin):
     content_object_link.allow_tags = True
     content_object_link.short_description = 'content object'
 
+
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Check, CheckAdmin)
 admin.site.register(SpatialReferenceSystem, SpatialReferenceSystemAdmin)
@@ -133,6 +142,7 @@ class CustomTaskResultAdmin(admin.ModelAdmin):
     )
     list_filter = ('task_name', 'status', )
     date_hierarchy = 'date_done'
+
 
 admin.site.unregister(TaskResult)
 admin.site.register(TaskResult, CustomTaskResultAdmin)

@@ -1,7 +1,5 @@
 {% extends "aggregator/base.html" %}
 
-{% load pagination_tags %}
-
 {% block content %}
 
 <div class="page-header">
@@ -14,17 +12,21 @@
 
 <div class="row">
   <div class="col-md-6">
+    <ul>
     {% if user.is_superuser %}
-    <ul>
-      <button type="button" class="btn btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
-    </ul>
+      <button type="button" class="btn-sm btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
     {% endif %}
-    <ul>
-      {% if layer.service %}
-      <li><a href="{{ layer.service.get_absolute_url }}">Go to service page</a></li>
-      {% endif %}
-      <li><a href="{% url 'layer_mapproxy' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid path_info='/demo/' %}">Go to MapProxy demo page</a></li>
-      <li><a href="{% url 'layer_mapproxy_config' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid %}">Go to MapProxy configuration</a></li>
+    {% if layer.service %}
+      <a href="{{ layer.service.get_absolute_url }}">
+        <button type="button" class="btn-sm btn-primary btn-circle btn nohover">Service Page</button>
+      </a>
+    {% endif %}
+    <a href="{% url 'layer_mapproxy' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid path_info='/demo/' %}">
+      <button type="button" class="btn-sm btn-info btn-circle btn nohover">MapProxy demo page</button>
+    </a>
+    <a href="{% url 'layer_mapproxy_config' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid %}">
+      <button type="button" class="btn-sm btn-info btn-circle btn nohover">MapProxy configuration</button>
+    </a>
     </ul>
 </div>
   <div class="col-md-6">
@@ -32,9 +34,9 @@
     Administrative actions:
     <form action="{{ layer.get_absolute_url }}" method="post">
       {% csrf_token %}
-      <input type="submit" name="check" value="Check now">
-      <input type="submit" name="remove" value="Remove checks">
-      <input type="submit" name="index" value="Index in Search Backend">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="check" value="Check now">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="remove" value="Remove checks">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="index" value="Index in Search Backend">
     </form>
     {% endif %}
   </div>
@@ -71,8 +73,8 @@
               <a href="{{SEARCH_URL}}/solr/hypermap/select?q=layer_id:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/solr/hypermap/select?q=layer_id:{{layer.id}}&wt=json&indent=true</a>
               {% endif %}
               <li>Metadata:
-                  <a href="{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}" target="new">
-                      {{ request.scheme }}://{{ request.get_host }}{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&id={{layer.id}}
+                  <a href="{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=full&id={{layer.uuid}}" target="new">
+                      {{ request.scheme }}://{{ request.get_host }}{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=full&id={{layer.uuid}}
                   </a>
               </li>
               </li>
@@ -169,11 +171,25 @@
           <td>
             {% if layer.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ layer.first_check }}</li>
-              <li>Last Check: {{ layer.last_check }}</li>
+              <li>First Check: {{ layer.first_check.checked_datetime }}</li>
+              <li>Last Check: {{ layer.last_check.checked_datetime }}</li>
               <li>Total Checks: {{ layer.checks_count }}</li>
               <li>Reliability: {{ layer.reliability }}</li>
               <li><a href="{{ layer.get_check_stats_absolute_url }}">See full check stats</a></li>
+            </ul>
+            {% else %}
+              No checks performed so far
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Response Times</strong></td>
+          <td>
+            {% if layer.checks_count > 0 %}
+            <ul>
+              <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
+              <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
+              <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
             </ul>
             {% else %}
               No checks performed so far

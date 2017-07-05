@@ -70,6 +70,8 @@ ec2.py
 hypermap/media
 hypermap/settings/local_settings.py
 development.db
+celerybeat-schedule.*
+src
 
 # IDE specific
 /hypermap/settings/_panchicore.py

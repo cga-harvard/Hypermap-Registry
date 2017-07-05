@@ -1,7 +1,5 @@
 {% extends "aggregator/base.html" %}
 
-{% load pagination_tags %}
-
 {% block content %}
 
 <div class="page-header">
@@ -31,8 +29,8 @@
           <td>
             {% if service.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ service.first_check }}</li>
-              <li>Last Check: {{ service.last_check }}</li>
+              <li>First Check: {{ service.first_check.checked_datetime }}</li>
+              <li>Last Check: {{ service.last_check.checked_datetime }}</li>
               <li>Total Checks: {{ service.checks_count }}</li>
               <li>Reliability: {{ service.reliability }}</li>
             </ul>
@@ -69,10 +67,7 @@
 
 <h2>Checks</h2>
 
-{% with service.check_set.all as check_set %}
-{% if check_set %}
-  {% autopaginate check_set 10 %}
-  {% paginate %}
+{% if checks %}
     <div class="row">
       <div class="col-md-12">
         <table class="table table-striped">
@@ -85,7 +80,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for check in check_set %}
+            {% for check in checks %}
                 <tr>
                   <td>{{ check.checked_datetime }}</td>
                   <td>{{ check.response_time }}</td>
@@ -103,10 +98,22 @@
         </table>
       </div>
     </div>
+
+    <ul class="pagination">
+      <li><a href="?page=1">&laquo;&laquo;</a></li>
+      {% for i in layers.paginator.page_range %}
+        {% if layers.number == i %}
+          <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+        {% else %}
+          <li><a href="?page={{ i }}">{{ i }}</a></li>
+        {% endif %}
+      {% endfor %}
+      <li><a href="?page={{ checks.paginator.num_pages }}">&raquo;&raquo;</a></li>
+    </ul>
+
 {% else %}
     <p>No checks are available.</p>
 {% endif %}
-{% endwith %}
 
 {% endblock %}
 {% block extrafoot %}

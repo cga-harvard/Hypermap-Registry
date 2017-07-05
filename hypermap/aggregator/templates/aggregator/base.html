@@ -61,7 +61,16 @@
               <li><a href="{% url 'domains' %}">Domains</a></li>
               <li><a href="{% url 'tasks_runner' %}">Tasks</a></li>
               <li><a href="{% url 'admin:index' %}">Admin</a></li>
-              <li><a href="{{ SEARCH_IP }}/#/hypermap" target="new">Solr</a></li>
+              <li><a href="{{ SEARCH_IP }}/#/hypermap" target="new">{{ SEARCH_TYPE }}</a></li>
+            {% endif %}
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            {% if user.is_authenticated %}
+              <li> <a href="#">Welcome, {{ user.get_username }}</a></li>
+              <li><a href="{% url 'password_change' %}">Change Password</a></li>
+              <li><a href="{% url 'logout' %}">Log Out</a></li>
+            {% else %}
+              <li><a href="{% url 'login' %}">Log In</a></li>
             {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
@@ -83,7 +92,7 @@
     <!-- Raphael javascript core -->
     <script src="{{ STATIC_URL }}js/raphael-min.js"></script>
     <script src="{{ STATIC_URL }}js/morris.min.js"></script>
-    <script src="{{ STATIC_URL }}js/publish.js"></script>
+    <script src="{{ STATIC_URL }}js/hypermap.js"></script>
     {% block extrafoot %}{% endblock %}
   </body>
 </html>
