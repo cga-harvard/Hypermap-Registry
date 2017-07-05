@@ -2,166 +2,9 @@
 
 ## Installation
 
-The easiest way to see HHypermap up and running is using the Docker setup. Otherwise it is still possible to manually install it.
-
-### Running Hypermap on Docker
-
-Easiest way to have an HHypermap instance up and running is to use Docker.
-
-#### Docker installation
-```
-wget https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz
-tar -xvzf docker-latest.tgz
-sudo mv docker/* /usr/bin/
-curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > docker-compose
-chmod +x docker-compose
-sudo mv docker-compose /usr/bin/
-sudo usermod -aG docker $(whoami)
-```
-
-#### Increase virtual memory map area (Linux)
-
-```
-sudo sysctl -w vm.max_map_count=262144
-```
-
-
-#### Run docker in daemon
-
-```sh
-sudo dockerd
-```
-
-#### Deployment of hhypermap within docker
-
-```sh
-git clone https://github.com/cga-harvard/HHypermap.git
-cd HHypermap
-make build
-make up
-make sync
-make logs
-```
-Wait for the instance to be provisioned (about 3/4 minutes).
-
-Then connect to: http://localhost:8000 and your instance should be up and running.
-
-You can edit the files with your IDE from your host, as the directory /code on the guest is synced with your host. Make sure to check the ```REGISTRY_SKIP_CELERY``` environment variable is set to False for debugging. If this value is set to False, it is always necessary to restart the celery container executing
-
-```sh
-docker-compose restart celery
-```
-
-##### Tests commands
-
-*Unit tests* asserts the correct functionality of Hypermap workflow where an added endpoint, creates Services and their Layers, checks
- the correct metadata is being harvested and stored in DB and indexed in the Search backend.
-
-```sh
-make test-unit
-```
-
-*Solr backend* asserts the correct functionality of Solr implementation to index Layers with Solr and tests the Hypermap search API connected to that implementation by
-querying data by the most important fields.
-
-1. inserts 4 layers
-2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs).
-
-```sh
-make test-solr
-```
-
-*Elasticsearch backend* asserts the correct functionality of Elasticsearch implementation to index Layers with ES and tests the Hypermap search API connected to that implementation by
-querying data by the most important fields.
-
-1. inserts 4 layers
-2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs).
-
-```sh
-make test-elastic
-```
-
-*Selenium Browser* is an end-to-end tests that runs a Firefox and emulates the user interaction with some basic actions to test the correct funcionality of
- the Django admin site and registry UI, this test covers the following actions:
-
- 1. admin login (user sessions works as expected)
- 2. periodic tasks verifications (automatic periodic tasks are created on startup in order to perform important automatic tasks like check layers, index cached layers on search backend and clean up tasks)
- 3. upload endpoint list (file uploads correctly and store in db, it triggers all harvesting load like: create endpoints, create services and their layers, index layers in search backend and perform firsts service checks)
- 4. verify creation of endpoint, service and layers (previous workflow executed correctly)
- 5. browser the search backend url (should appear indexed layers previouly created)
- 6. browser /registry/ (services created are being display to users correctly)
- 7. browser service details (check basic service metadata present on the page)
- 8. reset service checks (correct functionality should start new check tasks)
- 9. create new service checks and verification (trigger the verification tasks and verifies it in service listing page)
- 10. browser layers details (check basic service metadata present on the page)
- 11. reset layer checks (correct functionality should start new check tasks)
- 12. create new layer checks and verification (trigger the verification tasks and verifies it in service layers listing page)
- 13. clear index (tests the clean up indice functionality)
-
-
-```sh
-make test-endtoend-selenium-firefox
-```
-
-Selenium and Firefox interaction can be viewed by connecting to VNC protocol, the easiest method is to use Safari.
-Just open up Safari and in the URL bar type `vnc://localhost:5900` hit enter and entry `secret` in the password field. Other method is using VNCViever: https://www.realvnc.com/download/viewer/
-
-*CSW-T* asserts the correct functionality of CSW transaction requests.
-
-1. inserts a full XML documents with `request=Transaction` and verifies Layers created correctly, the inserted document with 10 Layers can be found here: `data/cswt_insert.xml`
-2. verifies the Listing by calling  `request=GetRecords` and asserting 10 Layers created.
-3. verifies the search by calling `request=GetRecords` and passing a `q` parameter.
-4. as that harvesting method also sends the layers to the search backend, a verification is made in order to assert the 10 layers created.
-
-```sh
-make - test-csw-transactions
-```
-
-To run all tests above in a single command:
-
-```sh
-make test
-```
-
-##### Travis Continuos Integration Server
-
-`master` branch is automaticaly synced on https://travis-ci.org/ and reporting test results, too see how travis is running tests refer to the `.travis.yml` file placed in the project root.
-If you want to run tests in your local containers first, Execute travis-solo (`pip install travis-solo`) in directory containing .travis.yml configuration file. It’s return code will be 0 in case of success and non-zero in case of failure.
-
-##### Tool For Style Guide Enforcement
-
-The modular source code checker for `pep8`, `pyflakes` and `co` runs thanks to `flake8` already installed with the project requirements and can be executed with this command:
-
-```sh
-make flake
-```
-
-Note that Travis-CI will assert flake returns 0 code incidences.
-
-##### How to debug Django in Docker
-
-This is what can be done to debug Django:
-
-```sh
-docker-compose stop django
-docker-compose run --service-ports django
-```
-
-Now add a breakpoint - import ipdb;ipdb.set_trace() - and happy debugging!
-
-##### How to run the shell or django commands
-
-If you want to run the shell or django commands:
-
-```sh
-docker exec -it hypermap_django_run_8 bash
-python manage.py shell
-python manage.py solr_scheme
-```
-
 ### Manual Installation
 
-Using ubuntu 14.04
+Using ubuntu 14.04 (also works on 16.04)
 
 ```sh
 sudo apt-get update
@@ -202,13 +45,14 @@ source env/bin/activate
 git clone https://github.com/cga-harvard/HHypermap.git
 cd HHypermap
 git checkout registry
-pip install -e .
+pip install -r requirements
 ```
-Create environment variables.
-
+Create environment variables:
+1. Open /env/bin/activate in a text editor
+2. Copy and paste the scripts below to the end of "activate"
 ```sh
 #!/bin/bash
-export DATABASE_URL=hypermap://hypermap:postgres@postgres:5432/hypermap
+export DATABASE_URL=postgres://hypermap:postgres@postgres:5432/hypermap
 export BROKER_URL=amqp://guest:guest@rabbitmq:5672/
 export CACHE_URL=memcached://memcached:11211/
 export BASE_URL=django
@@ -222,10 +66,12 @@ export REGISTRY_INDEX_CACHED_LAYERS_PERIOD=1
 export REGISTRY_HARVEST_SERVICES=True
 export C_FORCE_ROOT=1
 export CELERY_DEFAULT_EXCHANGE=hypermap
-
 ```
+3. ```
+source env/bin/activate
+``` 
 
-Execute migrations.
+Execute migrations
 
 ```sh
 python manage.py migrate
@@ -237,19 +83,138 @@ python manage.py loaddata hypermap/aggregator/fixtures/catalog_default.json
 python manage.py loaddata hypermap/aggregator/fixtures/user.json
 ```
 
-#### Celery how to
+### Running Hypermap on Docker
 
-If you want to start Celery in the development environment:
+Easiest way to have an HHypermap instance up and running is to use Docker.
 
-```sh
-celery -A hypermap worker --beat --scheduler django -l info
+#### Docker installation
+```
+wget https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz
+tar -xvzf docker-latest.tgz
+sudo mv docker/* /usr/bin/
+curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > docker-compose
+chmod +x docker-compose
+sudo mv docker-compose /usr/bin/
+sudo usermod -aG docker $(whoami)
 ```
 
-If you need to purge the Celery queue:
+#### Increase virtual memory map area (Linux)
+
+```
+sudo sysctl -w vm.max_map_count=262144
+```
+
+
+#### Run docker in daemon
 
 ```sh
-celery purge --broker=amqp://hypermap:password@localhost/hypermap
+sudo dockerd
 ```
+
+#### Deployment of hhypermap within docker
+
+```sh
+git clone https://github.com/cga-harvard/HHypermap.git
+cd HHypermap
+git checkout registry
+make up
+make sync
+```
+Wait for the instance to be provisioned (about 3/4 minutes).
+
+Then connect to: http://localhost/registry and your instance should be up and running.
+
+You can edit the files with your IDE from your host, as the directory /code on the guest is synced with your host. Make sure to check the ```REGISTRY_SKIP_CELERY``` environment variable is set to False for debugging. If this value is set to False, it is always necessary to restart the celery container executing
+
+```sh
+docker-compose restart celery
+```
+
+##### Tests commands
+
+*Unit tests* asserts the correct functionality of Hypermap workflow where an added endpoint, creates Services and their Layers, checks
+ the correct metadata is being harvested and stored in DB and indexed in the Search backend.
+
+```sh
+make test-unit
+```
+
+*Solr backend* asserts the correct functionality of Solr implementation to index Layers with Solr and tests the Hypermap search API connected to that implementation by
+querying data by the most important fields.
+
+1. inserts 4 layers
+2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs). 
+
+```sh
+make test-solr
+```
+
+*Elasticsearch backend* asserts the correct functionality of Elasticsearch implementation to index Layers with ES and tests the Hypermap search API connected to that implementation by
+querying data by the most important fields.
+
+1. inserts 4 layers
+2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs). 
+
+```sh
+make test-elastic
+```
+
+*Selenium Browser* is an end-to-end tests that runs a Firefox and emulates the user interaction with some basic actions to test the correct funcionality of
+ the Django admin site and registry UI, this test covers the following actions:
+ 
+ 1. admin login (user sessions works as expected)
+ 2. periodic tasks verifications (automatic periodic tasks are created on startup in order to perform important automatic tasks like check layers, index cached layers on search backend and clean up tasks)
+ 3. upload endpoint list (file uploads correctly and store in db, it triggers all harvesting load like: create endpoints, create services and their layers, index layers in search backend and perform firsts service checks)
+ 4. verify creation of endpoint, service and layers (previous workflow executed correctly)
+ 5. browser the search backend url (should appear indexed layers previouly created)
+ 6. browser /registry/ (services created are being display to users correctly)
+ 7. browser service details (check basic service metadata present on the page)
+ 8. reset service checks (correct functionality should start new check tasks)
+ 9. create new service checks and verification (trigger the verification tasks and verifies it in service listing page)
+ 10. browser layers details (check basic service metadata present on the page)
+ 11. reset layer checks (correct functionality should start new check tasks)
+ 12. create new layer checks and verification (trigger the verification tasks and verifies it in service layers listing page)
+ 13. clear index (tests the clean up indice functionality)
+ 
+
+```sh
+make test-endtoend-selenium-firefox
+```
+
+Selenium and Firefox interaction can be viewed by connecting to VNC protocol, the easiest method is to use Safari. 
+Just open up Safari and in the URL bar type `vnc://localhost:5900` hit enter and entry `secret` in the password field. Other method is using VNCViever: https://www.realvnc.com/download/viewer/
+
+*CSW-T* asserts the correct functionality of CSW transaction requests. 
+
+1. inserts a full XML documents with `request=Transaction` and verifies Layers created correctly, the inserted document with 10 Layers can be found here: `data/cswt_insert.xml`
+2. verifies the Listing by calling  `request=GetRecords` and asserting 10 Layers created.
+3. verifies the search by calling `request=GetRecords` and passing a `q` parameter.
+4. as that harvesting method also sends the layers to the search backend, a verification is made in order to assert the 10 layers created.
+
+```sh
+make - test-csw-transactions
+```
+
+To run all tests above in a single command:
+
+```sh
+make test
+```
+
+##### Travis Continuos Integration Server
+
+`master` branch is automaticaly synced on https://travis-ci.org/ and reporting test results, too see how travis is running tests refer to the `.travis.yml` file placed in the project root.
+If you want to run tests in your local containers first, Execute travis-solo (`pip install travis-solo`) in directory containing .travis.yml configuration file. It’s return code will be 0 in case of success and non-zero in case of failure.
+
+##### Tool For Style Guide Enforcement
+
+The modular source code checker for `pep8`, `pyflakes` and `co` runs thanks to `flake8` already installed with the project requirements and can be executed with this command:
+
+```sh
+make flake
+```
+
+Note that Travis-CI will assert flake returns 0 code incidences.
 
 ## Known Issues in version 0.3.9
 
@@ -262,7 +227,6 @@ celery purge --broker=amqp://hypermap:password@localhost/hypermap
 
 
 ## Changelog
-
 Master
 
  - Removed dependency on pylibmc. Fixes #181.
