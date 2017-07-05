@@ -4,7 +4,7 @@
 
 ### Manual Installation
 
-Using ubuntu 14.04 
+Using ubuntu 14.04 (also works on 16.04)
 
 ```sh
 sudo apt-get update
@@ -45,7 +45,7 @@ source env/bin/activate
 git clone https://github.com/cga-harvard/HHypermap.git
 cd HHypermap
 git checkout registry
-pip install -r requirements.
+pip install -r requirements
 ```
 Create environment variables:
 1. Open /env/bin/activate in a text editor
@@ -68,10 +68,10 @@ export C_FORCE_ROOT=1
 export CELERY_DEFAULT_EXCHANGE=hypermap
 ```
 3. ```
-. env/bin/activate
+source env/bin/activate
 ``` 
 
-Execute migrations.
+Execute migrations
 
 ```sh
 python manage.py migrate
