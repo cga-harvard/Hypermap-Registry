@@ -67,7 +67,8 @@ export REGISTRY_HARVEST_SERVICES=True
 export C_FORCE_ROOT=1
 export CELERY_DEFAULT_EXCHANGE=hypermap
 ```
-3. ```
+3.
+```
 source env/bin/activate
 ``` 
 
