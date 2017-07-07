@@ -297,7 +297,6 @@ def tasks_runner(request):
             else:
                 unindex_layers_with_issues.delay()
 
-
     return render(
         request,
         'aggregator/tasks_runner.html', {
