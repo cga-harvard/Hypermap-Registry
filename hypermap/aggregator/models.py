@@ -450,7 +450,7 @@ class Service(Resource):
         LOGGER.debug('Service checked in %s seconds, status is %s' % (response_time, success))
 
     def update_validity(self):
-        """"
+        """
         Update validity of a service.
         """
 
@@ -834,30 +834,31 @@ class Layer(Resource):
         return success, message
 
     def registry_tags(self, query_string='{http://gis.harvard.edu/HHypermap/registry/0.1}property'):
-        """Get extra metadata tagged with a registry keyword.
-               For example:
-                      <registry:property name="nomination/serviceOwner" value="True"/>
-                      <registry:property name="nominator/name" value="Random Person"/>
-                      <registry:property name="nominator/email" value="contact@example.com"/>
-                      <registry:property name="lastmodifiedby" value="2016-10-23"/>
-                      <registry:property name="updateFreq" value="as needed"/>
-                      <registry:property name="mission" value="RIO"/>
-                      <registry:property name="authentication" value="Open"/>
-                      <registry:property name="crisis" value="False"/>
-                      <registry:property name="intlAgreement/multi" value="none"/>
-                      <registry:property name="intlAgreement/bilateral" value="none"/>
-                      <registry:property name="classificationRecord/classification" value="Unclassified"/>
-                      <registry:property name="classificationData/classification" value="Unclassified"/>
-                      <registry:property name="serviceName/classification/classification" value="Unclassified"/>
-                      <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
-                      <registry:property name="description/classification/classification" value="Unclassified"/>
-                      <registry:property name="description/classification/classifiedBy" value="TNT"/>
-                      <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
-                      <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
-                      <registry:property name="ContactInformation/Email" value="contact@example.com"/>
-                      <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555"/>
-                      <registry:property name="license/restrictions" value="none"/>
-                      <registry:property name="license/copyright" value="Private. For testing purposes."/>
+        """
+        Get extra metadata tagged with a registry keyword.
+        For example:
+            <registry:property name="nomination/serviceOwner" value="True"/>
+            <registry:property name="nominator/name" value="Random Person"/>
+            <registry:property name="nominator/email" value="contact@example.com"/>
+            <registry:property name="lastmodifiedby" value="2016-10-23"/>
+            <registry:property name="updateFreq" value="as needed"/>
+            <registry:property name="mission" value="RIO"/>
+            <registry:property name="authentication" value="Open"/>
+            <registry:property name="crisis" value="False"/>
+            <registry:property name="intlAgreement/multi" value="none"/>
+            <registry:property name="intlAgreement/bilateral" value="none"/>
+            <registry:property name="classificationRecord/classification" value="Unclassified"/>
+            <registry:property name="classificationData/classification" value="Unclassified"/>
+            <registry:property name="serviceName/classification/classification" value="Unclassified"/>
+            <registry:property name="serviceName/classification/classifiedBy" value="TNT"/>
+            <registry:property name="description/classification/classification" value="Unclassified"/>
+            <registry:property name="description/classification/classifiedBy" value="TNT"/>
+            <registry:property name="ContactInformation/Primary/owner" value="Help Desk"/>
+            <registry:property name="ContactInformation/Primary/organization" value="Three Letter One"/>
+            <registry:property name="ContactInformation/Email" value="contact@example.com"/>
+            <registry:property name="ContactInformation/Phone" value="Toll-free: 1 800 555-5555"/>
+            <registry:property name="license/restrictions" value="none"/>
+            <registry:property name="license/copyright" value="Private. For testing purposes."/>
 
         """
         from pycsw.core.etree import etree

@@ -302,7 +302,9 @@ def tasks_runner(request):
 
 
 def layer_mapproxy(request, catalog_slug, layer_uuid, path_info):
-    # Get Layer with matching catalog and uuid
+    """
+    Get Layer with matching catalog and uuid
+    """
     layer = get_object_or_404(Layer,
                               uuid=layer_uuid,
                               catalog__slug=catalog_slug)
