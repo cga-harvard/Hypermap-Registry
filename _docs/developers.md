@@ -83,7 +83,14 @@ Finally, load fixtures
 python manage.py loaddata hypermap/aggregator/fixtures/catalog_default.json
 python manage.py loaddata hypermap/aggregator/fixtures/user.json
 ```
-
+Activate Celery
+```
+celery -A hypermap worker --beat --scheduler django -l info
+```
+Run server
+```
+python manage.py runserver
+```
 ### Running Hypermap on Docker
 
 Easiest way to have an HHypermap instance up and running is to use Docker.

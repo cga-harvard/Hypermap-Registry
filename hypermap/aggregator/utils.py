@@ -403,7 +403,7 @@ def process_esri_services(esri_services, catalog):
 
 def inverse_mercator(xy):
     """
-        Given coordinates in spherical mercator, return a lon,lat tuple.
+    Given coordinates in spherical mercator, return a lon,lat tuple.
     """
     lon = (xy[0] / 20037508.34) * 180
     lat = (xy[1] / 20037508.34) * 180
