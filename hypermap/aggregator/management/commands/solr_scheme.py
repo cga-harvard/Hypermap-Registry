@@ -8,7 +8,6 @@ class Command(BaseCommand):
     args = 'path [path...]'
 
     def handle(self, *args, **options):
-
         """
         reset core:
         rm -Rf SOLR_HOME/server/solr/hypermap_test
