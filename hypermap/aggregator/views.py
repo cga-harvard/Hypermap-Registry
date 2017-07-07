@@ -15,7 +15,7 @@ from djmp.views import get_mapproxy
 
 
 from models import Service, Layer, Catalog
-from tasks import (check_all_services, check_service, check_layer, remove_service_checks,
+from tasks import (check_all_services, check_service, check_layer, remove_service_checks, unindex_layers_with_issues,
                    index_service, index_all_layers, index_layer, index_cached_layers, clear_index,
                    SEARCH_TYPE, SEARCH_URL)
 from enums import SERVICE_TYPES
@@ -291,6 +291,12 @@ def tasks_runner(request):
                 clear_index()
             else:
                 clear_index.delay()
+        if 'remove_index' in request.POST:
+            if settings.REGISTRY_SKIP_CELERY:
+                unindex_layers_with_issues()
+            else:
+                unindex_layers_with_issues.delay()
+
 
     return render(
         request,
