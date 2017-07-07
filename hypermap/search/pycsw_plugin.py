@@ -96,9 +96,13 @@ def get_service(raw_xml):
 
 
 class HHypermapRepository(object):
-    ''' Class to interact with underlying repository '''
+    """
+    Class to interact with underlying repository
+    """
     def __init__(self, context, repo_filter=None):
-        ''' Initialize repository '''
+        """
+        Initialize repository
+        """
 
         self.context = context
         self.filter = repo_filter
@@ -140,11 +144,15 @@ class HHypermapRepository(object):
             self.context.model['operations']['Transaction']['parameters']['TransactionSchemas']['values'] = HYPERMAP_SERVICE_TYPES.keys()  # noqa
 
     def dataset(self):
-        ''' Stub to mock a pycsw dataset object for Transactions'''
+        """
+        Stub to mock a pycsw dataset object for Transactions
+        """
         return type('Service', (object,), {})
 
     def query_ids(self, ids):
-        ''' Query by list of identifiers '''
+        """
+        Query by list of identifiers
+        """
 
         results = self._get_repo_filter(Layer.objects).filter(uuid__in=ids).all()
 
@@ -154,7 +162,9 @@ class HHypermapRepository(object):
         return results
 
     def query_domain(self, domain, typenames, domainquerytype='list', count=False):
-        ''' Query by property domain values '''
+        """
+        Query by property domain values
+        """
 
         objects = self._get_repo_filter(Layer.objects)
 
@@ -168,7 +178,9 @@ class HHypermapRepository(object):
                 return objects.values_list(domain).distinct()
 
     def query_insert(self, direction='max'):
-        ''' Query to get latest (default) or earliest update to repository '''
+        """
+        Query to get latest (default) or earliest update to repository
+        """
         if direction == 'min':
             return Layer.objects.aggregate(
                 Min('last_updated'))['last_updated__min'].strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -176,11 +188,15 @@ class HHypermapRepository(object):
             Max('last_updated'))['last_updated__max'].strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def query_source(self, source):
-        ''' Query by source '''
+        """
+        Query by source
+        """
         return self._get_repo_filter(Layer.objects).filter(url=source)
 
     def query(self, constraint, sortby=None, typenames=None, maxrecords=10, startposition=0):
-        ''' Query records from underlying repository '''
+        """
+        Query records from underlying repository
+        """
 
         # run the raw query and get total
         if 'where' in constraint:  # GetRecords with constraint
@@ -214,7 +230,9 @@ class HHypermapRepository(object):
             return [str(total), query.all()[startposition:startposition+int(maxrecords)]]
 
     def insert(self, resourcetype, source, insert_date=None):
-        ''' Insert a record into the repository '''
+        """
+        Insert a record into the repository
+        """
 
         caller = inspect.stack()[1][3]
 
@@ -230,7 +248,9 @@ class HHypermapRepository(object):
         return self._insert_or_update(resourcetype, source, mode='insert', hhclass=hhclass)
 
     def _insert_or_update(self, resourcetype, source, mode='insert', hhclass='Service'):
-        ''' Insert or update a record in the repository '''
+        """
+        Insert or update a record in the repository
+        """
 
         keywords = []
 
@@ -300,7 +320,9 @@ class HHypermapRepository(object):
         return ids
 
     def delete(self, constraint):
-        ''' Delete a record from the repository '''
+        """
+        Delete a record from the repository
+        """
 
         results = self._get_repo_filter(Service.objects).extra(where=[constraint['where']],
                                                                params=constraint['values']).all()
@@ -309,7 +331,9 @@ class HHypermapRepository(object):
         return deleted
 
     def _get_repo_filter(self, query):
-        ''' Apply repository wide side filter / mask query '''
+        """
+        Apply repository wide side filter / mask query
+        """
         if self.filter is not None:
             return query.extra(where=[self.filter])
         return query
