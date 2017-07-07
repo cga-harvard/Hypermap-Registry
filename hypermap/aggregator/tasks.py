@@ -227,7 +227,8 @@ def index_service(self, service_id):
 
 @shared_task(bind=True)
 def index_layer(self, layer_id, use_cache=False):
-    """Index a layer in the search backend.
+    """
+    Index a layer in the search backend.
     If cache is set, append it to the list, if it isn't send the transaction right away.
     cache needs memcached to be available.
     """
