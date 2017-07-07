@@ -290,7 +290,7 @@ def index_layer(self, layer_id, use_cache=False):
 @shared_task(bind=True)
 def unindex_layers_with_issues(self, use_cache=False):
     """
-    Remove the index for layers in search backend, which are linked to an issue 
+    Remove the index for layers in search backend, which are linked to an issue.
     """
     from hypermap.aggregator.models import Issue, Layer
     from django.contrib.contenttypes.models import ContentType
