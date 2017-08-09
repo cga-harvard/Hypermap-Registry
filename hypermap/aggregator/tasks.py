@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 
 from celery import shared_task, states
-from celery.exceptions import Ignore, SoftTimeLimitExceeded
+from celery.exceptions import Ignore, SoftTimeLimitExceeded, TimeoutError
 
 from django.conf import settings
 from django.core.cache import cache
@@ -31,6 +31,7 @@ else:
     DEBUG_SERVICES = False
     DEBUG_LAYERS_NUMBER = -1
 
+
 @shared_task(bind=True)
 def check_all_services(self):
     try:
@@ -39,7 +40,7 @@ def check_all_services(self):
         for service in service_to_processes:
             check_service.delay(service.id)
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -74,12 +75,12 @@ def check_service(self, service_id):
             else:
                 index_service(service.id)
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True, soft_time_limit=10)
 def check_layer(self, layer_id):
-    try:    
+    try:
         from hypermap.aggregator.models import Layer
         layer = Layer.objects.get(pk=layer_id)
         LOGGER.debug('Checking layer %s' % layer.name)
@@ -92,7 +93,7 @@ def check_layer(self, layer_id):
             else:
                 index_layer(layer.id, use_cache=True)
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()                
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -182,7 +183,7 @@ def index_cached_layers(self):
         else:
             LOGGER.debug('No cached layers to remove in search engine.')
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()    
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(name="clear_index")
@@ -199,7 +200,7 @@ def clear_index():
             esobject = ESHypermap()
             esobject.clear_es()
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -216,7 +217,7 @@ def remove_service_checks(self, service_id):
         for layer in layer_to_process:
             layer.check_set.all().delete()
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -241,7 +242,7 @@ def index_service(self, service_id):
             else:
                 index_layer(layer.id)
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -305,7 +306,29 @@ def index_layer(self, layer_id, use_cache=False):
                         )
                     raise Ignore()
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()                    
+        raise TimeoutError('The operation timed out.')
+
+
+@shared_task(bind=True)
+def unindex_layers_with_issues(self, use_cache=False):
+    """
+    Remove the index for layers in search backend, which are linked to an issue.
+    """
+    try:
+        from hypermap.aggregator.models import Issue, Layer, Service
+        from django.contrib.contenttypes.models import ContentType
+
+        layer_type = ContentType.objects.get_for_model(Layer)
+        service_type = ContentType.objects.get_for_model(Service)
+
+        for issue in Issue.objects.filter(content_type__pk=layer_type.id):
+            unindex_layer(issue.content_object.id, use_cache)
+
+        for issue in Issue.objects.filter(content_type__pk=service_type.id):
+            for layer in issue.content_object.layer_set.all():
+                unindex_layer(layer.id, use_cache)
+    except SoftTimeLimitExceeded:
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -340,7 +363,7 @@ def unindex_layer(self, layer_id, use_cache=False):
             # TODO implement me
             pass
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()            
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -360,7 +383,7 @@ def index_all_layers(self):
             for layer in Layer.objects.all():
                 index_layer(layer.id)
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()                
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -397,7 +420,7 @@ def update_last_wm_layers(self, num_layers=10):
             else:
                 index_layer(layer.id)
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -422,7 +445,7 @@ def update_endpoint(self, endpoint_id, greedy_opt=False):
             imported=imported, message=message, processed=True
         )
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
 
 
 @shared_task(bind=True)
@@ -440,4 +463,4 @@ def update_endpoints(self, endpoint_list_id):
                 update_endpoint(endpoint.id)
         return True
     except SoftTimeLimitExceeded:
-        clean_up_in_a_hurry()
+        raise TimeoutError('The operation timed out.')
