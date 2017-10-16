@@ -136,7 +136,8 @@ def index(request, catalog_slug=None):
         'types_list': types_list,
         'layers_count': layers_count,
         'services_count': services_count,
-        'catalogs': Catalog.objects.filter(url__isnull=False)
+        'catalogs': Catalog.objects.filter(url__isnull=False),
+        'filter_by': filter_by,
     })
     return HttpResponse(template.render(context))
 
