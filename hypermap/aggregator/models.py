@@ -1091,7 +1091,8 @@ def update_layers_wms(service):
             # get or create layer
             layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service, catalog=service.catalog)
             if layer.active:
-                links = [['OGC:WMS', service.url]]
+                links = [['OGC:WMS', service.url],
+                         ['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
                 # update fields
                 layer.type = 'OGC:WMS'
                 layer.title = ows_layer.title
@@ -1172,7 +1173,8 @@ def update_layers_wmts(service):
             LOGGER.debug('Updating layer %s' % ows_layer.name)
             layer, created = Layer.objects.get_or_create(name=ows_layer.name, service=service, catalog=service.catalog)
             if layer.active:
-                links = [['OGC:WMTS', service.url]]
+                links = [['OGC:WMTS', service.url],
+                         ['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
                 layer.type = 'OGC:WMTS'
                 layer.title = ows_layer.title
                 layer.abstract = ows_layer.abstract
@@ -1293,7 +1295,8 @@ def update_layers_wm(service, num_layers=None):
                 if created:
                     LOGGER.debug('Added a new layer in registry: %s, %s' % (name, uuid))
                 if layer.active:
-                    links = [['Hypermap:WorldMap', endpoint]]
+                    links = [['Hypermap:WorldMap', endpoint],
+                             ['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
                     # update fields
                     layer.type = 'Hypermap:WorldMap'
                     layer.title = title
@@ -1424,6 +1427,7 @@ def update_layers_warper(service):
                 layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
                 if layer.active:
                     # update fields
+                    links = [['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
                     layer.type = 'Hypermap:WARPER'
                     layer.title = title
                     layer.abstract = abstract
@@ -1528,7 +1532,8 @@ def update_layers_esri_mapserver(service, greedy_opt=False):
                 )
                 if layer.active:
                     layer.type = 'ESRI:ArcGIS:MapServer'
-                    links = [[layer.type, service.url]]
+                    links = [[layer.type, service.url],
+                             ['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
                     layer.title = esri_layer.name
                     layer.abstract = esri_service.serviceDescription
                     layer.url = service.url
@@ -1606,7 +1611,8 @@ def update_layers_esri_imageserver(service):
         layer, created = Layer.objects.get_or_create(name=obj['name'], service=service, catalog=service.catalog)
         if layer.active:
             layer.type = 'ESRI:ArcGIS:ImageServer'
-            links = [[layer.type, service.url]]
+            links = [[layer.type, service.url],
+                     ['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
             layer.title = obj['name']
             layer.abstract = esri_service.serviceDescription
             layer.url = service.url
