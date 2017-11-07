@@ -1,9 +1,11 @@
 {% extends "aggregator/base.html" %}
 
+{% load i18n %}
+
 {% block content %}
 
 <div class="page-header">
-  <h1>Layer details for: {{ layer.title }}</h1>
+  <h1>{% trans "Layer details for" %}: {{ layer.title }}</h1>
 </div>
 
 {% if user.is_superuser %}
@@ -14,29 +16,29 @@
   <div class="col-md-6">
     <ul>
     {% if user.is_superuser %}
-      <button type="button" class="btn-sm btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
+      <button type="button" class="btn-sm btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">{% trans "Publish" %}</button>
     {% endif %}
     {% if layer.service %}
       <a href="{{ layer.service.get_absolute_url }}">
-        <button type="button" class="btn-sm btn-primary btn-circle btn nohover">Service Page</button>
+        <button type="button" class="btn-sm btn-primary btn-circle btn nohover">{% trans "Service Page" %}</button>
       </a>
     {% endif %}
     <a href="{% url 'layer_mapproxy' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid path_info='/demo/' %}">
-      <button type="button" class="btn-sm btn-info btn-circle btn nohover">MapProxy demo page</button>
+      <button type="button" class="btn-sm btn-info btn-circle btn nohover">{% trans "MapProxy demo page" %}</button>
     </a>
     <a href="{% url 'layer_mapproxy_config' catalog_slug=layer.catalog.slug layer_uuid=layer.uuid %}">
-      <button type="button" class="btn-sm btn-info btn-circle btn nohover">MapProxy configuration</button>
+      <button type="button" class="btn-sm btn-info btn-circle btn nohover">{% trans "MapProxy configuration" %}</button>
     </a>
     </ul>
 </div>
   <div class="col-md-6">
     {% if user.is_superuser %}
-    Administrative actions:
+    {% trans "Administrative actions" %}:
     <form action="{{ layer.get_absolute_url }}" method="post">
       {% csrf_token %}
-      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="check" value="Check now">
-      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="remove" value="Remove checks">
-      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="index" value="Index in Search Backend">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="check" value='{% trans "Check now" %}'>
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="remove" value='{% trans "Remove checks" %}'>
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="index" value='{% trans "Index in Search Backend" %}'>
     </form>
     {% endif %}
   </div>
@@ -46,7 +48,7 @@
   {% if layer.thymbnail %}
     <img src="{{ MEDIA_URL }}{{ layer.thumbnail }}" width="50" />
   {% else %}
-    No thumbnail is available for this layer
+    {% trans "No thumbnail is available for this layer" %}
   {% endif %}
 </div>
 
@@ -55,24 +57,24 @@
     <table class="table">
       <tbody>
         <tr>
-          <td><strong>Endpoints</strong></td>
+          <td><strong>{% trans "Endpoints" %}</strong></td>
           <td>
             <ul>
             {% if layer.service %}
-            <li>Service Hypermap Page: <a href="{{ layer.service.get_absolute_url }}">{{ layer.service.title }}</a></li>
+            <li>{% trans "Service Hypermap Page" %}: <a href="{{ layer.service.get_absolute_url }}">{{ layer.service.title }}</a></li>
             {% endif %}
-            <li>Layer Page: <a href="{{ layer.page_url }}">{{ request.scheme }}://{{ request.get_host }}{{ layer.page_url|truncatechars:80 }}</a></li>
-            <li>Layer Hypermap EndPoint: <a href="{{ request.scheme }}://{{ request.get_host }}/{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
+            <li>{% trans "Layer Page" %}: <a href="{{ layer.page_url }}">{{ request.scheme }}://{{ request.get_host }}{{ layer.page_url|truncatechars:80 }}</a></li>
+            <li>{% trans "Layer Hypermap EndPoint" %}: <a href="{{ request.scheme }}://{{ request.get_host }}/{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
             {% if user.is_superuser %}
-              <li>Service EndPoint: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
-              <li>Layer EndPoint: <a href="{{ layer.url }}">{{ layer.url|truncatechars:80 }}</a></li>
-              <li>Search EndPoint:
+              <li>{% trans "Service EndPoint" %}: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
+              <li>{% trans "Layer EndPoint" %}: <a href="{{ layer.url }}">{{ layer.url|truncatechars:80 }}</a></li>
+              <li>{% trans "Search EndPoint" %}:
               {% if SEARCH_TYPE == 'elasticsearch' %}
               <a href="{{SEARCH_URL}}/hypermap/_search?q=layer_id:{{layer.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=layer_id:{{layer.id}}</a>
               {% elif SEARCH_TYPE == 'solr' %}
               <a href="{{SEARCH_URL}}/solr/hypermap/select?q=layer_id:{{layer.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/solr/hypermap/select?q=layer_id:{{layer.id}}&wt=json&indent=true</a>
               {% endif %}
-              <li>Metadata:
+              <li>{% trans "Metadata" %}:
                   <a href="{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=full&id={{layer.uuid}}" target="new">
                       {{ request.scheme }}://{{ request.get_host }}{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRecordById&elementsetname=full&id={{layer.uuid}}
                   </a>
@@ -83,23 +85,23 @@
           </td>
         </tr>
         <tr>
-          <td><strong>Name</strong></td>
+          <td><strong>{% trans "Name" %}</strong></td>
           <td>{{ layer.name }}</td>
         </tr>
         <tr>
-          <td><strong>uuid</strong></td>
+          <td><strong>{% trans "uuid" %}</strong></td>
           <td>{{ layer.uuid }}</td>
         </tr>
         <tr>
-          <td><strong>Title</strong></td>
+          <td><strong>{% trans "Title" %}</strong></td>
           <td>{{ layer.title }}</td>
         </tr>
         <tr>
-          <td><strong>Abstract</strong></td>
+          <td><strong>{% trans "Abstract" %}</strong></td>
           <td>{{ layer.abstract }}</td>
         </tr>
         <tr>
-          <td><strong>Keywords</strong></td>
+          <td><strong>{% trans "Keywords" %}</strong></td>
           <td>
             <ul>
               {% for keyword in layer.keywords.all %}
@@ -109,51 +111,51 @@
           </td>
         </tr>
         <tr>
-          <td><strong>Is Public?</strong></td>
+          <td><strong>{% trans "Is Public?" %}</strong></td>
           <td>{{ layer.is_public }}</td>
         </tr>
         <tr>
-          <td><strong>Is Monitored?</strong></td>
+          <td><strong>{% trans "Is Monitored?" %}</strong></td>
           <td>{{ layer.is_monitored }}</td>
         </tr>
         <tr>
-          <td><strong>Is Valid?</strong></td>
+          <td><strong>{% trans "Is Valid?" %}</strong></td>
           <td>{{ layer.is_valid }}</td>
         </tr>
         {% if layer.type = 'Hypermap:WorldMap' %}
           <tr>
-            <td><strong>Username</strong></td>
+            <td><strong>{% trans "Username" %}</strong></td>
             <td>{{ layer.layerwm.username }}</td>
           </tr>
           <tr>
-            <td><strong>Category</strong></td>
+            <td><strong>{% trans "Category" %}</strong></td>
             <td>{{ layer.layerwm.category }}</td>
           </tr>
         {% endif %}
         <tr>
-        <td><strong>Dates</strong></td>
+        <td><strong>{% trans "Dates" %}</strong></td>
         <td>
           {% if layer.layerdate_set.count > 0 %}
           <ul>
             {% if layer.type = 'Hypermap:WorldMap' %}
-              <li>Start Date: {{ layer.layerwm.temporal_extent_start }}</li>
-              <li>End Date: {{ layer.layerwm.temporal_extent_end }}</li>
+              <li>{% trans "Start Date" %}: {{ layer.layerwm.temporal_extent_start }}</li>
+              <li>{% trans "End Date" %}: {{ layer.layerwm.temporal_extent_end }}</li>
             {% endif %}
             {% for date in layer.layerdate_set.all %}
               {% if date.type == 0 %}
-                 <li>{{ date.date }} Detected</li>
+                 <li>{{ date.date }} {% trans "Detected" %}</li>
               {% else %}
-                 <li>{{ date.date }} From Metadata</li>
+                 <li>{{ date.date }} {% trans "From Metadata" %}</li>
               {% endif %}
             {% endfor %}
           </ul>
           {% else %}
-            No dates for this layer
+            {% trans "No dates for this layer" %}
           {% endif %}
         </td>
       </tr>
         <tr>
-          <td><strong>Spatial Reference Systems</strong></td>
+          <td><strong>{% trans "Spatial Reference Systems" %}</strong></td>
           <td>
             <ul>
               {% for srs in layer.service.srs.all %}
@@ -163,45 +165,45 @@
           </td>
         </tr>
         <tr>
-          <td><strong>Bounding Box (x0, y0, x1, y1)</strong></td>
+          <td><strong>{% trans "Bounding Box" %} (x0, y0, x1, y1)</strong></td>
           <td>{{ layer.bbox_x0|floatformat:8 }}, {{ layer.bbox_y0|floatformat:8 }}, {{ layer.bbox_x1|floatformat:8 }}, {{ layer.bbox_y1|floatformat:8 }}</td>
         </tr>
         <tr>
-          <td><strong>Monitoring Period</strong></td>
+          <td><strong>{% trans "Monitoring Period" %}</strong></td>
           <td>
             {% if layer.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ layer.first_check.checked_datetime }}</li>
-              <li>Last Check: {{ layer.last_check.checked_datetime }}</li>
-              <li>Total Checks: {{ layer.checks_count }}</li>
-              <li>Reliability: {{ layer.reliability }}</li>
-              <li><a href="{{ layer.get_check_stats_absolute_url }}">See full check stats</a></li>
+              <li>{% trans "First Check" %}: {{ layer.first_check.checked_datetime }}</li>
+              <li>{% trans "Last Check" %}: {{ layer.last_check.checked_datetime }}</li>
+              <li>{% trans "Total Checks" %}: {{ layer.checks_count }}</li>
+              <li>{% trans "Reliability" %}: {{ layer.reliability }}</li>
+              <li><a href="{{ layer.get_check_stats_absolute_url }}">{% trans "See full check stats" %}</a></li>
             </ul>
             {% else %}
-              No checks performed so far
+              {% trans "No checks performed so far" %}
             {% endif %}
           </td>
         </tr>
         <tr>
-          <td><strong>Response Times</strong></td>
+          <td><strong>{% trans "Response Times" %}</strong></td>
           <td>
             {% if layer.checks_count > 0 %}
             <ul>
-              <li>Min: {{ layer.min_response_time|floatformat:2 }}s</li>
-              <li>Average: {{ layer.average_response_time|floatformat:2 }}s</li>
-              <li>Max: {{ layer.max_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Min" %}: {{ layer.min_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Average" %}: {{ layer.average_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Max" %}: {{ layer.max_response_time|floatformat:2 }}s</li>
             </ul>
             {% else %}
-              No checks performed so far
+              {% trans "No checks performed so far" %}
             {% endif %}
           </td>
         </tr>
         <tr>
-          <td><strong>Was deleted?</strong></td>
+          <td><strong>{% trans "Was deleted?" %}</strong></td>
           <td>{{ layer.was_deleted }}</td>
         </tr>
         <tr>
-          <td><strong>Last Updated</strong></td>
+          <td><strong>{% trans "Last Updated" %}</strong></td>
           <td>{{ layer.last_updated }}</td>
         </tr>
       </tbody>

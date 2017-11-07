@@ -1,26 +1,31 @@
 {% extends "aggregator/base.html" %}
 
+{% load i18n %}
 {% load humanize %}
 
 {% block content %}
 
 {% include "aggregator/includes/search_title.html" %}
 
-<p>We track health of {{ services_count|intcomma }} remote map services, containing a total of {{ layers_count|intcomma }} layers.</p>
+  <p>
+  {% trans "We track health of" %} {{ services_count|intcomma }}
+  {% trans "remote map services, containing a total of" %} {{ layers_count|intcomma }}
+  {% trans "layers" %}
+  </p>
 
   {% if services %}
 
   <div class="row">
     <div class="col-md-6">
 
-        Catalogs:
+        {% trans "Catalogs" %}:
         <a href="{% url 'index' %}">all ({{ services_count }})</a>
         {% for catalog in catalogs %}
             <a href="{{ catalog.get_absolute_url }}">{{ catalog.name }} ({{ catalog.service_set.count }})</a>
         {% endfor %}
 
         <br>
-        Filter by:
+        {% trans "Filter by" %}:
         {% for type in types_list %}
             &nbsp;<a href="?filter_by={{ type.0 }}">{{ type.1 }} ({{ type.2 }})</a>
         {% endfor %}
@@ -41,28 +46,28 @@
           <tr>
             <th>
               <a href="?order_by=title"><i class="fa fa-fw fa-sort-asc"></i></a>
-              Title
+              {% trans "Title" %}
               <a href="?order_by=-title"><i class="fa fa-fw fa-sort-desc"></i></a>
             </th>
             <th>
               <a href="?order_by=layers_count"><i class="fa fa-fw fa-sort-asc"></i></a>
-              Layers
+              {% trans "Layers" %}
               <a href="?order_by=-layers_count"><i class="fa fa-fw fa-sort-desc"></i></a>
             </th>
-            <th>Is Valid?</th>
+            <th>{% trans "Is Valid?" %}</th>
             <th>
               <a href="?order_by=last_updated"><i class="fa fa-fw fa-sort-asc"></i></a>
-              Last Check
+              {% trans "Last Check" %}
               <a href="?order_by=-last_updated"><i class="fa fa-fw fa-sort-desc"></i></a>
             </th>
             <th>
               <a href="?order_by=total_checks"><i class="fa fa-fw fa-sort-asc"></i></a>
-              Total Checks
+              {% trans "Total Checks" %}
               <a href="?order_by=-total_checks"><i class="fa fa-fw fa-sort-desc"></i></a>
             </th>
-            <th>Status</th>
-            <th>Average Resp. Time</th>
-            <th>Reliability</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Average Resp. Time" %}</th>
+            <th>{% trans "Reliability" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -131,7 +136,7 @@
   </ul>
 
   {% else %}
-      <p>No services are available.</p>
+      <p>{% trans "No services are available." %}"</p>
   {% endif %}
 
 {% endblock %}

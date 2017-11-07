@@ -1,34 +1,36 @@
 {% extends "aggregator/base.html" %}
 
+{% load i18n %}
+
 {% block head %}
 {% endblock %}
 
 {% block content %}
 
 <div class="page-header">
-  <h1>Tasks Runner</h1>
+  <h1>{% trans "Tasks Runner" %}</h1>
 </div>
 
 {% if user.is_superuser %}
 
-  <h2>Server Information</h2>
+  <h2>{% trans "Server Information" %}</h2>
 
   <ul>
-    <li>Server date time: {% now "jS F Y H:i:s" %}</li>
-    <li>Cached layers to be added in search engine: {{ cached_layers_number }}</li>
-    <li>Cached layers to be removed in search engine: {{ cached_deleted_layers_number }}</li>
+    <li>{% trans "Server date time" %}: {% now "jS F Y H:i:s" %}</li>
+    <li>{% trans "Cached layers to be added in search engine" %}: {{ cached_layers_number }}</li>
+    <li>{% trans "Cached layers to be removed in search engine" %}: {{ cached_deleted_layers_number }}</li>
   </ul>
 
-  <h2>Admin Commands</h2>
+  <h2>{% trans "Admin Commands" %}</h2>
 
   <form action="." method="post">
     {% csrf_token %}
-    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='check_all' value="Check all services">
-    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='index_all' value="Reindex all layers">
-    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='index_cached' value="Index cached layers">
-    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='drop_cached' value="Drop cached layers">
-    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='clear_index' value="Clear index">
-    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='remove_index' value="Unindex layers with issues">
+    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='check_all' value='{% trans "Check all services" %}'>
+    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='index_all' value='{% trans "Reindex all layers" %}'>
+    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='index_cached' value='{% trans "Index cached layers" %}'>
+    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='drop_cached' value='{% trans "Drop cached layers" %}'>
+    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='clear_index' value='{% trans "Clear index" %}'>
+    <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name='remove_index' value='{% trans "Unindex layers with issues" %}'>
   </form>
 {% endif %}
 

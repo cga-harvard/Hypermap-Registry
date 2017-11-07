@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -58,7 +60,7 @@
           <ul class="nav navbar-nav">
             <li class="active"><a href="{% url 'index' %}">Home</a></li>
             {% if user.is_superuser %}
-              <li><a href="{% url 'domains' %}">Domains</a></li>
+              <li><a href="{% url 'domains' %}">{% trans "Domains" %}</a></li>
               <li><a href="{% url 'tasks_runner' %}">Tasks</a></li>
               <li><a href="{% url 'admin:index' %}">Admin</a></li>
               <li><a href="{{ SEARCH_IP }}/#/hypermap" target="new">{{ SEARCH_TYPE }}</a></li>
@@ -66,11 +68,11 @@
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if user.is_authenticated %}
-              <li> <a href="#">Welcome, {{ user.get_username }}</a></li>
-              <li><a href="{% url 'password_change' %}">Change Password</a></li>
-              <li><a href="{% url 'logout' %}">Log Out</a></li>
+              <li> <a href="#">{% trans "Welcome" %}, {{ user.get_username }}</a></li>
+              <li><a href="{% url 'password_change' %}">{% trans "Change Password" %}</a></li>
+              <li><a href="{% url 'logout' %}">{% trans "Log Out" %}</a></li>
             {% else %}
-              <li><a href="{% url 'login' %}">Log In</a></li>
+              <li><a href="{% url 'login' %}">{% trans "Log In" %}</a></li>
             {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
@@ -83,7 +85,37 @@
 
     </div><!-- /.container -->
 
-    <div class="container">Powered by {{ APP_NAME }} {{ APP_VERSION }}</div>
+    {% block footer %}
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-8">
+            {% trans "Powered by" %} {{ APP_NAME }} {{ APP_VERSION }}
+            <a href="mailto:worldmap@harvard.edu">{%  trans "Contact Us" %}</a>&nbsp;&nbsp;
+            <a href="https://github.com/cga-harvard/hhypermap">{% trans "Source Code" %}</a>&nbsp;&nbsp;
+            <a href="http://www.harvard.edu/copyright-issue">{% trans "Report Copyright Infringement" %}</a>&nbsp;&nbsp; <br>
+          {% trans "Copyright 2017 &copy; The President and Fellows of Harvard College" %}
+          </div>
+          <div class="col-md-4">
+          <label class="hidden">{% trans "Language" %}</label>
+          {% if csrf_token != "NOTPROVIDED" %}
+          {% get_current_language as LANGUAGE %}
+          <form class="form-inline" action="{% url 'set_language' %}" method="post">
+          {% csrf_token %}
+            <select class="col-md-6" name="language" onchange="javascript:form.submit()">
+              {% for lang in LANGUAGES %}
+              <option value="{{ lang.0 }}" {% ifequal LANGUAGE_CODE lang.0 %} selected="selected"{% endifequal %}>
+                {{ lang.1 }}
+              </option>
+              {% endfor %}
+            </select>
+          </form>
+          {% endif %}
+          </div>
+        </div>
+      </div>
+    </footer>
+    {% endblock footer %}
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

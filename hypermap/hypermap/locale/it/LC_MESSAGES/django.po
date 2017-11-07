@@ -1,0 +1,587 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-11-07 20:13+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: hypermap/aggregator/templates/aggregator/base.html:63
+#: hypermap/aggregator/templates/aggregator/index.html:9
+msgid "Domains"
+msgstr "Domini"
+
+#: hypermap/aggregator/templates/aggregator/base.html:71
+msgid "Welcome"
+msgstr "Benvenuto"
+
+#: hypermap/aggregator/templates/aggregator/base.html:72
+msgid "Change Password"
+msgstr "Cambia Password"
+
+#: hypermap/aggregator/templates/aggregator/base.html:73
+msgid "Log Out"
+msgstr "Esci"
+
+#: hypermap/aggregator/templates/aggregator/base.html:75
+msgid "Log In"
+msgstr "Collegati"
+
+#: hypermap/aggregator/templates/aggregator/base.html:93
+msgid "Powered by"
+msgstr "Basato su"
+
+#: hypermap/aggregator/templates/aggregator/base.html:94
+msgid "Contact Us"
+msgstr "Contattaci"
+
+#: hypermap/aggregator/templates/aggregator/base.html:95
+msgid "Source Code"
+msgstr "Codice Sorgente"
+
+#: hypermap/aggregator/templates/aggregator/base.html:96
+msgid "Report Copyright Infringement"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/base.html:97
+msgid "Copyright 2017 &copy; The President and Fellows of Harvard College"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/base.html:100
+msgid "Language"
+msgstr "Lingua"
+
+#: hypermap/aggregator/templates/aggregator/index.html:12
+#: hypermap/aggregator/templates/aggregator/search.html:11
+msgid "We track health of"
+msgstr "Tracciamo lo stato di"
+
+#: hypermap/aggregator/templates/aggregator/index.html:13
+msgid "remote map services, containing a total of "
+msgstr "servizi di mappe remoti, contenenti un totale di "
+
+#: hypermap/aggregator/templates/aggregator/index.html:14
+#: hypermap/aggregator/templates/aggregator/search.html:13
+msgid "layers"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/index.html:21
+msgid "Domain"
+msgstr "Dominio"
+
+#: hypermap/aggregator/templates/aggregator/index.html:22
+msgid "Layers Count"
+msgstr "Numero Layers"
+
+#: hypermap/aggregator/templates/aggregator/index.html:23
+msgid "Services Count"
+msgstr "Numero Servizi"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:8
+#, fuzzy
+#| msgid "Services Count"
+msgid "Layer checks for"
+msgstr "Numero Servizi"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:11
+msgid "Go to layer details page"
+msgstr "Vai alla pagina del layer"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:22
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:172
+#: hypermap/aggregator/templates/aggregator/service_checks.html:30
+#: hypermap/aggregator/templates/aggregator/service_detail.html:83
+msgid "Monitoring Period"
+msgstr "Periodo monitorato"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:26
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:176
+#: hypermap/aggregator/templates/aggregator/service_checks.html:34
+#: hypermap/aggregator/templates/aggregator/service_detail.html:87
+msgid "First Check"
+msgstr "Primo Controllo"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:27
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:177
+#: hypermap/aggregator/templates/aggregator/search.html:60
+#: hypermap/aggregator/templates/aggregator/service_checks.html:35
+#: hypermap/aggregator/templates/aggregator/service_detail.html:88
+#: hypermap/aggregator/templates/aggregator/service_detail.html:134
+msgid "Last Check"
+msgstr "Ultimo Controllo"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:28
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:178
+#: hypermap/aggregator/templates/aggregator/search.html:65
+#: hypermap/aggregator/templates/aggregator/service_checks.html:36
+#: hypermap/aggregator/templates/aggregator/service_detail.html:89
+msgid "Total Checks"
+msgstr "Controlli Totali"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:31
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:183
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:197
+#: hypermap/aggregator/templates/aggregator/service_detail.html:93
+#: hypermap/aggregator/templates/aggregator/service_detail.html:107
+msgid "No checks performed so far"
+msgstr "Nessun controllo effettuato"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:36
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:71
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:122
+#: hypermap/aggregator/templates/aggregator/service_checks.html:43
+#: hypermap/aggregator/templates/aggregator/service_checks.html:79
+#: hypermap/aggregator/templates/aggregator/service_checks.html:130
+msgid "Response Time"
+msgstr "Tempo di risposta"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:39
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:192
+#: hypermap/aggregator/templates/aggregator/service_checks.html:46
+#: hypermap/aggregator/templates/aggregator/service_detail.html:102
+msgid "Min"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:40
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:193
+#: hypermap/aggregator/templates/aggregator/service_checks.html:47
+#: hypermap/aggregator/templates/aggregator/service_detail.html:103
+msgid "Average"
+msgstr "Media"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:41
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:194
+#: hypermap/aggregator/templates/aggregator/service_checks.html:48
+#: hypermap/aggregator/templates/aggregator/service_detail.html:104
+msgid "Max"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:45
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:179
+#: hypermap/aggregator/templates/aggregator/search.html:70
+#: hypermap/aggregator/templates/aggregator/service_checks.html:37
+#: hypermap/aggregator/templates/aggregator/service_checks.html:53
+#: hypermap/aggregator/templates/aggregator/service_detail.html:90
+#: hypermap/aggregator/templates/aggregator/service_detail.html:138
+msgid "Reliability"
+msgstr "Affidabilita"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:62
+#: hypermap/aggregator/templates/aggregator/service_checks.html:70
+msgid "Checks"
+msgstr "Controlli"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:70
+#: hypermap/aggregator/templates/aggregator/service_checks.html:78
+msgid "Date"
+msgstr "Data"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:72
+#: hypermap/aggregator/templates/aggregator/service_checks.html:80
+msgid "Message"
+msgstr "Messaggio"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:73
+#: hypermap/aggregator/templates/aggregator/search.html:68
+#: hypermap/aggregator/templates/aggregator/service_checks.html:81
+#: hypermap/aggregator/templates/aggregator/service_detail.html:136
+msgid "Status"
+msgstr "Stato"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:109
+#: hypermap/aggregator/templates/aggregator/service_checks.html:117
+#, fuzzy
+#| msgid "No services are available."
+msgid "No checks are available"
+msgstr "Nessun servizio disponibile"
+
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:128
+#: hypermap/aggregator/templates/aggregator/service_checks.html:136
+msgid "seconds"
+msgstr "secondi"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:8
+#, fuzzy
+#| msgid "Services Count"
+msgid "Layer details for"
+msgstr "Numero Servizi"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:19
+#: hypermap/aggregator/templates/aggregator/service_detail.html:20
+msgid "Publish"
+msgstr "Pubblica"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:23
+#, fuzzy
+#| msgid "Services Count"
+msgid "Service Page"
+msgstr "Numero Servizi"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:27
+msgid "MapProxy demo page"
+msgstr "Pagina demo MapProxy"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:30
+msgid "MapProxy configuration"
+msgstr "Configurazione MapProxy"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:36
+#: hypermap/aggregator/templates/aggregator/service_detail.html:29
+msgid "Administrative actions"
+msgstr "Azioni amministrative"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:39
+#: hypermap/aggregator/templates/aggregator/service_detail.html:32
+msgid "Check now"
+msgstr "Controlla ora"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:40
+#: hypermap/aggregator/templates/aggregator/service_detail.html:33
+msgid "Remove checks"
+msgstr "Rimuovi controlli"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:41
+msgid "Index in Search Backend"
+msgstr "Indicizza nel search engine"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:51
+#, fuzzy
+#| msgid "No checks for this layer"
+msgid "No thumbnail is available for this layer"
+msgstr "Nessun controllo per questo layer"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:60
+msgid "Endpoints"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:64
+msgid "Service Hypermap Page"
+msgstr "Pagina Hypermap del servizio"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:66
+msgid "Layer Page"
+msgstr "Pagina del layer"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:67
+msgid "Layer Hypermap EndPoint"
+msgstr "Endpoint del layer in Hypermap"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:69
+#, fuzzy
+#| msgid "Services Count"
+msgid "Service EndPoint"
+msgstr "Numero Servizi"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:70
+#, fuzzy
+#| msgid "Layers Count"
+msgid "Layer EndPoint"
+msgstr "Numero Layers"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:71
+msgid "Search EndPoint"
+msgstr "Endpoint search engine"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:77
+#: hypermap/aggregator/templates/aggregator/service_detail.html:73
+msgid "Metadata"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:88
+#: hypermap/aggregator/templates/aggregator/service_checks.html:22
+#: hypermap/aggregator/templates/aggregator/service_detail.html:53
+#: hypermap/aggregator/templates/aggregator/service_detail.html:151
+msgid "Name"
+msgstr "Nome"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:92
+msgid "uuid"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:96
+#: hypermap/aggregator/templates/aggregator/search.html:49
+#: hypermap/aggregator/templates/aggregator/service_detail.html:152
+msgid "Title"
+msgstr "Titolo"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:100
+#: hypermap/aggregator/templates/aggregator/service_detail.html:57
+#: hypermap/aggregator/templates/aggregator/service_detail.html:153
+msgid "Abstract"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:104
+msgid "Keywords"
+msgstr "Parole chiave"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:114
+msgid "Is Public?"
+msgstr "Publico?"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:118
+#, fuzzy
+#| msgid "Monitoring Period"
+msgid "Is Monitored?"
+msgstr "Periodo monitorato"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:122
+#: hypermap/aggregator/templates/aggregator/search.html:57
+#: hypermap/aggregator/templates/aggregator/service_detail.html:133
+msgid "Is Valid?"
+msgstr "Valido?"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:127
+msgid "Username"
+msgstr "Nome Utente"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:131
+msgid "Category"
+msgstr "Categoria"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:136
+msgid "Dates"
+msgstr "Date"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:141
+msgid "Start Date"
+msgstr "Data Inizio"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:142
+msgid "End Date"
+msgstr "Data Fine"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:146
+msgid "Detected"
+msgstr "Ricavato"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:148
+msgid "From Metadata"
+msgstr "Da metadati"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:153
+#, fuzzy
+#| msgid "No checks for this layer"
+msgid "No dates for this layer"
+msgstr "Nessun controllo per questo layer"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:158
+msgid "Spatial Reference Systems"
+msgstr "Sistema di riferimento spaziale"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:168
+msgid "Bounding Box"
+msgstr "Coordinate bordo"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:180
+#: hypermap/aggregator/templates/aggregator/service_detail.html:23
+msgid "See full check stats"
+msgstr "Consulta statistiche controlli"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:188
+#: hypermap/aggregator/templates/aggregator/service_detail.html:98
+#, fuzzy
+#| msgid "Response Time"
+msgid "Response Times"
+msgstr "Tempo di risposta"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:202
+msgid "Was deleted?"
+msgstr "Eliminato?"
+
+#: hypermap/aggregator/templates/aggregator/layer_detail.html:206
+msgid "Last Updated"
+msgstr "Ultima modifica"
+
+#: hypermap/aggregator/templates/aggregator/search.html:12
+msgid "remote map services, containing a total of"
+msgstr "servizi di mappe remoti, contenenti un totale di "
+
+#: hypermap/aggregator/templates/aggregator/search.html:21
+msgid "Catalogs"
+msgstr "Cataloghi"
+
+#: hypermap/aggregator/templates/aggregator/search.html:28
+msgid "Filter by"
+msgstr "Filtra per"
+
+#: hypermap/aggregator/templates/aggregator/search.html:54
+#: hypermap/aggregator/templates/aggregator/service_detail.html:118
+msgid "Layers"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/search.html:69
+msgid "Average Resp. Time"
+msgstr "Tempo di Risposta Medio"
+
+#: hypermap/aggregator/templates/aggregator/search.html:139
+msgid "No services are available."
+msgstr "Nessun servizio disponibile"
+
+#: hypermap/aggregator/templates/aggregator/service_checks.html:8
+msgid "Service checks for"
+msgstr "Controlli del servizio"
+
+#: hypermap/aggregator/templates/aggregator/service_checks.html:11
+msgid "Go to service details page"
+msgstr "Vai alla pagina del servizio"
+
+#: hypermap/aggregator/templates/aggregator/service_checks.html:18
+#: hypermap/aggregator/templates/aggregator/service_detail.html:45
+msgid "Type"
+msgstr "Tipologia"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:9
+#, fuzzy
+#| msgid "Services Count"
+msgid "Service details for"
+msgstr "Numero Servizi"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:34
+msgid "Index"
+msgstr "Indicizza"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:49
+#, fuzzy
+#| msgid "Is Valid?"
+msgid "Is valid?"
+msgstr "Valido?"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:65
+msgid "EndPoint"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:66
+msgid "Search"
+msgstr "Ricerca"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:121
+msgid "there are"
+msgstr "ci sono"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:121
+msgid "deleted layers for this service"
+msgstr "layer cancellati per questo servizio"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:135
+#, fuzzy
+#| msgid "Total Checks"
+msgid "Tot Checks"
+msgstr "Controlli Totali"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:137
+#, fuzzy
+#| msgid "Average Resp. Time"
+msgid "Av. Resp. Time"
+msgstr "Tempo di Risposta Medio"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:167
+msgid "No checks for this layer"
+msgstr "Nessun controllo per questo layer"
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:195
+#: hypermap/aggregator/templates/aggregator/service_detail.html:196
+#: hypermap/aggregator/templates/aggregator/service_detail.html:197
+msgid "N/A"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/service_detail.html:223
+#, fuzzy
+#| msgid "No services are available."
+msgid "No layers are available"
+msgstr "Nessun servizio disponibile"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:11
+msgid "Tasks Runner"
+msgstr ""
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:16
+msgid "Server Information"
+msgstr "Informazioni Server"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:19
+msgid "Server date time"
+msgstr "Data e ora Server"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:20
+msgid "Cached layers to be added in search engine"
+msgstr "Layer nella cache da aggiungere nel motore di ricerca"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:21
+msgid "Cached layers to be removed in search engine"
+msgstr "Layer nella cache da rimuovere dal motore di ricerca"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:24
+msgid "Admin Commands"
+msgstr "Comandi di Amministrazione"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:28
+msgid "Check all services"
+msgstr "Controlla tutti i servizi"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:29
+msgid "Reindex all layers"
+msgstr "Reindicizza tutti i layer"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:30
+msgid "Index cached layers"
+msgstr "Indicizza i layer nella cache"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:31
+msgid "Drop cached layers"
+msgstr "Rimuovi i layer dalla cache"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:32
+msgid "Clear index"
+msgstr "Resetta indice del motore di ricerca"
+
+#: hypermap/aggregator/templates/aggregator/tasks_runner.html:33
+msgid "Unindex layers with issues"
+msgstr "Rimuovi da indice i layer con problemi"
+
+#: src/django-celery-results/django_celery_results/apps.py:15
+msgid "Celery Results"
+msgstr "Risultati di Celery"
+
+#: src/django-celery-results/django_celery_results/models.py:21
+msgid "task id"
+msgstr ""
+
+#: src/django-celery-results/django_celery_results/models.py:25
+msgid "state"
+msgstr "stato"
+
+#: src/django-celery-results/django_celery_results/models.py:30
+msgid "content type"
+msgstr "tipo di contenuto"
+
+#: src/django-celery-results/django_celery_results/models.py:33
+msgid "content encoding"
+msgstr ""
+
+#: src/django-celery-results/django_celery_results/models.py:36
+msgid "done at"
+msgstr "fatto a"
+
+#: src/django-celery-results/django_celery_results/models.py:37
+msgid "traceback"
+msgstr ""
+
+#: src/django-celery-results/django_celery_results/models.py:49
+msgid "task result"
+msgstr "risultato del task"
+
+#: src/django-celery-results/django_celery_results/models.py:50
+msgid "task results"
+msgstr "risultati dei task"

@@ -70,7 +70,7 @@ export CELERY_DEFAULT_EXCHANGE=hypermap
 3.
 ```
 source env/bin/activate
-``` 
+```
 
 Execute migrations
 
@@ -128,7 +128,7 @@ git checkout registry
 make up
 make sync
 ```
-For Ubuntu: 
+For Ubuntu:
 ```
 make up .
 make sync
@@ -156,7 +156,7 @@ make test-unit
 querying data by the most important fields.
 
 1. inserts 4 layers
-2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs). 
+2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs).
 
 ```sh
 make test-solr
@@ -166,7 +166,7 @@ make test-solr
 querying data by the most important fields.
 
 1. inserts 4 layers
-2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs). 
+2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs).
 
 ```sh
 make test-elastic
@@ -174,7 +174,7 @@ make test-elastic
 
 *Selenium Browser* is an end-to-end tests that runs a Firefox and emulates the user interaction with some basic actions to test the correct funcionality of
  the Django admin site and registry UI, this test covers the following actions:
- 
+
  1. admin login (user sessions works as expected)
  2. periodic tasks verifications (automatic periodic tasks are created on startup in order to perform important automatic tasks like check layers, index cached layers on search backend and clean up tasks)
  3. upload endpoint list (file uploads correctly and store in db, it triggers all harvesting load like: create endpoints, create services and their layers, index layers in search backend and perform firsts service checks)
@@ -188,16 +188,16 @@ make test-elastic
  11. reset layer checks (correct functionality should start new check tasks)
  12. create new layer checks and verification (trigger the verification tasks and verifies it in service layers listing page)
  13. clear index (tests the clean up indice functionality)
- 
+
 
 ```sh
 make test-endtoend-selenium-firefox
 ```
 
-Selenium and Firefox interaction can be viewed by connecting to VNC protocol, the easiest method is to use Safari. 
+Selenium and Firefox interaction can be viewed by connecting to VNC protocol, the easiest method is to use Safari.
 Just open up Safari and in the URL bar type `vnc://localhost:5900` hit enter and entry `secret` in the password field. Other method is using VNCViever: https://www.realvnc.com/download/viewer/
 
-*CSW-T* asserts the correct functionality of CSW transaction requests. 
+*CSW-T* asserts the correct functionality of CSW transaction requests.
 
 1. inserts a full XML documents with `request=Transaction` and verifies Layers created correctly, the inserted document with 10 Layers can be found here: `data/cswt_insert.xml`
 2. verifies the Listing by calling  `request=GetRecords` and asserting 10 Layers created.
@@ -228,6 +228,41 @@ make flake
 ```
 
 Note that Travis-CI will assert flake returns 0 code incidences.
+
+### Translating Hypermap
+
+As a first step, make sure your language files are included in WorldMap. Languages file are in the hypermap/hypermap/locale directory.
+
+If your locale file is not there, you can generate it with the Django makemessages command. For example for Italian:
+
+```
+cd ~/hypermap.git
+python manage.py makemessages -l it
+```
+
+Open the locale file you want to translate, in this case hypermap/hypermap/locale/it/LC_MESSAGES/django.po, and edit the translation strings as needed, for example:
+
+```
+#: hypermap/aggregator/templates/aggregator/layer_checks.html:126
+#: hypermap/aggregator/templates/aggregator/search.html:11
+#: hypermap/aggregator/templates/aggregator/service_checks.html:134
+msgid "seconds"
+msgstr "secondi"
+```
+
+Once you have translated the strings you want, you need to compile them before you see them in the site. For this purpose you can use the Django compilemessages command:
+
+```
+python manage.py compilemessages
+```
+
+Now if you browse the site you should see your translations correctly in place.
+
+The makemessages and compilemessages needs the GNU gettext toolset to be installed on your computer. For Ubuntu 16.04 LTS this can be done in this way:
+
+```
+sudo apt-get install gettext
+```
 
 ## Known Issues in version 0.3.9
 

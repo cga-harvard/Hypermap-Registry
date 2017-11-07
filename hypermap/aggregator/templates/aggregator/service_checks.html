@@ -1,23 +1,25 @@
 {% extends "aggregator/base.html" %}
 
+{% load i18n %}
+
 {% block content %}
 
 <div class="page-header">
-  <h1>Service checks for: {{ service.title|truncatechars:40 }}</h1>
+  <h1>{% trans "Service checks for" %}: {{ service.title|truncatechars:40 }}</h1>
 </div>
 
-<a href="{{ service.get_absolute_url }}">Go to service details page</a>
+<a href="{{ service.get_absolute_url }}">{% trans "Go to service details page" %}</a>
 
 <div class="row">
   <div class="col-md-6">
     <table class="table">
       <tbody>
         <tr>
-          <td><strong>Type</strong></td>
+          <td><strong>{% trans "Type" %}</strong></td>
           <td>{{ service.get_type_display }}</td>
         </tr>
         <tr>
-          <td><strong>Name</strong></td>
+          <td><strong>{% trans "Name" %}</strong></td>
           <td>{{ service.title }}</td>
         </tr>
         <tr>
@@ -25,30 +27,30 @@
           <td><a href="{{ service.url }}">{{ service.url }}</a></td>
         </tr>
         <tr>
-          <td><strong>Monitoring Period</strong></td>
+          <td><strong>{% trans "Monitoring Period" %}</strong></td>
           <td>
             {% if service.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ service.first_check.checked_datetime }}</li>
-              <li>Last Check: {{ service.last_check.checked_datetime }}</li>
-              <li>Total Checks: {{ service.checks_count }}</li>
-              <li>Reliability: {{ service.reliability }}</li>
+              <li>{% trans "First Check" %}: {{ service.first_check.checked_datetime }}</li>
+              <li>{% trans "Last Check" %}: {{ service.last_check.checked_datetime }}</li>
+              <li>{% trans "Total Checks" %}: {{ service.checks_count }}</li>
+              <li>{% trans "Reliability" %}: {{ service.reliability }}</li>
             </ul>
             {% endif %}
           </td>
         </tr>
         <tr>
-          <td><strong>Response Times</strong></td>
+          <td><strong>{% trans "Response Time" %}</strong></td>
           <td>
             <ul>
-              <li>Min: {{ service.min_response_time|floatformat:2 }}s</li>
-              <li>Average: {{ service.average_response_time|floatformat:2 }}s</li>
-              <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Min" %}: {{ service.min_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Average" %}: {{ service.average_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Max" %}: {{ service.max_response_time|floatformat:2 }}s</li>
             </ul>
           </td>
         </tr>
         <tr>
-          <td><strong>Reliability</strong></td>
+          <td><strong>{% trans "Reliability" %}</strong></td>
           <td>
             {% if service.reliability > 90 %}
               <button type="button" class="btn btn-success btn-block nohover">{{ service.reliability|floatformat:2 }}%</button>
@@ -65,7 +67,7 @@
 <div id="run-chart" class="run-chart"></div>
 
 
-<h2>Checks</h2>
+<h2>{% trans "Checks" %}</h2>
 
 {% if checks %}
     <div class="row">
@@ -73,10 +75,10 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Response Times</th>
-              <th>Message</th>
-              <th>Status</th>
+              <th>{% trans "Date" %}</th>
+              <th>{% trans "Response Time" %}</th>
+              <th>{% trans "Message" %}</th>
+              <th>{% trans "Status" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -112,7 +114,7 @@
     </ul>
 
 {% else %}
-    <p>No checks are available.</p>
+    <p>{% trans "No checks are available" %}.</p>
 {% endif %}
 
 {% endblock %}

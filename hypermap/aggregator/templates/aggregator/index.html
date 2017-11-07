@@ -1,23 +1,26 @@
 {% extends "aggregator/base.html" %}
 
+{% load i18n %}
 {% load humanize %}
 
 {% block content %}
 
 <div class="page-header">
-  <h1>Domains</h1>
+  <h1>{% trans "Domains" %}</h1>
 </div>
 
-<p>We track health of {{ services_count|intcomma }} remote map services, containing a total of {{ layers_count|intcomma }} layers.</p>
+<p>{% trans "We track health of" %} {{ services_count|intcomma }}
+  {% trans "remote map services, containing a total of " %} {{ layers_count|intcomma }}
+  {% trans "layers" %}</p>
 
 <div class="row">
   <div class="col-md-12">
     <table class="table table-striped" id="report">
       <thead>
         <tr>
-          <th>Domain</th>
-          <th>Layers Count</th>
-          <th>Services Count</th>
+          <th>{% trans "Domain" %}</th>
+          <th>{% trans "Layers Count" %}</th>
+          <th>{% trans "Services Count" %}</th>
         </tr>
       <tbody>
       </tbody>

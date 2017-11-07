@@ -9,6 +9,7 @@ uuid_regex = '[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12}'
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
+    url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^domains/$', views.domains, name='domains'),
     url(r'^tasks_runner/$', views.tasks_runner, name='tasks_runner'),
 
@@ -42,7 +43,7 @@ urlpatterns = [
         name='layer_mapproxy'),
     url(r'^(?P<catalog_slug>[-\w]+)/layer/(?P<layer_uuid>[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12})/map/config$',
         views.layer_mapproxy,
-        name='layer_mapproxy_config')
+        name='layer_mapproxy_config'),
 ]
 
 # urlpatterns += maploom_urls

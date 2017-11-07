@@ -1,11 +1,12 @@
 {% extends "aggregator/base.html" %}
 
+{% load i18n %}
 {% load humanize %}
 
 {% block content %}
 
 <div class="page-header">
-  <h1>Service details for: {{ service.title|truncatechars:40 }}</h1>
+  <h1>{% trans "Service details for" %}: {{ service.title|truncatechars:40 }}</h1>
 </div>
 
 {% if user.is_superuser %}
@@ -16,21 +17,21 @@
   <div class="col-md-6">
     <ul>
     {% if user.is_superuser %}
-      <button type="button" class="btn-sm btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">Publish</button>
+      <button type="button" class="btn-sm btn-success btn-circle btn nohover" data-toggle="modal" data-target="#publish-modal">{% trans "Publish" %}</button>
     {% endif %}
       <a href="{{ service.get_check_stats_absolute_url }}">
-        <button type="button" class="btn-sm btn-primary btn-circle btn nohover">See full check stats</button>
+        <button type="button" class="btn-sm btn-primary btn-circle btn nohover">{% trans "See full check stats" %}</button>
       </a>
     </ul>
   </div>
   <div class="col-md-6">
     {% if user.is_superuser %}
-    Administrative actions:
+    {% trans "Administrative actions" %}:
     <form action="{{ service.get_absolute_url }}" method="post">
       {% csrf_token %}
-      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="check" value="Check now">
-      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="remove" value="Remove checks">
-      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="index" value="Index">
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="check" value='{% trans "Check now" %}'>
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="remove" value='{% trans "Remove checks" %}'>
+      <input type="submit" class="btn-sm btn-success btn-circle btn nohover" name="index" value='{% trans "Index" %}'>
     </form>
     {% endif %}
   </div>
@@ -41,19 +42,19 @@
     <table class="table">
       <tbody>
         <tr>
-          <td><strong>Type</strong></td>
+          <td><strong>{% trans "Type" %}</strong></td>
           <td>{{ service.get_type_display }}</td>
         </tr>
         <tr>
-          <td><strong>Is valid?</strong></td>
+          <td><strong>{% trans "Is valid?" %}</strong></td>
           <td>{{ service.is_valid }}</td>
         </tr>
         <tr>
-          <td><strong>Name</strong></td>
+          <td><strong>{% trans "Name" %}</strong></td>
           <td>{{ service.title }}</td>
         </tr>
         <tr>
-          <td><strong>Abstract</strong></td>
+          <td><strong>{% trans "Abstract" %}</strong></td>
           <td>{{ service.abstract }}</td>
         </tr>
         {% if user.is_superuser %}
@@ -61,15 +62,15 @@
             <td><strong>URL</strong></td>
             <td>
               <ul>
-                <li>EndPoint: <a id="resource-url" href="{{ service.url }}">{{ service.url|truncatechars:80 }}</a></li>
-                <li>Search:
+                <li>{% trans "EndPoint" %}: <a id="resource-url" href="{{ service.url }}">{{ service.url|truncatechars:80 }}</a></li>
+                <li>{% trans "Search" %}:
                     {% if SEARCH_TYPE == 'elasticsearch' %}
                     <a href="{{SEARCH_URL}}/hypermap/_search?q=service_id:{{service.id}}" target="new">{{SEARCH_URL}}/hypermap/_search?q=service_id:{{ service.id }}</a>
                     {% elif SEARCH_TYPE == 'solr' %}
                     <a href="{{SEARCH_URL}}/solr/hypermap/select?q=service_id:{{service.id}}&wt=json&indent=true" target="new">{{SEARCH_URL}}/solr/hypermap/select?q=service_id:{{service.id}}&wt=json&indent=true</a>
                     {% endif %}
                 </li>
-                <li>Metadata:
+                <li>{% trans "Metadata" %}:
                     <a href="{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRepositoryItem&elementsetname=full&id={{service.uuid}}" target="new">
                         {{ request.scheme }}://{{ request.get_host }}{% url 'csw_global_dispatch_by_catalog' catalog_slug %}?service=CSW&version=2.0.2&request=GetRepositoryItem&elementsetname=full&&id={{service.uuid}}
                     </a>
@@ -79,31 +80,31 @@
           </tr>
         {% endif %}
         <tr>
-          <td><strong>Monitoring Period</strong></td>
+          <td><strong>{% trans "Monitoring Period" %}</strong></td>
           <td>
             {% if service.checks_count > 0 %}
             <ul>
-              <li>First Check: {{ service.first_check.checked_datetime }}</li>
-              <li>Last Check: {{ service.last_check.checked_datetime }}</li>
-              <li>Total Checks: {{ service.checks_count }}</li>
-              <li>Reliability: {{ service.reliability }}</li>
+              <li>{% trans "First Check" %}: {{ service.first_check.checked_datetime }}</li>
+              <li>{% trans "Last Check" %}: {{ service.last_check.checked_datetime }}</li>
+              <li>{% trans "Total Checks" %}: {{ service.checks_count }}</li>
+              <li>{% trans "Reliability" %}: {{ service.reliability }}</li>
             </ul>
             {% else %}
-              No checks performed so far
+              {% trans "No checks performed so far" %}
             {% endif %}
           </td>
         </tr>
         <tr>
-          <td><strong>Response Times</strong></td>
+          <td><strong>{% trans "Response Times" %}</strong></td>
           <td>
             {% if service.checks_count > 0 %}
             <ul>
-              <li>Min: {{ service.min_response_time|floatformat:2 }}s</li>
-              <li>Average: {{ service.average_response_time|floatformat:2 }}s</li>
-              <li>Max: {{ service.max_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Min" %}: {{ service.min_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Average" %}: {{ service.average_response_time|floatformat:2 }}s</li>
+              <li>{% trans "Max" %}: {{ service.max_response_time|floatformat:2 }}s</li>
             </ul>
             {% else %}
-              No checks performed so far
+              {% trans "No checks performed so far" %}
             {% endif %}
           </td>
         </tr>
@@ -114,10 +115,10 @@
 <div class="clearfix"></div>
 <div id="run-chart" class="run-chart"></div>
 
-<h2>Layers ({{ service.layer_set.all.count|intcomma }})</h2>
+<h2>{% trans "Layers" %} ({{ service.layer_set.all.count|intcomma }})</h2>
 
 {% if service.get_deleted_number %}
-  <p>(there are {{ service.get_deleted_number }} deleted layers for this service)</p>
+  <p>({% trans "there are" %} {{ service.get_deleted_number }} {% trans "deleted layers for this service" %})</p>
 {% endif %}
 
 {% if layers %}
@@ -129,12 +130,12 @@
           <tr>
             <th></th>
             <th></th>
-            <th>Is Valid?</th>
-            <th>Last Check</th>
-            <th>Tot Checks</th>
-            <th>Status</th>
-            <th>Av. Resp. Time</th>
-            <th>Reliability</th>
+            <th>{% trans "Is Valid?" %}</th>
+            <th>{% trans "Last Check" %}</th>
+            <th>{% trans "Tot Checks" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Av. Resp. Time" %}</th>
+            <th>{% trans "Reliability" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -147,9 +148,9 @@
                 </td>
                 <td>
                   <ul>
-                    <li>Name: <a href="{{ layer.get_absolute_url }}">{{ layer.name }}</a></li>
-                    <li>Title: {{ layer.title }}</li>
-                    <li>Abstract: {{ layer.abstract|truncatewords:10 }}</li>
+                    <li>{% trans "Name" %}: <a href="{{ layer.get_absolute_url }}">{{ layer.name }}</a></li>
+                    <li>{% trans "Title" %}: {{ layer.title }}</li>
+                    <li>{% trans "Abstract" %}: {{ layer.abstract|truncatewords:10 }}</li>
                   </ul>
                 </td>
                 <td>
@@ -163,7 +164,7 @@
                   {% if layer.checks_count > 0 %}
                     {{ layer.last_check.checked_datetime }}
                   {% else %}
-                    No checks for this layer
+                    {% trans "No checks for this layer" %}
                   {% endif %}
                 </td>
                 <td>
@@ -191,9 +192,9 @@
                     {% endif %}
                   </td>
                 {% else %}
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
+                  <td>{% trans "N/A" %}</td>
+                  <td>{% trans "N/A" %}</td>
+                  <td>{% trans "N/A" %}</td>
                 {% endif %}
               </tr>
           {% endfor %}
@@ -219,7 +220,7 @@
   </ul>
 
 {% else %}
-    <p>No layers are available.</p>
+    <p>{% trans "No layers are available" %}.</p>
 {% endif %}
 
 {% endblock %}
