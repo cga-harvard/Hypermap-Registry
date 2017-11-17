@@ -2,32 +2,61 @@
 
 ## Installation
 
+You can have a development working setup using one of the following methods:
+
+* Manual Installation (last tested: 11/17/2017)
+* Docker Installation (last tested: June 2017)
+
+Please provide feedback opening a ticket if these instructions are failing.
+
 ### Manual Installation
 
-Using ubuntu 14.04 (also works on 16.04)
+We will assume you are installing every Hypermap component (web application, search engine, RDBMS and task queue) on a single server, but they can be installed on different servers as well.
+
+#### Requirements
+
+Install the requirements:
 
 ```sh
 sudo apt-get update
-sudo apt-get install postgresql rabbitmq-server python-virtualenv git python-psycopg2 libjpeg-dev python-dev libxml2-dev libxslt-dev libxslt1-dev libpq-dev libgeos-dev
+sudo apt-get install gcc postgresql rabbitmq-server python-virtualenv git python-psycopg2 libjpeg-dev python-dev libxml2-dev libxslt-dev libxslt1-dev libpq-dev libgeos-dev memcached libmemcached-dev
 ```
+
+#### RDBMS
 
 Create PostgreSQL database.
 
 ```sh
-sudo -u postgres psql
-CREATE DATABASE hypermap;
-CREATE USER hypermap WITH superuser PASSWORD 'hypermap';
-\q
+CREATE ROLE hypermap WITH SUPERUSER LOGIN PASSWORD 'hypermap';
+CREATE DATABASE hypermap WITH OWNER hypermap;
+postgres=# \q
 ```
 
-Install java8 for elasticsearch
+#### Search Engine
+
+Install java8:
 ```sh
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
 sudo apt-get install oracle-java8-installer
 ```
+Now depending if you use Elasticsearch follow the search engine installation instructions:
 
-Install and configure elasticsearch
+##### Solr
+
+Install and start Solr, and create the hypermap schema:
+
+```sh
+cd /opt
+sudo wget http://archive.apache.org/dist/lucene/solr/6.6.2/solr-6.6.2.tgz
+sudo tar xzf solr-6.6.2.tgz solr-6.6.2/bin/install_solr_service.sh --strip-components=2
+sudo ./install_solr_service.sh solr-6.6.2.tgz
+sudo -u solr ./bin/solr create -c hypermap
+```
+
+##### Elasticsearch
+
+Install and start Elasticsearch:
 
 ```sh
 wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
@@ -37,27 +66,30 @@ sudo sed -i -e 's/#ES_HEAP_SIZE=2g/ES_HEAP_SIZE=1g/' /etc/default/elasticsearch
 sudo service elasticsearch start
 ```
 
-Install registry on a virtual environment.
+#### Web Application
+
+Install Hypermap on a virtual environment.
 
 ```sh
+cd ~
 virtualenv --no-site-packages env
 source env/bin/activate
 git clone https://github.com/cga-harvard/HHypermap.git
 cd HHypermap
-git checkout registry
 pip install -r requirements
 ```
+
 Create environment variables:
-1. Open /env/bin/activate in a text editor
-2. Copy and paste the scripts below to the end of "activate"
+
+Open /env/bin/activate in a text edit and copy and paste the lines below to the end (change the lines according to your configuration):
+
 ```sh
-#!/bin/bash
-export DATABASE_URL=postgres://hypermap:postgres@postgres:5432/hypermap
-export BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-export CACHE_URL=memcached://memcached:11211/
-export BASE_URL=django
-export ALLOWED_HOSTS=['django',]
-export REGISTRY_SEARCH_URL=elasticsearch+http://elasticsearch:9200/
+export DATABASE_URL=postgres://hypermap:hypermap@localhost:5432/hypermap
+export BROKER_URL=amqp://guest:guest@localhost:5672/
+export CACHE_URL=memcached://localhost:11211/
+export BASE_URL=http://localhost
+export ALLOWED_HOSTS=['localhost',]
+export REGISTRY_SEARCH_URL=solr+http://localhost:8983
 export REGISTRY_MAPPING_PRECISION=500m
 export REGISTRY_CHECK_PERIOD=120
 export REGISTRY_SKIP_CELERY=False
@@ -67,7 +99,9 @@ export REGISTRY_HARVEST_SERVICES=True
 export C_FORCE_ROOT=1
 export CELERY_DEFAULT_EXCHANGE=hypermap
 ```
-3.
+
+Activate again the virtualenv:
+
 ```
 source env/bin/activate
 ```
@@ -83,19 +117,31 @@ Finally, load fixtures
 python manage.py loaddata hypermap/aggregator/fixtures/catalog_default.json
 python manage.py loaddata hypermap/aggregator/fixtures/user.json
 ```
-Activate Celery
+
+If using Solr, update the schema:
+
+```sh
+python manage.py solr_scheme
 ```
-celery -A hypermap worker --beat --scheduler django -l info
-```
-Run server
+
+Run the Django server:
+
 ```
 python manage.py runserver
 ```
-### Running Hypermap on Docker
+
+Using another shell, start the Celery process after activating the virtualenv:
+
+```
+celery -A hypermap worker --beat --scheduler django -l info
+```
+
+Now if you browse to http://localhost:8000, Hypermap should be up and running.
+
+### Docker Installation
 
 Easiest way to have an HHypermap instance up and running is to use Docker.
 
-#### Docker installation
 ```
 wget https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz
 tar -xvzf docker-latest.tgz
@@ -143,7 +189,9 @@ You can edit the files with your IDE from your host, as the directory /code on t
 docker-compose restart celery
 ```
 
-##### Tests commands
+## For developers
+
+#### Tests commands
 
 *Unit tests* asserts the correct functionality of Hypermap workflow where an added endpoint, creates Services and their Layers, checks
  the correct metadata is being harvested and stored in DB and indexed in the Search backend.
@@ -214,12 +262,12 @@ To run all tests above in a single command:
 make test
 ```
 
-##### Travis Continuos Integration Server
+### Travis Continuos Integration Server
 
 `master` branch is automaticaly synced on https://travis-ci.org/ and reporting test results, too see how travis is running tests refer to the `.travis.yml` file placed in the project root.
 If you want to run tests in your local containers first, Execute travis-solo (`pip install travis-solo`) in directory containing .travis.yml configuration file. It’s return code will be 0 in case of success and non-zero in case of failure.
 
-##### Tool For Style Guide Enforcement
+#### Tool For Style Guide Enforcement
 
 The modular source code checker for `pep8`, `pyflakes` and `co` runs thanks to `flake8` already installed with the project requirements and can be executed with this command:
 
@@ -263,16 +311,6 @@ The makemessages and compilemessages needs the GNU gettext toolset to be install
 ```
 sudo apt-get install gettext
 ```
-
-## Known Issues in version 0.3.9
-
- - Items from Brazil appear in Australia: https://github.com/cga-harvard/HHypermap/issues/199
- - Service name is not set up properly when ingesting via CSW-T: https://github.com/cga-harvard/HHypermap/issues/200
- - Some bounding boxes are advertised as EPSG:4326 but have values in an invalid range: https://github.com/cga-harvard/HHypermap/issues/192
- - Service and Layer checks can cause overload on remote servers. Checks should not be so exhaustive. https://github.com/cga-harvard/HHypermap/issues/173
- - Last check date is not being reported, last modification date is being reported instead. https://github.com/cga-harvard/HHypermap/issues/201
- - Sibling services are being imported in ArcGIS services: https://github.com/cga-harvard/HHypermap/issues/203
-
 
 ## Changelog
 Master
