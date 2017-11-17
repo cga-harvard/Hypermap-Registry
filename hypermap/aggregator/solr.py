@@ -103,6 +103,7 @@ class SolrHypermap(object):
         :return:
         """
         schema_url = "{0}/solr/{1}/schema".format(SEARCH_URL, catalog)
+        print schema_url
 
         # create a special type to draw better heatmaps.
         location_rpt_quad_5m_payload = {
