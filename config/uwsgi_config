@@ -1,0 +1,37 @@
+[uwsgi]
+;unix socket (referenced in nginx configuration)
+socket = /tmp/%n.sock
+plugins=python
+buffer-size = 32768
+chmod-socket = 666
+log-date = true
+vacuum = true
+logto = /tmp/hypermap.log
+
+chdir = /home/ubuntu/HHypermap/
+module = hypermap.wsgi:application
+master=True
+home=/home/ubuntu/env
+enable-threads = true
+threads = 20
+vacuum = true
+
+env = BASE_URL=128.31.22.16
+env = BASE_PORT=80
+env = DJANGO_SECRET_KEY=your-key-here
+env = STATIC_ROOT=/var/www/hypermap/static/
+env = MEDIA_ROOT=/var/www/hypermap/media/
+env = CACHE_URL=pymemcached://127.0.0.1:11211
+env = BROKER_URL=amqp://user:password@localhost/hypermap
+env = DATABASE_URL=postgres://user:password@localhost:5432/hypermap
+env = REGISTRY_SKIP_CELERY=False
+env = REGISTRY_SEARCH_URL=solr+http://your-ip-here
+env = REGISTRY_SEARCH_BATCH_SIZE=200
+env = REGISTRY_SKIP_LAYERS_CHECK='False'
+env = REGISTRY_LIMIT_LAYERS=-1
+env = MAPPROXY_CACHE_DIR=/home/ubuntu/mapproxy_cache
+env = PAGINATION_DEFAULT_PAGINATION=5
+
+pidfile = /tmp/%n.pid
+;harakiri = 20 # respawn processes taking more than 20 seconds
+max-requests = 5000 # respawn processes after serving 5000 requests

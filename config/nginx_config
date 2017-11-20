@@ -1,0 +1,41 @@
+upstream solr {
+    server your-ip-here:8983 fail_timeout=0;
+}
+
+uwsgi_cache_path /tmp/nginxcache levels=1:2 keys_zone=hypercache:10m max_size=10g inactive=60m;
+
+server {
+
+    listen      80;
+    server_name 128.31.22.16;
+
+    sendfile    on;
+    client_max_body_size 200M;
+    keepalive_timeout 0;
+
+    location /solr/hypermap/select {
+        proxy_pass http://solr;
+    }
+
+    location /solr {
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        proxy_pass http://solr;
+    }
+
+    location /static/ {
+        alias   /var/www/hypermap/static/;
+    }
+    location /media/ {
+        alias   /var/www/hypermap/media/;
+    }
+
+    location / {
+       include     /etc/nginx/uwsgi_params;
+       add_header X-Cache-Status $upstream_cache_status;
+       uwsgi_pass  unix:///tmp/hypermap.sock;
+       uwsgi_read_timeout 30;
+       client_max_body_size 15M;
+       client_body_buffer_size 128K;
+    }
+}

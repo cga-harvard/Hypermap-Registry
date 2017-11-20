@@ -192,6 +192,14 @@ You can edit the files with your IDE from your host, as the directory /code on t
 docker-compose restart celery
 ```
 
+## Running Hypermap in production
+
+When running Hypermap in production it is highly recommended to use a proper web sever (nginx or Apache httpd) in place of the Django server.
+
+You can find a sample configuration for nginx and uwsgi in the config directory (nginx_sample and uwsgi_sample files).
+
+In case you want to automate this, there are ansible script for the deployment in the deploy/ansible directory (which need to be updated).
+
 ## For developers
 
 #### Tests commands
