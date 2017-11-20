@@ -27,6 +27,8 @@ sudo apt-get install gcc postgresql rabbitmq-server python-virtualenv git python
 Create PostgreSQL database.
 
 ```sh
+sudo -i -u postgres
+psql
 CREATE ROLE hypermap WITH SUPERUSER LOGIN PASSWORD 'hypermap';
 CREATE DATABASE hypermap WITH OWNER hypermap;
 postgres=# \q
@@ -76,7 +78,7 @@ virtualenv --no-site-packages env
 source env/bin/activate
 git clone https://github.com/cga-harvard/HHypermap.git
 cd HHypermap
-pip install -r requirements
+pip install -r requirements.txt
 ```
 
 Create environment variables:
