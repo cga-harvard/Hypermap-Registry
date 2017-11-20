@@ -135,6 +135,7 @@ python manage.py runserver
 Using another shell, start the Celery process after activating the virtualenv:
 
 ```
+cd HHypermap
 celery -A hypermap worker --beat --scheduler django -l info
 ```
 
