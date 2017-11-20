@@ -129,7 +129,7 @@ python manage.py solr_scheme
 Run the Django server:
 
 ```
-python manage.py runserver
+python manage.py runserver 0.0.0.0:8000
 ```
 
 Using another shell, start the Celery process after activating the virtualenv:
