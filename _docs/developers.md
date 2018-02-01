@@ -53,7 +53,7 @@ cd /opt
 sudo wget http://archive.apache.org/dist/lucene/solr/6.6.2/solr-6.6.2.tgz
 sudo tar xzf solr-6.6.2.tgz solr-6.6.2/bin/install_solr_service.sh --strip-components=2
 sudo ./install_solr_service.sh solr-6.6.2.tgz
-sudo -u solr ./bin/solr create -c hypermap
+sudo -u solr solr/bin/solr create -c hypermap
 ```
 
 ##### Elasticsearch
