@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, include, url
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 
 from django.contrib import admin
@@ -26,6 +27,8 @@ urlpatterns = patterns(
     url(r'^', include('django.contrib.auth.urls')),
 )
 
+# Serve static files
+urlpatterns += staticfiles_urlpatterns()
 urlpatterns += patterns(
     '',
     url(r'^media/(?P<path>.*)$',
