@@ -58,7 +58,7 @@ Pygments==2.2.0
 pylibmc==1.5.2
 pyparsing==2.2.0
 pyproj==1.9.3
-pysolr==3.3.3
+pysolr==3.7.0
 python-dateutil==2.5.3
 python-memcached==1.57
 python-mimeparse==1.5.2
