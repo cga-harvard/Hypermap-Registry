@@ -7,7 +7,7 @@ import requests
 import logging
 import uuid
 
-from urlparse import urlparse
+import urlparse
 from dateutil.parser import parse
 
 from django.conf import settings
@@ -290,7 +290,7 @@ class Service(Resource):
 
     @property
     def get_domain(self):
-        parsed_uri = urlparse(self.url)
+        parsed_uri = urlparse.urlparse(self.url)
         domain = '{uri.netloc}'.format(uri=parsed_uri)
         return domain
 
@@ -314,7 +314,6 @@ class Service(Resource):
         signals.post_save.disconnect(layer_post_save, sender=Layer)
 
         try:
-
             LOGGER.debug('Updating layers for service id %s' % self.id)
             if self.type == 'OGC:WMS':
                 update_layers_wms(self)
@@ -324,8 +323,10 @@ class Service(Resource):
                 update_layers_esri_mapserver(self)
             elif self.type == 'ESRI:ArcGIS:ImageServer':
                 update_layers_esri_imageserver(self)
+            elif self.type == 'Hypermap:WorldMapLegacy':
+                update_layers_wm_legacy(self)
             elif self.type == 'Hypermap:WorldMap':
-                update_layers_wm(self)
+                update_layers_geonode_wm(self)
             elif self.type == 'Hypermap:WARPER':
                 update_layers_warper(self)
 
@@ -400,7 +401,9 @@ class Service(Resource):
                 ])
             if self.type == 'Hypermap:WorldMap':
                 urllib2.urlopen(self.url)
-                title = 'Harvard WorldMap'
+            if self.type == 'Hypermap:WorldMapLegacy':
+                urllib2.urlopen(self.url)
+                title = 'Harvard WorldMap Legacy'
             if self.type == 'Hypermap:WARPER':
                 urllib2.urlopen(self.url)
             # update title without raising a signal and recursion
@@ -690,7 +693,7 @@ class Layer(Resource):
                                 column='0',
                                 format=image_format
                             )
-        elif self.type == 'Hypermap:WorldMap':
+        elif self.type in ('Hypermap:WorldMap', 'Hypermap:WorldMapLegacy'):
             ows = WebMapService(self.url,
                                 username=settings.REGISTRY_WORLDMAP_USERNAME,
                                 password=settings.REGISTRY_WORLDMAP_PASSWORD)
@@ -1232,9 +1235,164 @@ def update_layers_wmts(service):
         check.save()
 
 
-def update_layers_wm(service, num_layers=None):
+def update_layers_geonode_wm(service, num_layers=None):
     """
-    Update layers for an WorldMap.
+    Update layers for a WorldMap instance.
+    Sample endpoint: http://localhost:8000/
+    """
+    wm_api_url = urlparse.urljoin(service.url, 'worldmap/api/2.8/layer/?format=json')
+
+    if num_layers:
+        total = num_layers
+    else:
+        response = requests.get(wm_api_url)
+        data = json.loads(response.content)
+        total = data['meta']['total_count']
+
+    # set srs
+    # WorldMap supports only 4326, 900913, 3857
+    for crs_code in ['EPSG:4326', 'EPSG:900913', 'EPSG:3857']:
+        srs, created = SpatialReferenceSystem.objects.get_or_create(code=crs_code)
+        service.srs.add(srs)
+
+    service.update_validity()
+
+    layer_n = 0
+    limit = 10
+
+    for i in range(0, total, limit):
+        try:
+            url = (
+                    '%s&order_by=-date&offset=%s&limit=%s' % (wm_api_url, i, limit)
+            )
+            LOGGER.debug('Fetching %s' % url)
+            response = requests.get(url)
+            data = json.loads(response.content)
+            for row in data['objects']:
+                typename = row['typename']
+                #name = typename.split(':')[1]
+                name = typename
+                uuid = row['uuid']
+                LOGGER.debug('Updating layer %s' % name)
+                title = row['title']
+                abstract = row['abstract']
+                bbox = row['bbox']
+                page_url =  urlparse.urljoin(service.url, 'data/%s' % name)
+                category = ''
+                if 'topic_category' in row:
+                    category = row['topic_category']
+                username = ''
+                if 'owner_username' in row:
+                    username = row['owner_username']
+                temporal_extent_start = ''
+                if 'temporal_extent_start' in row:
+                    temporal_extent_start = row['temporal_extent_start']
+                temporal_extent_end = ''
+                if 'temporal_extent_end' in row:
+                    temporal_extent_end = row['temporal_extent_end']
+                # we use the geoserver virtual layer getcapabilities for wm endpoint
+                # TODO we should port make geoserver port configurable some way...
+                # endpoint = urlparse.urljoin(service.url, 'geoserver/geonode/%s/wms?' % name)
+                endpoint = urlparse.urljoin(service.url, 'geoserver/wms?')
+                endpoint = endpoint.replace('8000', '8080')
+                print endpoint
+                if 'is_public' in row:
+                    is_public = row['is_public']
+                layer, created = Layer.objects.get_or_create(
+                    service=service, catalog=service.catalog, name=name, uuid=uuid)
+                if created:
+                    LOGGER.debug('Added a new layer in registry: %s, %s' % (name, uuid))
+                if layer.active:
+                    links = [['Hypermap:WorldMap', endpoint]]
+                    # update fields
+                    layer.type = 'Hypermap:WorldMap'
+                    layer.title = title
+                    layer.abstract = abstract
+                    layer.is_public = is_public
+                    layer.url = endpoint
+                    layer.page_url = page_url
+                    # category and owner username
+                    layer_wm, created = LayerWM.objects.get_or_create(layer=layer)
+                    layer_wm.category = category
+                    layer_wm.username = username
+                    layer_wm.temporal_extent_start = temporal_extent_start
+                    layer_wm.temporal_extent_end = temporal_extent_end
+                    layer_wm.save()
+                    # bbox [x0, y0, x1, y1]
+                    # check if it is a valid bbox (TODO improve this check)
+                    #bbox = bbox.replace('-inf', 'None')
+                    #bbox = bbox.replace('inf', 'None')
+                    #if bbox.count(',') == 3:
+                    #    bbox_list = bbox[1:-1].split(',')
+                    #else:
+                    #    bbox_list = [None, None, None, None]
+                    x0 = format_float(bbox[0])
+                    y0 = format_float(bbox[1])
+                    x1 = format_float(bbox[2])
+                    y1 = format_float(bbox[3])
+                    # In many cases for some reason to be fixed GeoServer has x coordinates flipped in WM.
+                    x0, x1 = flip_coordinates(x0, x1)
+                    y0, y1 = flip_coordinates(y0, y1)
+                    layer.bbox_x0 = x0
+                    layer.bbox_y0 = y0
+                    layer.bbox_x1 = x1
+                    layer.bbox_y1 = y1
+                    # keywords
+                    keywords = []
+                    for keyword in row['keywords']:
+                        keywords.append(keyword['name'])
+                    layer.keywords.all().delete()
+                    for keyword in keywords:
+                        layer.keywords.add(keyword)
+                    layer.wkt_geometry = bbox2wktpolygon([x0, y0, x1, y1])
+                    layer.xml = create_metadata_record(
+                        identifier=str(layer.uuid),
+                        source=endpoint,
+                        links=links,
+                        format='Hypermap:WorldMap',
+                        type=layer.csw_type,
+                        relation=service.id_string,
+                        title=layer.title,
+                        alternative=name,
+                        abstract=layer.abstract,
+                        keywords=keywords,
+                        wkt_geometry=layer.wkt_geometry
+                    )
+                    layer.anytext = gen_anytext(layer.title, layer.abstract, keywords)
+                    layer.save()
+                    # dates
+                    add_mined_dates(layer)
+                    add_metadata_dates_to_layer([layer_wm.temporal_extent_start, layer_wm.temporal_extent_end], layer)
+                    layer_n = layer_n + 1
+                    # exits if DEBUG_SERVICES
+                    LOGGER.debug("Updated layer n. %s/%s" % (layer_n, total))
+                    if DEBUG_SERVICES and layer_n == DEBUG_LAYER_NUMBER:
+                        return
+
+        except Exception as err:
+            LOGGER.error('Error! %s' % err)
+
+    # update deleted layers. For now we check the whole set of deleted layers
+    # we should optimize it if the list will grow
+    # TODO implement the actions application
+    url = urlparse.urljoin(service.url, 'api/2.8/actionlayerdelete/?format=json')
+    LOGGER.debug('Fetching %s for detecting deleted layers' % url)
+    try:
+        response = requests.get(url)
+        data = json.loads(response.content)
+        for deleted_layer in data['objects']:
+            if Layer.objects.filter(uuid=deleted_layer['args']).count() > 0:
+                layer = Layer.objects.get(uuid=deleted_layer['args'])
+                layer.was_deleted = True
+                layer.save()
+                LOGGER.debug('Layer %s marked as deleted' % layer.uuid)
+    except Exception as err:
+        LOGGER.error('Error! %s' % err)
+
+
+def update_layers_wm_legacy(service, num_layers=None):
+    """
+    Update layers for a WorldMap Legacy instance.
     Sample endpoint: http://worldmap.harvard.edu/
     """
 

@@ -5,7 +5,8 @@ SERVICE_TYPES = (
     ('OSGeo:TMS', 'Tile Map Service (TMS)'),
     ('ESRI:ArcGIS:MapServer', 'ArcGIS REST MapServer'),
     ('ESRI:ArcGIS:ImageServer', 'ArcGIS REST ImageServer'),
-    ('Hypermap:WorldMap', 'Harvard WorldMap'),
+    ('Hypermap:WorldMap', 'GeoNode WorldMap'),
+    ('Hypermap:WorldMapLegacy', 'Harvard WorldMap Legacy'),
     ('Hypermap:WARPER', 'Mapwarper'),
 )
 
