@@ -1375,7 +1375,7 @@ def update_layers_geonode_wm(service, num_layers=None):
     # update deleted layers. For now we check the whole set of deleted layers
     # we should optimize it if the list will grow
     # TODO implement the actions application
-    url = urlparse.urljoin(service.url, 'api/2.8/actionlayerdelete/?format=json')
+    url = urlparse.urljoin(service.url, 'worldmap/api/2.8/actionlayerdelete/?format=json')
     LOGGER.debug('Fetching %s for detecting deleted layers' % url)
     try:
         response = requests.get(url)
