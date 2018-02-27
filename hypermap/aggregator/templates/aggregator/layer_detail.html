@@ -63,7 +63,7 @@
             {% if layer.service %}
             <li>{% trans "Service Hypermap Page" %}: <a href="{{ layer.service.get_absolute_url }}">{{ layer.service.title }}</a></li>
             {% endif %}
-            <li>{% trans "Layer Page" %}: <a href="{{ layer.page_url }}">{{ request.scheme }}://{{ request.get_host }}{{ layer.page_url|truncatechars:80 }}</a></li>
+            <li>{% trans "Layer Page" %}: <a href="{{ layer.page_url }}">{{ layer.page_url }}</a></li>
             <li>{% trans "Layer Hypermap EndPoint" %}: <a href="{{ request.scheme }}://{{ request.get_host }}/{{ layer.get_url_endpoint }}">{{ layer.get_url_endpoint|truncatechars:80 }}</a></li>
             {% if user.is_superuser %}
               <li>{% trans "Service EndPoint" %}: <a href="{{ layer.service.url }}">{{ layer.service.url|truncatechars:80 }}</a></li>
