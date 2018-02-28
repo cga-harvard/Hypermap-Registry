@@ -358,18 +358,23 @@ def index_all_layers(self):
 
 
 @shared_task(bind=True)
-def update_last_wm_layers(self, num_layers=10):
+def update_last_wm_layers(self, service_id, num_layers=10):
     """
     Update and index the last added and deleted layers (num_layers) in WorldMap service.
     """
     from hypermap.aggregator.models import Service
-    from hypermap.aggregator.models import update_layers_wm
 
     LOGGER.debug(
         'Updating the index the last %s added and %s deleted layers in WorldMap service'
         % (num_layers, num_layers)
                 )
-    service = Service.objects.filter(type='Hypermap:WorldMap')[0]
+    service = Service.objects.get(id=service_id)
+    # TODO raise error if service type is not WM type
+    if service.type == 'Hypermap:WorldMapLegacy':
+        from hypermap.aggregator.models import update_layers_wm_legacy as update_layers_wm
+    it service.type == 'Hypermap:WorldMap':
+        from hypermap.aggregator.models import update_layers_geonode_wm as update_layers_wm
+
     update_layers_wm(service, num_layers)
 
     # Remove in search engine last num_layers that were deleted
