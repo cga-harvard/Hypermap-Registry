@@ -372,7 +372,7 @@ def update_last_wm_layers(self, service_id, num_layers=10):
     # TODO raise error if service type is not WM type
     if service.type == 'Hypermap:WorldMapLegacy':
         from hypermap.aggregator.models import update_layers_wm_legacy as update_layers_wm
-    it service.type == 'Hypermap:WorldMap':
+    if service.type == 'Hypermap:WorldMap':
         from hypermap.aggregator.models import update_layers_geonode_wm as update_layers_wm
 
     update_layers_wm(service, num_layers)
