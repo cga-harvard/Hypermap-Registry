@@ -199,11 +199,11 @@ class HHypermapRepository(object):
         """
 
         # run the raw query and get total
+        # we want to exclude layers which are not valid, as it is done in the search engine
         if 'where' in constraint:  # GetRecords with constraint
-            query = self._get_repo_filter(Layer.objects).extra(where=[constraint['where']], params=constraint['values'])
-
+            query = self._get_repo_filter(Layer.objects).filter(is_valid=True).extra(where=[constraint['where']], params=constraint['values'])
         else:  # GetRecords sans constraint
-            query = self._get_repo_filter(Layer.objects)
+            query = self._get_repo_filter(Layer.objects).filter(is_valid=True)
 
         total = query.count()
 
