@@ -58,7 +58,7 @@ def check_service(self, service_id):
     # 2. check layers if the service is monitored and the layer is monitored
     if service.is_monitored:
         for layer in layer_to_process:
-            if layer.is_monitored:
+            if layer.is_monitored and not layer.was_deleted:
                 if not settings.REGISTRY_SKIP_CELERY:
                     check_layer.delay(layer.id)
                 else:
@@ -76,15 +76,18 @@ def check_service(self, service_id):
 def check_layer(self, layer_id):
     from hypermap.aggregator.models import Layer
     layer = Layer.objects.get(pk=layer_id)
-    LOGGER.debug('Checking layer %s' % layer.name)
-    success, message = layer.check_available()
-    # every time a layer is checked it should be indexed
-    # for now we remove indexing but we do it using a scheduled task unless SKIP_CELERY_TASK
-    if success and SEARCH_ENABLED:
-        if settings.REGISTRY_SKIP_CELERY:
-            index_layer(layer.id)
-        else:
-            index_layer(layer.id, use_cache=True)
+    if layer.was_deleted:
+        LOGGER.debug('Cannot check layer %s as it is marked as deleted!' % layer.name)
+    else:
+        LOGGER.debug('Checking layer %s' % layer.name)
+        success, message = layer.check_available()
+        # every time a layer is checked it should be indexed
+        # for now we remove indexing but we do it using a scheduled task unless SKIP_CELERY_TASK
+        if success and SEARCH_ENABLED:
+            if settings.REGISTRY_SKIP_CELERY:
+                index_layer(layer.id)
+            else:
+                index_layer(layer.id, use_cache=True)
 
 
 @shared_task(bind=True)
