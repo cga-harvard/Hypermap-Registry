@@ -9,9 +9,11 @@ Please provide feedback opening a ticket if these instructions are failing.
 
 ## Manual Installation
 
-We will assume you are installing every Hypermap component (web application, search engine, RDBMS and task queue) on a single server, but they can be installed on different servers as well.
+We will assume you are installing every Hypermap Registry component (web application, search engine, RDBMS and task queue) on a single server, but they can be installed on different servers as well.
 
 ### Requirements
+
+We are assuming a Ubuntu 16.04.1 LTS development environment, but these instructions can be adapted to any recent Linux distributions.
 
 Install the requirements:
 
@@ -22,7 +24,9 @@ sudo apt-get install gcc postgresql rabbitmq-server python-virtualenv git python
 
 ### RDBMS
 
-Create PostgreSQL database.
+As the database, we recommend to use PostgreSQL, but any RDBMS supported by Django can be used.
+
+Create PostgreSQL database:
 
 ```sh
 sudo -i -u postgres
@@ -34,15 +38,18 @@ postgres=# \q
 
 ### Search Engine
 
+Now you need to install a search engine, which can be Solr or Elasticsearch. Both of them require Java.
+
 Install java8:
 ```sh
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
 sudo apt-get install oracle-java8-installer
 ```
-Now depending if you use Elasticsearch follow the search engine installation instructions:
 
-#### Solr
+Now follow the instrcutions for Solr or Elasticsearch, depending on your scenario.
+
+#### Solr (Recommended)
 
 Install and start Solr, and create the hypermap schema:
 
@@ -66,22 +73,22 @@ sudo sed -i -e 's/#ES_HEAP_SIZE=2g/ES_HEAP_SIZE=1g/' /etc/default/elasticsearch
 sudo service elasticsearch start
 ```
 
+TODO explain how to create a schema in Elasticsearch.
+
 #### Web Application
 
-Install Hypermap on a virtual environment.
+Install Hypermap, which is a web application based on Django, using a virtual environment.
 
 ```sh
 cd ~
 virtualenv --no-site-packages env
 source env/bin/activate
-git clone https://github.com/cga-harvard/HHypermap.git
-cd HHypermap
+git clone https://github.com/cga-harvard/Hypermap-Registry.git
+cd Hypermap-Registry
 pip install -r requirements.txt
 ```
 
-Create environment variables:
-
-Open /env/bin/activate in a text edit and copy and paste the lines below to the end (change the lines according to your configuration):
+To set the environment variables, create an env_vars and copy and paste the lines below to the end (change the lines according to your configuration)
 
 ```sh
 export DATABASE_URL=postgres://hypermap:hypermap@localhost:5432/hypermap
@@ -90,7 +97,6 @@ export CACHE_URL=memcached://localhost:11211/
 export BASE_URL=http://localhost
 export ALLOWED_HOSTS=['localhost',]
 export REGISTRY_SEARCH_URL=solr+http://localhost:8983
-export REGISTRY_MAPPING_PRECISION=500m
 export REGISTRY_CHECK_PERIOD=120
 export REGISTRY_SKIP_CELERY=False
 export REGISTRY_LIMIT_LAYERS=0
@@ -100,13 +106,13 @@ export C_FORCE_ROOT=1
 export CELERY_DEFAULT_EXCHANGE=hypermap
 ```
 
-Activate again the virtualenv:
+Source the env_vars file
 
 ```
-source env/bin/activate
+source env_vars
 ```
 
-Execute migrations
+Execute migrations, which will generate the schema in the database:
 
 ```sh
 python manage.py migrate
@@ -141,7 +147,9 @@ Now if you browse to http://localhost:8000, Hypermap should be up and running.
 
 ## Docker Installation
 
-Easiest way to have an HHypermap instance up and running is to use Docker.
+You can have an Hypermap Registry instance up and running using Docker.
+
+Install Docker and Docker Compose:
 
 ```
 wget https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz
@@ -159,7 +167,6 @@ sudo usermod -aG docker $(whoami)
 sudo sysctl -w vm.max_map_count=262144
 ```
 
-
 ### Run docker in daemon
 
 ```sh
@@ -169,9 +176,8 @@ sudo dockerd
 ### Deployment of hhypermap within docker
 
 ```sh
-git clone https://github.com/cga-harvard/HHypermap.git
-cd HHypermap
-git checkout registry
+git clone https://github.com/cga-harvard/Hypermap-Registry.git
+cd Hypermap-Registry
 make up
 make sync
 ```
@@ -200,43 +206,38 @@ In case you want to automate this, there are ansible script for the deployment i
 
 ## For developers
 
-### Tests commands
+### Testing Hypermap Registry
 
-*Unit tests* asserts the correct functionality of Hypermap workflow where an added endpoint, creates Services and their Layers, checks
- the correct metadata is being harvested and stored in DB and indexed in the Search backend.
+If you want to provide pull requests to Hypermap-Registry, you should make sure that your changes don't break tests before submitting the pull request.
+
+*Unit tests* check the correct functionality of Hypermap workflow when an endpoint is added: some services and their layers are created, then the tests check
+ if the correct metadata are harvested and stored in DB and indexed in the search backend.
+
+ To run the unit tests:
 
 ```sh
 make test-unit
 ```
 
-*Solr backend* asserts the correct functionality of Solr implementation to index Layers with Solr and tests the Hypermap search API connected to that implementation by
-querying data by the most important fields.
-
-1. inserts 4 layers
-2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs).
+*Solr backend tests* check that the Solr search engine implementation works correctly: tests index layers in Solr and test the Hypermap search API is working properly.
 
 ```sh
 make test-solr
 ```
 
-*Elasticsearch backend* asserts the correct functionality of Elasticsearch implementation to index Layers with ES and tests the Hypermap search API connected to that implementation by
-querying data by the most important fields.
-
-1. inserts 4 layers
-2. test all match docs, q.text, q.geo, q.time and some facets, see the search API documentation. (#TODO link to the api docs).
+*Elasticsearch backend tests* check that the Elasticsearch search engine implementation works correctly: tests index layers in Elasticsearch and test the Hypermap search API is working properly.
 
 ```sh
 make test-elastic
 ```
 
-*Selenium Browser* is an end-to-end tests that runs a Firefox and emulates the user interaction with some basic actions to test the correct funcionality of
- the Django admin site and registry UI, this test covers the following actions:
+*Selenium Browser tests* emulate the user interaction in Firefox with some basic actions to test the correct functionality of the Django admin site and registry UI. Tests cover the following actions:
 
  1. admin login (user sessions works as expected)
  2. periodic tasks verifications (automatic periodic tasks are created on startup in order to perform important automatic tasks like check layers, index cached layers on search backend and clean up tasks)
- 3. upload endpoint list (file uploads correctly and store in db, it triggers all harvesting load like: create endpoints, create services and their layers, index layers in search backend and perform firsts service checks)
- 4. verify creation of endpoint, service and layers (previous workflow executed correctly)
- 5. browser the search backend url (should appear indexed layers previouly created)
+ 3. upload endpoint list (file with endpoint list is correctly uploaded and stored in the database, and triggers all harvesting actions like: create endpoints, create services and their layers, index layers in search backend and firsts service checks)
+ 4. verify creation of endpoint, service and layers
+ 5. check if the layers created in test are in the search backend url
  6. browser /registry/ (services created are being display to users correctly)
  7. browser service details (check basic service metadata present on the page)
  8. reset service checks (correct functionality should start new check tasks)
@@ -246,18 +247,20 @@ make test-elastic
  12. create new layer checks and verification (trigger the verification tasks and verifies it in service layers listing page)
  13. clear index (tests the clean up indice functionality)
 
+To run these tests:
 
 ```sh
 make test-endtoend-selenium-firefox
 ```
 
 Selenium and Firefox interaction can be viewed by connecting to VNC protocol, the easiest method is to use Safari.
+
 Just open up Safari and in the URL bar type `vnc://localhost:5900` hit enter and entry `secret` in the password field. Other method is using VNCViever: https://www.realvnc.com/download/viewer/
 
-*CSW-T* asserts the correct functionality of CSW transaction requests.
+*CSW-T tests* check the correct functionality of CSW transaction requests.
 
-1. inserts a full XML documents with `request=Transaction` and verifies Layers created correctly, the inserted document with 10 Layers can be found here: `data/cswt_insert.xml`
-2. verifies the Listing by calling  `request=GetRecords` and asserting 10 Layers created.
+1. inserts a full XML documents with `request=Transaction` and verifies layers are created correctly. This test use a fixture which can be found here: `data/cswt_insert.xml`
+2. verifies the listing by calling  `request=GetRecords` and asserting 10 Layers created.
 3. verifies the search by calling `request=GetRecords` and passing a `q` parameter.
 4. as that harvesting method also sends the layers to the search backend, a verification is made in order to assert the 10 layers created.
 
@@ -271,12 +274,7 @@ To run all tests above in a single command:
 make test
 ```
 
-### Travis Continuos Integration Server
-
-`master` branch is automaticaly synced on https://travis-ci.org/ and reporting test results, too see how travis is running tests refer to the `.travis.yml` file placed in the project root.
-If you want to run tests in your local containers first, Execute travis-solo (`pip install travis-solo`) in directory containing .travis.yml configuration file. It’s return code will be 0 in case of success and non-zero in case of failure.
-
-### Tool For Style Guide Enforcement
+#### Style guide enforcement
 
 The modular source code checker for `pep8`, `pyflakes` and `co` runs thanks to `flake8` already installed with the project requirements and can be executed with this command:
 
@@ -284,7 +282,11 @@ The modular source code checker for `pep8`, `pyflakes` and `co` runs thanks to `
 make flake
 ```
 
-Note that Travis-CI will assert flake returns 0 code incidences.
+#### Continuos integration
+
+`master` branch is automatically built on https://travis-ci.org/ Travis can be configured in the `.travis.yml` file placed in the project root.
+
+If you want to run tests in your local containers first, execute travis-solo (`pip install travis-solo`) in directory containing .travis.yml configuration file. It’s return code will be 0 in case of success and non-zero in case of failure.
 
 ### Translating Hypermap
 
