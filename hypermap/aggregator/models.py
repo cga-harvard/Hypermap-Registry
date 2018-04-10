@@ -1327,8 +1327,8 @@ def update_layers_geonode_wm(service, num_layers=None):
                     #else:
                     #    bbox_list = [None, None, None, None]
                     x0 = format_float(bbox[0])
-                    y0 = format_float(bbox[1])
-                    x1 = format_float(bbox[2])
+                    x1 = format_float(bbox[1])
+                    y0 = format_float(bbox[2])
                     y1 = format_float(bbox[3])
                     # In many cases for some reason to be fixed GeoServer has x coordinates flipped in WM.
                     x0, x1 = flip_coordinates(x0, x1)
