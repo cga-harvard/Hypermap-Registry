@@ -123,6 +123,7 @@ class SolrHypermap(object):
         # now the other fields
         fields = [
             {"name": "abstract", "type": "string"},
+            {"name": "abstract_txt", "type": "string"},
             {"name": "area", "type": "pdouble"},
             {"name": "availability", "type": "string"},
             {"name": "bbox", "type": "location_rpt_quad_5m"},
@@ -136,7 +137,9 @@ class SolrHypermap(object):
             {"name": "layer_datetype", "type": "string"},
             {"name": "layer_id", "type": "plong"},
             {"name": "layer_originator", "type": "string"},
+            {"name": "layer_originator_txt", "type": "string"},
             {"name": "layer_username", "type": "string"},
+            {"name": "layer_username_txt", "type": "string"},
             {"name": "location", "type": "string"},
             {"name": "max_x", "type": "pdouble"},
             {"name": "max_y", "type": "pdouble"},
@@ -157,6 +160,14 @@ class SolrHypermap(object):
             {"name": "centroid_x", "type": "pdouble"},
         ]
 
+        copy_fields = [
+            {"source": "*", "dest": "_text_"},
+            {"source": "title", "dest": "title_txt"},
+            {"source": "abstract", "dest": "abstract_txt"},
+            {"source": "layer_originator", "dest": "layer_originator_txt"},
+            {"source": "layer_username", "dest": "layer_username_txt"},
+        ]
+
         headers = {
             "Content-type": "application/json"
         }
@@ -165,4 +176,11 @@ class SolrHypermap(object):
             data = {
                 "add-field": field
             }
+            requests.post(schema_url, json=data, headers=headers)
+
+        for field in copy_fields:
+            data = {
+                "add-copy-field": field
+            }
+            print data
             requests.post(schema_url, json=data, headers=headers)
