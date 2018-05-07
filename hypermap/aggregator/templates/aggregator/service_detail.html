@@ -42,6 +42,14 @@
     <table class="table">
       <tbody>
         <tr>
+          <td><strong>{% trans "uuid" %}</strong></td>
+          <td>{{ service.uuid }}</td>
+        </tr>
+        <tr>
+          <td><strong>{% trans "id" %}</strong></td>
+          <td>{{ service.id }}</td>
+        </tr>
+        <tr>
           <td><strong>{% trans "Type" %}</strong></td>
           <td>{{ service.get_type_display }}</td>
         </tr>
