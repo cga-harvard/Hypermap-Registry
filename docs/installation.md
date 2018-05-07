@@ -137,11 +137,23 @@ Run the Django server:
 python manage.py runserver 0.0.0.0:8000
 ```
 
-Using another shell, start the Celery process after activating the virtualenv:
+#### Celery and RabbitMQ
+
+Using another shell, start rabbitmq and the Celery process after activating the virtualenv:
 
 ```
+sudo service rabbitmq-server start
 cd HHypermap
 celery -A hypermap worker --beat --scheduler django -l info
+```
+
+You may need to create a vhost and a user in RabbitMQ. For example, if the value for BROKER_URL is amqp://guest:guest@localhost:5672/
+
+```
+sudo rabbitmqctl add_vhost hypermap
+sudo rabbitmqctl add_user hypermap hypermap
+sudo rabbitmqctl set_user_tags hypermap administrator
+sudo rabbitmqctl set_permissions -p hypermap ".*" ".*" ".*"
 ```
 
 Now if you browse to http://localhost:8000, Hypermap should be up and running.
