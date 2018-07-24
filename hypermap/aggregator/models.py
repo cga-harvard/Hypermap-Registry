@@ -792,7 +792,7 @@ class Layer(Resource):
 
         # update thumb in model
         if img:
-            thumbnail_file_name = '%s.jpg' % self.name
+            thumbnail_file_name = '%s.jpg' % self.uuid
             upfile = SimpleUploadedFile(thumbnail_file_name, img.read(), "image/jpeg")
             self.thumbnail.save(thumbnail_file_name, upfile, True)
             LOGGER.debug('Thumbnail updated for layer %s' % self.name)
