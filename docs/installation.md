@@ -60,7 +60,8 @@ sudo wget http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VE
 sudo tar xzf solr-$SOLR_VERSION.tgz solr-$SOLR_VERSION/bin/install_solr_service.sh --strip-components=2
 sudo ./install_solr_service.sh solr-$SOLR_VERSION.tgz
 sudo -u solr solr/bin/solr create -c hypermap
-sudo -u solr solr/bin/solr config -c hypermap -p 8983 -property update.autoCreateFields -value false
+# in older version than 7.5.0: sudo -u solr solr/bin/solr config -c hypermap -p 8983 -property update.autoCreateFields -value false
+sudo -u solr solr/bin/solr config -c hypermap -p 8983 -action set-user-property -property update.autoCreateFields -value false
 ```
 
 #### Elasticsearch
