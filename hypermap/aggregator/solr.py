@@ -120,15 +120,49 @@ class SolrHypermap(object):
         }
         requests.post(schema_url, json=location_rpt_quad_5m_payload)
 
+        # create a special type to implement ngrm text for search.
+        text_ngrm_payload = {
+            "add-field-type": {
+                "name": "text_ngrm",
+                "class": "solr.TextField",
+                "positionIncrementGap": "100",
+                "indexAnalyzer" : {
+                    "tokenizer": {
+                        "class":"solr.WhitespaceTokenizerFactory"
+                    },
+                    "filters": [
+                            {
+                               "class": "solr.NGramFilterFactory",
+                               "minGramSize": "1",
+                               "maxGramSize": "50"
+                           },
+                           {
+                              "class": "solr.LowerCaseFilterFactory"
+                           }
+                    ]
+                },
+                "queryAnalyzer": {
+                    "tokenizer": {
+                        "class":"solr.WhitespaceTokenizerFactory"
+                    },
+                    "filters": [
+                            {
+                               "class": "solr.LowerCaseFilterFactory",
+                           },
+                    ]
+                },
+            }
+        }
+        requests.post(schema_url, json=text_ngrm_payload)
+
         # now the other fields
         fields = [
             {"name": "abstract", "type": "string"},
-            {"name": "abstract_txt", "type": "string"},
+            {"name": "abstract_txt", "type": "text_ngrm"},
             {"name": "area", "type": "pdouble"},
             {"name": "availability", "type": "string"},
             {"name": "bbox", "type": "location_rpt_quad_5m"},
             {"name": "domain_name", "type": "string"},
-            {"name": "id", "type": "plong", "required": True},
             {"name": "is_public", "type": "boolean"},
             {"name": "is_valid", "type": "boolean"},
             {"name": "keywords", "type": "string", "multiValued": True},
@@ -138,9 +172,9 @@ class SolrHypermap(object):
             {"name": "layer_datetype", "type": "string"},
             {"name": "layer_id", "type": "plong"},
             {"name": "layer_originator", "type": "string"},
-            {"name": "layer_originator_txt", "type": "string"},
+            {"name": "layer_originator_txt", "type": "text_ngrm"},
             {"name": "layer_username", "type": "string"},
-            {"name": "layer_username_txt", "type": "string"},
+            {"name": "layer_username_txt", "type": "text_ngrm"},
             {"name": "location", "type": "string"},
             {"name": "max_x", "type": "pdouble"},
             {"name": "max_y", "type": "pdouble"},
@@ -154,6 +188,7 @@ class SolrHypermap(object):
             {"name": "srs", "type": "string", "multiValued": True},
             {"name": "tile_url", "type": "string"},
             {"name": "title", "type": "string"},
+            {"name": "title_txt", "type": "text_ngrm"},
             {"name": "type", "type": "string"},
             {"name": "url", "type": "string"},
             {"name": "uuid", "type": "string", "required": True},
