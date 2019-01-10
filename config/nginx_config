@@ -24,10 +24,10 @@ server {
     }
 
     location /static/ {
-        alias   /var/www/hypermap/static/;
+        alias   /home/ubuntu/Hypermap-Registry/static/;
     }
     location /media/ {
-        alias   /var/www/hypermap/media/;
+        alias   /home/ubuntu/Hypermap-Registry/media/;
     }
 
     location / {

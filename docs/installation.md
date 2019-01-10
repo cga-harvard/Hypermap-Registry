@@ -54,7 +54,7 @@ Now follow the instrcutions for Solr or Elasticsearch, depending on your scenari
 Install and start Solr, and create the hypermap schema:
 
 ```sh
-export SOLR_VERSION=7.5.0
+export SOLR_VERSION=7.6.0
 cd /opt
 sudo wget http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 sudo tar xzf solr-$SOLR_VERSION.tgz solr-$SOLR_VERSION/bin/install_solr_service.sh --strip-components=2
@@ -218,6 +218,91 @@ When running Hypermap in production it is highly recommended to use a proper web
 You can find a sample configuration for nginx and uwsgi in the config directory (nginx_sample and uwsgi_sample files).
 
 In case you want to automate this, there are ansible script for the deployment in the deploy/ansible directory (which need to be updated).
+
+Here is how you can deploy Hypermap Registry using nginx and uwsgi in Ubuntu 16.04 LTS.
+
+Install requirements:
+
+```sh
+sudo apt install nginx supervisor
+```
+
+### wsgi configuration
+
+Create a wsgi .ini file to run the Hypermap application, for example /home/ubuntu/hypermap.ini. Copy in it the content from hyperma/config/uwsgi_config and adapt it to your needs. Make sure it correctly works by running:
+
+```sh
+/home/ubuntu/env/bin/uwsgi --ini hypermap.ini
+```
+
+Now create a service for the wsgi process by adding a file in /etc/systemd/system/hypermap.service like this:
+
+```sh
+[Unit]
+Description=uWSGI instance to serve Hyermap Registry
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+ExecStart=/home/ubuntu/env/bin/uwsgi --ini /home/ubuntu/hypermap.ini
+
+[Install]
+WantedBy=multi-user.target
+```
+
+To enable the server to start at server boot:
+
+```sh
+sudo systemctl enable hypermap.service
+```
+
+### nginx configuration
+
+Now create the nginx configuration file in /etc/nginx/sites-enabled/hypermap using the template in hypermap/config/nginx and restart nginx.
+
+### celery/rabbimq configuration
+
+For Celery we will use supervisor in order to run the celery process and the celerybeat process.
+
+Create a supervisor configuration for the celery process in /etc/supervisor/conf.d/celery.conf:
+
+```sh
+[program:celery]
+command=/home/ubuntu/Hypermap-Registry/config/celery_start.sh
+
+autostart=true
+autorestart=true
+
+user=www-data
+
+stdout_logfile=/tmp/celery.log
+redirect_stderr = true
+```
+
+Create another supervisor configuration for the celerybeat process in /etc/supervisor/conf.d/celerybeat.conf:
+
+```sh
+[program:celerybeat]
+command=/home/ubuntu/Hypermap-Registry/config/celerybeat_start.sh
+
+autostart=true
+autorestart=true
+
+user=www-data
+
+stdout_logfile=/tmp/celerybeat.log
+redirect_stderr = true
+```
+
+Now if you restart supervisor (sudo service supervisor restart) you should notice two process running in it:
+
+```sh
+sudo supervisorctl
+celery                           RUNNING   pid 1717, uptime 0:06:02
+celerybeat                       RUNNING   pid 1718, uptime 0:06:02
+supervisor>
+```
 
 ## For developers
 
