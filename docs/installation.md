@@ -2,7 +2,7 @@
 
 You can have a development working setup using one of the following methods:
 
-* Manual Installation (last tested: 11/17/2017)
+* Manual Installation (last tested: 01/11/2019)
 * Docker Installation (last tested: June 2017)
 
 Please provide feedback opening a ticket if these instructions are failing.
