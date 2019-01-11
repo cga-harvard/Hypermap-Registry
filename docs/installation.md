@@ -54,7 +54,7 @@ Now follow the instrcutions for Solr or Elasticsearch, depending on your scenari
 Install and start Solr, and create the hypermap schema:
 
 ```sh
-export SOLR_VERSION=7.6.0
+export SOLR_VERSION=7.3.0
 cd /opt
 sudo wget http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 sudo tar xzf solr-$SOLR_VERSION.tgz solr-$SOLR_VERSION/bin/install_solr_service.sh --strip-components=2
