@@ -126,31 +126,30 @@ class SolrHypermap(object):
                 "name": "text_ngrm",
                 "class": "solr.TextField",
                 "positionIncrementGap": "100",
-                "indexAnalyzer" : {
+                "indexAnalyzer": {
                     "tokenizer": {
-                        "class":"solr.WhitespaceTokenizerFactory"
+                        "class": "solr.WhitespaceTokenizerFactory"
                     },
                     "filters": [
-                            {
-                               "class": "solr.NGramFilterFactory",
-                               "minGramSize": "1",
-                               "maxGramSize": "50"
-                           },
-                           {
-                              "class": "solr.LowerCaseFilterFactory"
-                           }
+                        {
+                            "class": "solr.NGramFilterFactory",
+                            "minGramSize": "1",
+                            "maxGramSize": "50"
+                        }, {
+                            "class": "solr.LowerCaseFilterFactory"
+                        }
                     ]
                 },
                 "queryAnalyzer": {
                     "tokenizer": {
-                        "class":"solr.WhitespaceTokenizerFactory"
+                        "class": "solr.WhitespaceTokenizerFactory"
                     },
                     "filters": [
-                            {
-                               "class": "solr.LowerCaseFilterFactory",
-                           },
+                        {
+                            "class": "solr.LowerCaseFilterFactory",
+                        }
                     ]
-                },
+                }
             }
         }
         requests.post(schema_url, json=text_ngrm_payload)
