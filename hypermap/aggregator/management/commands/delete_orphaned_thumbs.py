@@ -1,5 +1,4 @@
 import os
-from uuid import UUID
 
 from django.conf import settings
 from django.core.management.base import BaseCommand

@@ -1270,14 +1270,14 @@ def update_layers_geonode_wm(service, num_layers=None):
             data = json.loads(response.content)
             for row in data['objects']:
                 typename = row['typename']
-                #name = typename.split(':')[1]
+                # name = typename.split(':')[1]
                 name = typename
                 uuid = row['uuid']
                 LOGGER.debug('Updating layer %s' % name)
                 title = row['title']
                 abstract = row['abstract']
                 bbox = row['bbox']
-                page_url =  urlparse.urljoin(service.url, 'data/%s' % name)
+                page_url = urlparse.urljoin(service.url, 'data/%s' % name)
                 category = ''
                 if 'topic_category' in row:
                     category = row['topic_category']
@@ -1320,11 +1320,11 @@ def update_layers_geonode_wm(service, num_layers=None):
                     layer_wm.save()
                     # bbox [x0, y0, x1, y1]
                     # check if it is a valid bbox (TODO improve this check)
-                    #bbox = bbox.replace('-inf', 'None')
-                    #bbox = bbox.replace('inf', 'None')
-                    #if bbox.count(',') == 3:
+                    # bbox = bbox.replace('-inf', 'None')
+                    # bbox = bbox.replace('inf', 'None')
+                    # if bbox.count(',') == 3:
                     #    bbox_list = bbox[1:-1].split(',')
-                    #else:
+                    # else:
                     #    bbox_list = [None, None, None, None]
                     x0 = format_float(bbox[0])
                     x1 = format_float(bbox[1])
@@ -1585,7 +1585,7 @@ def update_layers_warper(service):
                 layer, created = Layer.objects.get_or_create(name=name, service=service, catalog=service.catalog)
                 if layer.active:
                     # update fields
-                    links = [['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
+                    # links = [['OGC:WMTS', settings.SITE_URL.rstrip('/') + '/' + layer.get_url_endpoint()]]
                     layer.type = 'Hypermap:WARPER'
                     layer.title = title
                     layer.abstract = abstract
