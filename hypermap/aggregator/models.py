@@ -467,8 +467,7 @@ class Service(Resource):
 
             # some service now must be considered invalid:
             # 0. any service not exposed in SUPPORTED_SRS
-            # 1. any WMTS service
-            # 2. all of the NOAA layers
+            # 1. all of the NOAA layers
 
             is_valid = True
 
@@ -477,12 +476,12 @@ class Service(Resource):
                 LOGGER.debug('Service with id %s is marked invalid because in not exposed in SUPPORTED_SRS' % self.id)
                 is_valid = False
 
-            # 1. any WMTS service
-            if self.type == 'OGC:WMTS':
-                LOGGER.debug('Service with id %s is marked invalid because it is of type OGC:WMTS' % self.id)
-                is_valid = False
+            # any WMTS service (this criterium is now removed)
+            # if self.type == 'OGC:WMTS':
+            #     LOGGER.debug('Service with id %s is marked invalid because it is of type OGC:WMTS' % self.id)
+            #     is_valid = False
 
-            # 2. all of the NOAA layers
+            # 1. all of the NOAA layers
             if 'noaa' in self.url.lower():
                 LOGGER.debug('Service with id %s is marked invalid because it is from NOAA' % self.id)
                 is_valid = False
