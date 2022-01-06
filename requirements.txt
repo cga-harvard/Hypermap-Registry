@@ -8,7 +8,7 @@ arcrest==10.3
 backports.shutil-get-terminal-size==1.0.0
 beautifulsoup4==4.5.1
 billiard==3.5.0.2
-celery==4.0.2
+celery==5.2.2
 decorator==4.0.11
 dj-database-url==0.4.0
 Django==1.8.7
